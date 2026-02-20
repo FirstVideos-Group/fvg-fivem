@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-stress – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep: #0a0c12;
+            --fvg-bg-card: #161b24;
+            --fvg-bg-code: #0f172a;
+            --fvg-border:  #1e293b;
+            --fvg-text-p:  #f1f5f9;
+            --fvg-text-s:  #94a3b8;
+            --fvg-text-m:  #475569;
+            --fvg-accent:  #38bdf8;
+            --fvg-radius:  10px;
+            --fvg-font:    'Segoe UI', system-ui, sans-serif;
+            --clr-calm:    #22c55e;
+            --clr-mild:    #3b82f6;
+            --clr-high:    #f59e0b;
+            --clr-crit:    #ef4444;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 120px; max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.7; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,0.12);
+            color: var(--fvg-accent); font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle; border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.7; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+
+        /* Demo */
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .demo-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s; font-family: var(--fvg-font);
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+        .btn-calm    { background: rgba(34,197,94,0.15);  color: var(--clr-calm); border: 1px solid rgba(34,197,94,0.3); }
+        .btn-mild    { background: rgba(59,130,246,0.15); color: var(--clr-mild); border: 1px solid rgba(59,130,246,0.3); }
+        .btn-high    { background: rgba(245,158,11,0.15); color: var(--clr-high); border: 1px solid rgba(245,158,11,0.3); }
+        .btn-crit    { background: rgba(239,68,68,0.15);  color: var(--clr-crit); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-neutral { background: rgba(148,163,184,0.1); color: var(--fvg-text-s); border: 1px solid rgba(148,163,184,0.2); }
+
+        /* Élő stressz panel */
+        #stress-panel {
+            position: fixed; bottom: 28px; right: 28px;
+            width: 220px; z-index: 9999; pointer-events: none;
+        }
+        .sp-card {
+            background: rgba(18,21,30,0.95);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px; padding: 14px 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+            position: relative; overflow: hidden;
+        }
+        .sp-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            border-radius: 10px 0 0 10px;
+            background: var(--sc, #22c55e); transition: background 0.4s;
+        }
+        .sp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .sp-icon { font-size: 20px; color: var(--sc, #22c55e); transition: color 0.4s; }
+        .sp-info { flex: 1; }
+        .sp-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; }
+        .sp-level { font-size: 12px; font-weight: 700; color: var(--sc, #22c55e); transition: color 0.4s; }
+        .sp-val   { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--fvg-text-p); line-height: 1; }
+        .sp-pct   { font-size: 12px; font-weight: 500; color: var(--fvg-text-m); }
+        .sp-track { width: 100%; height: 6px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+        .sp-fill  { height: 100%; border-radius: 99px; background: var(--sc, #22c55e); transition: width 0.4s ease, background 0.4s; }
+        @keyframes sp-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .sp-fill.anim { animation: sp-pulse 0.8s ease-in-out infinite; }
+
+        /* Szint kártyák */
+        .level-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 14px; }
+        .level-card { padding: 10px 12px; border-radius: 8px; text-align: center; }
+        .lc-calm { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.2); }
+        .lc-mild { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); }
+        .lc-high { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+        .lc-crit { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2); }
+        .lc-name  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+        .lc-range { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+        .lc-eff   { font-size: 10px; color: var(--fvg-text-m); line-height: 1.5; }
+        .lc-calm .lc-name { color: var(--clr-calm); }
+        .lc-mild .lc-name { color: var(--clr-mild); }
+        .lc-high .lc-name { color: var(--clr-high); }
+        .lc-crit .lc-name { color: var(--clr-crit); }
+
+        #get-result { margin-top: 10px; font-size: 12px; color: var(--fvg-text-s); font-family: monospace; min-height: 18px; }
+
+        .trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .trigger-chip {
+            padding: 10px 12px; border-radius: 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--fvg-border);
+            display: flex; align-items: flex-start; gap: 9px;
+        }
+        .trigger-chip i { font-size: 16px; color: var(--fvg-text-m); flex-shrink: 0; margin-top: 1px; }
+        .tc-body .tc-name { font-size: 12px; font-weight: 700; color: var(--fvg-text-p); margin-bottom: 2px; }
+        .tc-body .tc-desc { font-size: 11px; color: var(--fvg-text-m); line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-stress <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Stressz rendszer – Export dokumentáció &amp; interaktív demo<br>
+    Adatbázis: <code style="font-size:12px;color:#7dd3fc">fvg_stress</code> tábla automatikusan regisztrálva az <strong>fvg-database</strong>-be.</p>
+</div>
+
+<!-- ══ Szintek ══ -->
+<section>
+    <div class="section-title">Stressz szintek és hatások</div>
+    <div class="card">
+        <div class="level-grid">
+            <div class="level-card lc-calm">
+                <div class="lc-name">Calm</div>
+                <div class="lc-range">0–25%</div>
+                <div class="lc-eff">Nincs hatás</div>
+            </div>
+            <div class="level-card lc-mild">
+                <div class="lc-name">Mild</div>
+                <div class="lc-range">26–50%</div>
+                <div class="lc-eff">Izzadás 30%</div>
+            </div>
+            <div class="level-card lc-high">
+                <div class="lc-name">High</div>
+                <div class="lc-range">51–75%</div>
+                <div class="lc-eff">Blur, kamera rázás, vörös tint, mozgáslassulás</div>
+            </div>
+            <div class="level-card lc-crit">
+                <div class="lc-name">Critical</div>
+                <div class="lc-range">76–100%</div>
+                <div class="lc-eff">Erős rázás, szívverés hang, max izzadás</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Automatikus triggerek ══ -->
+<section>
+    <div class="section-title">Automatikus stresszforrások</div>
+    <div class="card">
+        <div class="export-desc">A script automatikusan figyeli ezeket az eseményeket és szükség esetén növeli a stresszt. Mind konfigban be-/kikapcsolható és az értékük módosítható.</div>
+        <div class="trigger-grid">
+            <div class="trigger-chip">
+                <i class="hgi-stroke hgi-gun-02"></i>
+                <div class="tc-body">
+                    <div class="tc-name">Lövöldözés</div>
+                    <div class="tc-desc">IsPedShooting – tickenként +2.5%</div>
+                </div>
+            </div>
+            <div class="trigger-chip">
+                <i class="hgi-stroke hgi-shield-02"></i>
+                <div class="tc-body">
+                    <div class="tc-name">Találat érés</div>
+                    <div class="tc-desc">gameEventTriggered – +8.0% egyszer</div>
+                </div>
+            </div>
+            <div class="trigger-chip">
+                <i class="hgi-stroke hgi-car-03"></i>
+                <div class="tc-body">
+                    <div class="tc-name">Autóbaleset</div>
+                    <div class="tc-desc">Sebesség zuhanás → +6.0%</div>
+                </div>
+            </div>
+            <div class="trigger-chip">
+                <i class="hgi-stroke hgi-police-badge"></i>
+                <div class="tc-body">
+                    <div class="tc-name">Körözés</div>
+                    <div class="tc-desc">Wanted level > 0 → tickenként +1.5%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Kliens exportok ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-stress']:GetStress() → number</div>
+        <div class="export-sig">exports['fvg-stress']:GetStressLevel() → string</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">Az aktuális stressz értéket (0–100) és szint nevét adja vissza (<code>calm</code> / <code>mild</code> / <code>high</code> / <code>critical</code>).</div>
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoGet()"><i class="hgi-stroke hgi-information-circle"></i>GetStress()</button>
+        </div>
+        <div id="get-result"></div>
+        <div class="code-label">Lua példa</div>
+        <code>local val   = exports['fvg-stress']:GetStress()       -- pl. 72.4
+local level = exports['fvg-stress']:GetStressLevel()  -- pl. 'high'</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-stress']:AddStress(amount)</div>
+        <div class="export-sig">exports['fvg-stress']:RemoveStress(amount)</div>
+        <div class="export-sig">exports['fvg-stress']:SetStress(value)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Stressz hozzáadása, eltávolítása vagy pontos beállítása. Minden módosítás szinkronizálja a szervert és frissíti a HUD-ot.
+        </div>
+        <div class="demo-row">
+            <button class="demo-btn btn-crit"    onclick="demoAdd(15)">    <i class="hgi-stroke hgi-alert-02"></i>+15% stressz</button>
+            <button class="demo-btn btn-crit"    onclick="demoAdd(30)">    <i class="hgi-stroke hgi-alert-02"></i>+30% stressz</button>
+            <button class="demo-btn btn-calm"    onclick="demoRemove(20)"> <i class="hgi-stroke hgi-checkmark-circle-02"></i>-20% stressz</button>
+            <button class="demo-btn btn-calm"    onclick="demoSet(0)">     <i class="hgi-stroke hgi-checkmark-circle-02"></i>Reset (0%)</button>
+            <button class="demo-btn btn-high"    onclick="demoSet(60)">    <i class="hgi-stroke hgi-minus-sign"></i>Set 60%</button>
+            <button class="demo-btn btn-crit"    onclick="demoSet(90)">    <i class="hgi-stroke hgi-minus-sign"></i>Set 90%</button>
+        </div>
+        <div class="code-label">Lua példa – fvg-robbery bankrablás közben</div>
+        <code>-- Rablás megkezdésekor
+exports['fvg-stress']:AddStress(25)
+
+-- Rablás befejezve, menekülés
+exports['fvg-stress']:AddStress(10)
+
+-- Biztonságos helyen pihen
+exports['fvg-stress']:RemoveStress(15)
+
+-- Admin: teljes reset
+exports['fvg-stress']:SetStress(0)</code>
+    </div>
+</section>
+
+<!-- ══ Szerver exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+    <div class="card">
+        <div class="export-sig">exports['fvg-stress']:GetPlayerStress(source) → number | nil</div>
+        <div class="export-sig">exports['fvg-stress']:SetPlayerStress(source, value) → boolean</div>
+        <div class="export-sig">exports['fvg-stress']:ModifyPlayerStress(source, amount) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Szerver oldalról kezeli egy játékos stresszét. A <code>ModifyPlayerStress</code> pozitív értékkel növel, negatívval csökkent. Automatikusan szinkronizálja a klienst.
+        </div>
+        <div class="code-label">Lua példa – fvg-admin stressz reset parancs</div>
+        <code>-- Admin parancs: célpont stresszének törlése
+exports['fvg-stress']:SetPlayerStress(targetSrc, 0)
+
+-- Szerver oldali esemény: mindenkit stresszel (pl. szirénák)
+local players = exports['fvg-playercore']:GetAllPlayers()
+for _, p in ipairs(players) do
+    exports['fvg-stress']:ModifyPlayerStress(p.source, 5)
+end</code>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A stressz csökkentésének leggyakoribb módja más scripteknél a <strong>RemoveStress</strong> kliens export hívása – pl. <code>fvg-inventory</code> whiskey / cigaretta fogyasztásakor, vagy <code>fvg-drugs</code> kellemes hatásánál.</span>
+        </div>
+    </div>
+</section>
+
+<!-- Élő panel -->
+<div id="stress-panel">
+    <div class="sp-card" id="sp-card" style="--sc: #22c55e">
+        <div class="sp-top">
+            <i class="sp-icon hgi-stroke hgi-brain-02"></i>
+            <div class="sp-info">
+                <div class="sp-label">Stressz szint</div>
+                <div class="sp-level" id="sp-level">Calm</div>
+            </div>
+            <div>
+                <span class="sp-val" id="sp-val">0</span>
+                <span class="sp-pct">%</span>
+            </div>
+        </div>
+        <div class="sp-track">
+            <div class="sp-fill" id="sp-fill" style="width:0%"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let stressVal = 0;
+
+    function getLevel(v) {
+        if (v <= 25) return 'calm';
+        if (v <= 50) return 'mild';
+        if (v <= 75) return 'high';
+        return 'critical';
+    }
+    function getLevelColor(l) {
+        return l === 'calm' ? '#22c55e' : l === 'mild' ? '#3b82f6' : l === 'high' ? '#f59e0b' : '#ef4444';
+    }
+    function getLevelLabel(l) {
+        return l === 'calm' ? 'Calm – Nyugodt' : l === 'mild' ? 'Mild – Enyhe' : l === 'high' ? 'High – Magas' : 'Critical – Kritikus';
+    }
+
+    function updatePanel() {
+        const v   = Math.max(0, Math.min(100, stressVal));
+        const lv  = getLevel(v);
+        const clr = getLevelColor(lv);
+        document.getElementById('sp-card').style.setProperty('--sc', clr);
+        document.getElementById('sp-val').textContent   = Math.round(v);
+        document.getElementById('sp-level').textContent = getLevelLabel(lv);
+        const fill = document.getElementById('sp-fill');
+        fill.style.width = v + '%';
+        fill.className = 'sp-fill' + (lv === 'critical' ? ' anim' : '');
+    }
+
+    function demoAdd(amt)    { stressVal = Math.min(100, stressVal + amt); updatePanel(); }
+    function demoRemove(amt) { stressVal = Math.max(0, stressVal - amt);   updatePanel(); }
+    function demoSet(v)      { stressVal = v; updatePanel(); }
+    function demoGet() {
+        const lv = getLevel(stressVal);
+        const el = document.getElementById('get-result');
+        el.innerHTML = `→ GetStress() = <span style="color:${getLevelColor(lv)}">${Math.round(stressVal)}</span> | GetStressLevel() = <span style="color:${getLevelColor(lv)}">'${lv}'</span>`;
+    }
+
+    updatePanel();
+</script>
+</body>
+</html>
