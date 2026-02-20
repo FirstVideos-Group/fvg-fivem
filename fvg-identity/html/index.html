@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-identity</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ────────────────────────────────────── -->
+        <div class="panel-header">
+            <div class="header-left">
+                <i class="hgi-stroke hgi-user-id-verification"></i>
+                <div>
+                    <div class="header-title" id="panel-title">Karakterregisztráció</div>
+                    <div class="header-sub" id="panel-sub">Töltsd ki az adataidat az első belépéshez</div>
+                </div>
+            </div>
+            <button class="close-btn hidden" id="close-btn">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+
+        <!-- ── LÉPÉS JELZŐK ──────────────────────────────── -->
+        <div class="steps-bar">
+            <div class="step active" data-step="1">
+                <div class="step-num">1</div>
+                <span>Személyi adatok</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2">
+                <div class="step-num">2</div>
+                <span>Külső megjelenés</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3">
+                <div class="step-num">3</div>
+                <span>Ruházat</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="4">
+                <div class="step-num">4</div>
+                <span>Összefoglalás</span>
+            </div>
+        </div>
+
+        <!-- ── TARTALOM ───────────────────────────────────── -->
+        <div class="panel-body">
+
+            <!-- ══ 1. SZEMÉLYI ADATOK ══ -->
+            <div class="step-content active" id="step-1">
+                <div class="form-grid">
+                    <div class="form-col">
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-user-circle"></i>Keresztnév</label>
+                            <input class="field-input" id="f-firstname" placeholder="pl. János" maxlength="16"/>
+                            <span class="field-hint">Csak betűk, min. 2 karakter</span>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-user-circle"></i>Vezetéknév</label>
+                            <input class="field-input" id="f-lastname" placeholder="pl. Kovács" maxlength="16"/>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-male-female"></i>Nem</label>
+                            <div class="sex-toggle" id="sex-toggle">
+                                <button class="sex-btn active" data-sex="0"><i class="hgi-stroke hgi-male"></i>Férfi</button>
+                                <button class="sex-btn" data-sex="1"><i class="hgi-stroke hgi-female"></i>Nő</button>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-calendar-03"></i>Születési dátum</label>
+                            <input class="field-input" id="f-dob" type="date"/>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-clock-02"></i>Kor <span id="age-display" class="field-value-badge">–</span></label>
+                            <input class="field-range" id="f-age" type="range" min="18" max="80" value="25"
+                                oninput="Creator.updateAge(this.value)"/>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-arrow-up-02"></i>Magasság <span id="height-display" class="field-value-badge">175 cm</span></label>
+                            <input class="field-range" id="f-height" type="range" min="150" max="210" value="175"
+                                oninput="Creator.updateHeight(this.value)"/>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-weight-scale"></i>Súly <span id="weight-display" class="field-value-badge">75 kg</span></label>
+                            <input class="field-range" id="f-weight" type="range" min="45" max="150" value="75"
+                                oninput="Creator.updateWeight(this.value)"/>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i class="hgi-stroke hgi-globe-02"></i>Nemzetiség</label>
+                            <input class="field-input" id="f-nationality" value="Los Santos" maxlength="40"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ 2. KÜLSŐ MEGJELENÉS ══ -->
+            <div class="step-content" id="step-2">
+                <div class="appearance-grid">
+
+                    <div class="app-section">
+                        <div class="app-section-title"><i class="hgi-stroke hgi-face-id"></i>Arcforma</div>
+                        <div class="slider-field">
+                            <label>Arcforma ID <span id="shape-display" class="field-value-badge">0</span></label>
+                            <input type="range" class="field-range" id="f-shape" min="0" max="45" value="0"
+                                oninput="Creator.updateAppearance('shapeId', this.value)"/>
+                        </div>
+                        <div class="slider-field">
+                            <label>Bőrszín</label>
+                            <div class="chip-list" id="skintone-chips"></div>
+                        </div>
+                    </div>
+
+                    <div class="app-section">
+                        <div class="app-section-title"><i class="hgi-stroke hgi-haircut"></i>Haj</div>
+                        <div class="slider-field">
+                            <label>Hajstílus</label>
+                            <div class="chip-list" id="hairstyle-chips"></div>
+                        </div>
+                        <div class="slider-field">
+                            <label>Hajszín</label>
+                            <div class="chip-list" id="haircolor-chips"></div>
+                        </div>
+                    </div>
+
+                    <div class="app-section">
+                        <div class="app-section-title"><i class="hgi-stroke hgi-eye"></i>Szemek</div>
+                        <div class="slider-field">
+                            <label>Szemszín</label>
+                            <div class="chip-list" id="eyecolor-chips"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ══ 3. RUHÁZAT ══ -->
+            <div class="step-content" id="step-3">
+                <div class="clothes-grid">
+
+                    <div class="clothes-card">
+                        <div class="clothes-icon"><i class="hgi-stroke hgi-t-shirt"></i></div>
+                        <div class="clothes-label">Felsőtest</div>
+                        <div class="clothes-controls">
+                            <label>Stílus <span id="top-display" class="field-value-badge">15</span></label>
+                            <input type="range" class="field-range" id="f-top" min="0" max="150" value="15"
+                                oninput="Creator.updateClothes('top', this.value)"/>
+                            <label>Textúra <span id="toptex-display" class="field-value-badge">0</span></label>
+                            <input type="range" class="field-range" id="f-toptex" min="0" max="15" value="0"
+                                oninput="Creator.updateClothes('topTex', this.value)"/>
+                        </div>
+                    </div>
+
+                    <div class="clothes-card">
+                        <div class="clothes-icon"><i class="hgi-stroke hgi-pants"></i></div>
+                        <div class="clothes-label">Nadrág</div>
+                        <div class="clothes-controls">
+                            <label>Stílus <span id="pants-display" class="field-value-badge">14</span></label>
+                            <input type="range" class="field-range" id="f-pants" min="0" max="150" value="14"
+                                oninput="Creator.updateClothes('pants', this.value)"/>
+                            <label>Textúra <span id="pantstex-display" class="field-value-badge">0</span></label>
+                            <input type="range" class="field-range" id="f-pantstex" min="0" max="15" value="0"
+                                oninput="Creator.updateClothes('pantsTex', this.value)"/>
+                        </div>
+                    </div>
+
+                    <div class="clothes-card">
+                        <div class="clothes-icon"><i class="hgi-stroke hgi-sneaker"></i></div>
+                        <div class="clothes-label">Cipő</div>
+                        <div class="clothes-controls">
+                            <label>Stílus <span id="shoes-display" class="field-value-badge">34</span></label>
+                            <input type="range" class="field-range" id="f-shoes" min="0" max="100" value="34"
+                                oninput="Creator.updateClothes('shoes', this.value)"/>
+                            <label>Textúra <span id="shoestex-display" class="field-value-badge">0</span></label>
+                            <input type="range" class="field-range" id="f-shoestex" min="0" max="15" value="0"
+                                oninput="Creator.updateClothes('shoesTex', this.value)"/>
+                        </div>
+                    </div>
+
+                    <div class="clothes-card">
+                        <div class="clothes-icon"><i class="hgi-stroke hgi-shirt-01"></i></div>
+                        <div class="clothes-label">Ing / alap</div>
+                        <div class="clothes-controls">
+                            <label>Stílus <span id="shirt-display" class="field-value-badge">15</span></label>
+                            <input type="range" class="field-range" id="f-shirt" min="0" max="150" value="15"
+                                oninput="Creator.updateClothes('shirt', this.value)"/>
+                            <label>Textúra <span id="shirttex-display" class="field-value-badge">0</span></label>
+                            <input type="range" class="field-range" id="f-shirttex" min="0" max="15" value="0"
+                                oninput="Creator.updateClothes('shirtTex', this.value)"/>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ══ 4. ÖSSZEFOGLALÁS ══ -->
+            <div class="step-content" id="step-4">
+                <div class="summary-layout">
+
+                    <!-- Személyi igazolvány kártya -->
+                    <div class="id-card" id="id-card">
+                        <div class="id-card-header">
+                            <div class="id-flag"><i class="hgi-stroke hgi-city-03"></i></div>
+                            <div class="id-header-text">
+                                <div class="id-city">LOS SANTOS</div>
+                                <div class="id-type">SZEMÉLYI AZONOSÍTÓ</div>
+                            </div>
+                        </div>
+                        <div class="id-card-body">
+                            <div class="id-avatar"><i class="hgi-stroke hgi-user-circle"></i></div>
+                            <div class="id-fields">
+                                <div class="id-row"><span class="id-field-label">Név</span><span class="id-field-val" id="sum-name">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Nem</span><span class="id-field-val" id="sum-sex">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Születési dátum</span><span class="id-field-val" id="sum-dob">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Kor</span><span class="id-field-val" id="sum-age">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Magasság</span><span class="id-field-val" id="sum-height">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Súly</span><span class="id-field-val" id="sum-weight">–</span></div>
+                                <div class="id-row"><span class="id-field-label">Nemzetiség</span><span class="id-field-val" id="sum-nationality">–</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Megjelenés összefoglaló -->
+                    <div class="app-summary">
+                        <div class="app-sum-title">Megjelenés összefoglaló</div>
+                        <div class="app-sum-rows" id="app-sum-rows">
+                            <!-- dinamikusan töltődik -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── NAVIGÁCIÓ ──────────────────────────────────── -->
+        <div class="panel-footer">
+            <button class="nav-btn secondary" id="btn-back" onclick="Creator.prevStep()" disabled>
+                <i class="hgi-stroke hgi-arrow-left-02"></i>Vissza
+            </button>
+            <div class="step-dots" id="step-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+            <button class="nav-btn primary" id="btn-next" onclick="Creator.nextStep()">
+                Következő<i class="hgi-stroke hgi-arrow-right-02"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

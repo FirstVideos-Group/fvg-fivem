@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-identity – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep: #0a0c12; --fvg-bg-card: #161b24; --fvg-bg-code: #0f172a;
+            --fvg-border: #1e293b; --fvg-text-p: #f1f5f9; --fvg-text-s: #94a3b8;
+            --fvg-text-m: #475569; --fvg-accent: #38bdf8; --fvg-radius: 10px;
+            --fvg-font: 'Segoe UI', system-ui, sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); padding: 48px 28px 120px;
+            max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.7; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,0.12); color: var(--fvg-accent);
+            font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+            letter-spacing: 0.05em; margin-left: 10px; vertical-align: middle;
+            border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border); padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.8; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .side-event  { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .pv { font-family: monospace; color: #7dd3fc; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace; white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px; color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+        .warn-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(245,158,11,0.07);
+            border: 1px solid rgba(245,158,11,0.2); font-size: 12px; color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+
+        /* Flow */
+        .flow { display: flex; flex-direction: column; gap: 0; }
+        .flow-row { display: flex; gap: 8px; }
+        .flow-box {
+            flex: 1; padding: 9px 12px; border-radius: 8px; font-size: 11px; font-weight: 600;
+            border: 1px solid var(--fvg-border); text-align: center;
+            display: flex; align-items: center; justify-content: center;
+            gap: 7px; line-height: 1.4; color: var(--fvg-text-s);
+            background: rgba(255,255,255,0.02);
+        }
+        .flow-box.blue   { background: rgba(56,189,248,0.07);  border-color: rgba(56,189,248,0.2);  color: #38bdf8; }
+        .flow-box.green  { background: rgba(34,197,94,0.07);   border-color: rgba(34,197,94,0.2);   color: #22c55e; }
+        .flow-box.purple { background: rgba(168,85,247,0.07);  border-color: rgba(168,85,247,0.2);  color: #a855f7; }
+        .flow-box.yellow { background: rgba(245,158,11,0.07);  border-color: rgba(245,158,11,0.2);  color: #f59e0b; }
+        .flow-down { height: 20px; display: flex; align-items: center; justify-content: center; color: var(--fvg-text-m); font-size: 13px; }
+
+        /* Demo */
+        .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        .demo-card {
+            background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .demo-card-title { font-size: 11px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 7px; }
+        .demo-card-title i { font-size: 14px; color: var(--fvg-accent); }
+        .demo-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.15s; font-family: var(--fvg-font); width: 100%;
+        }
+        .demo-btn:hover { opacity: 0.8; }
+        .btn-accent  { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
+        .btn-success { background: rgba(34,197,94,0.15);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .btn-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .demo-output { font-family: monospace; font-size: 11px; color: var(--fvg-text-m); min-height: 18px; margin-top: 4px; }
+        .demo-output.ok  { color: #22c55e; }
+        .demo-output.err { color: #ef4444; }
+        .demo-select, .demo-input {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--fvg-border);
+            border-radius: 7px; padding: 7px 10px; color: var(--fvg-text-p);
+            font-size: 12px; outline: none; font-family: var(--fvg-font); width: 100%;
+        }
+
+        /* Appearance mező táblázat */
+        .app-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+        .app-field {
+            padding: 9px 12px; border-radius: 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--fvg-border);
+        }
+        .app-field-name { font-family: monospace; font-size: 12px; color: #a78bfa; margin-bottom: 3px; }
+        .app-field-type { font-size: 10px; color: #f59e0b; font-family: monospace; }
+        .app-field-desc { font-size: 11px; color: var(--fvg-text-m); margin-top: 3px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-identity <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Karakterregisztráció és személyiség kezelés – Export dokumentáció<br>
+    Adatbázis: <code style="color:#7dd3fc;font-size:12px">fvg_identity</code> tábla automatikusan regisztrálva. NUI alapú 4 lépéses karakter létrehozó.</p>
+</div>
+
+<!-- ── Életciklus ── -->
+<section>
+    <div class="section-title">Regisztrációs életciklus</div>
+    <div class="card">
+        <div class="flow">
+            <div class="flow-row">
+                <div class="flow-box blue"><i class="hgi-stroke hgi-user-add-02"></i>PlayerLoaded esemény<br><span style="font-size:10px;opacity:.6">fvg-playercore</span></div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box yellow"><i class="hgi-stroke hgi-database-02"></i>fvg_identity lekérdezés<br><span style="font-size:10px;opacity:.6">fvg-database:QuerySingle</span></div>
+            </div>
+            <div class="flow-down">↓ talált / nem talált</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-checkmark-circle-02"></i>Meglévő játékos<br>ApplyAppearance küldés</div>
+                <div class="flow-box purple"><i class="hgi-stroke hgi-user-plus-02"></i>Új játékos<br>OpenCreator NUI</div>
+            </div>
+            <div class="flow-down">↓ (NUI mentés után)</div>
+            <div class="flow-row">
+                <div class="flow-box blue"><i class="hgi-stroke hgi-floppy-disk"></i>SaveIdentity → DB mentés<br>ApplyAppearance + playercore szinkron</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-checkmark-circle-02"></i>fvg-identity:server:IdentitySaved esemény<br><span style="font-size:10px;opacity:.6">más scriptek reagálhatnak</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Szerver exportok ── -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-identity']:GetPlayerIdentity(source) → table | nil</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Visszaadja a játékos teljes identity objektumát a szerver oldali cache-ből. Tartalmazza a személyi adatokat és az <code>appearance</code> táblát is.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">firstname</td>   <td class="pt">string</td>  <td>Keresztnév</td></tr>
+                <tr><td class="pn">lastname</td>    <td class="pt">string</td>  <td>Vezetéknév</td></tr>
+                <tr><td class="pn">sex</td>         <td class="pt">number</td>  <td><span class="pv">0</span> = férfi, <span class="pv">1</span> = nő</td></tr>
+                <tr><td class="pn">dob</td>         <td class="pt">string</td>  <td>Születési dátum (YYYY-MM-DD)</td></tr>
+                <tr><td class="pn">age</td>         <td class="pt">number</td>  <td>Kor (18–80)</td></tr>
+                <tr><td class="pn">height</td>      <td class="pt">number</td>  <td>Magasság cm-ben</td></tr>
+                <tr><td class="pn">weight</td>      <td class="pt">number</td>  <td>Súly kg-ban</td></tr>
+                <tr><td class="pn">nationality</td> <td class="pt">string</td>  <td>Nemzetiség szövege</td></tr>
+                <tr><td class="pn">appearance</td>  <td class="pt">table</td>   <td>Megjelenés adatok (ld. alább)</td></tr>
+                <tr><td class="pn">registered</td>  <td class="pt">boolean</td> <td>Regisztrált-e a játékos</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">appearance mező részletei</div>
+        <div class="app-fields">
+            <div class="app-field"><div class="app-field-name">shapeId</div><div class="app-field-type">number (0–45)</div><div class="app-field-desc">SetPedHeadBlendData arcforma ID</div></div>
+            <div class="app-field"><div class="app-field-name">skinId</div><div class="app-field-type">number (0–5)</div><div class="app-field-desc">Bőrtónus ID</div></div>
+            <div class="app-field"><div class="app-field-name">hairStyle</div><div class="app-field-type">number</div><div class="app-field-desc">Hajstílus – Component 2</div></div>
+            <div class="app-field"><div class="app-field-name">hairColor</div><div class="app-field-type">number (0–10)</div><div class="app-field-desc">SetPedHairColor</div></div>
+            <div class="app-field"><div class="app-field-name">eyeColor</div><div class="app-field-type">number (0–5)</div><div class="app-field-desc">SetPedEyeColor</div></div>
+            <div class="app-field"><div class="app-field-name">top / topTex</div><div class="app-field-type">number</div><div class="app-field-desc">Felsőtest Component 11</div></div>
+            <div class="app-field"><div class="app-field-name">pants / pantsTex</div><div class="app-field-type">number</div><div class="app-field-desc">Nadrág Component 4</div></div>
+            <div class="app-field"><div class="app-field-name">shoes / shoesTex</div><div class="app-field-type">number</div><div class="app-field-desc">Cipő Component 6</div></div>
+        </div>
+        <div class="code-label">Lua példa – fvg-jobs belépéskor</div>
+        <code>AddEventHandler('fvg-identity:server:IdentitySaved', function(src, identity, isNew)
+    local fullName = identity.firstname .. ' ' .. identity.lastname
+    print('[fvg-jobs] Játékos neve: ' .. fullName)
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-identity']:HasIdentity(source) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Megmondja, hogy egy játékos elvégezte-e már a karakterregisztrációt. Más scriptek ezt használhatják, hogy ne próbáljanak adatot lekérni regisztrációt nem végzett játékosokról.
+        </div>
+        <div class="code-label">Lua példa – védett esemény</div>
+        <code>RegisterNetEvent('fvg-banking:server:GetBalance', function()
+    local src = source
+    if not exports['fvg-identity']:HasIdentity(src) then return end
+    -- ...
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-identity']:SetPlayerIdentity(source, field, value) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Egy adott mező módosítása a szerver oldali cache-ben (nem menti DB-be automatikusan). Admin scripteknél vagy egyedi eseményeknél hasznos.
+        </div>
+        <div class="code-label">Lua példa</div>
+        <code>-- Telefonszám beállítás (fvg-phone)
+exports['fvg-identity']:SetPlayerIdentity(src, 'phone', '555-0142')</code>
+    </div>
+</section>
+
+<!-- ── Kliens exportok ── -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+    <div class="card">
+        <div class="export-sig">exports['fvg-identity']:GetLocalIdentity() → table | nil</div>
+        <div class="export-sig">exports['fvg-identity']:IsRegistered() → boolean</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            A kliens oldali cache-ből adja vissza az identity adatokat. Az <code>ApplyAppearance</code> esemény után mindig naprakész.
+        </div>
+        <div class="code-label">Lua példa – fvg-hud kliens</div>
+        <code>-- Névtábla megjelenítés
+local identity = exports['fvg-identity']:GetLocalIdentity()
+if identity then
+    local name = identity.firstname .. ' ' .. identity.lastname
+    -- HUD-on megjelenítés...
+end
+
+-- Regisztráció ellenőrzés
+if not exports['fvg-identity']:IsRegistered() then
+    return  -- Még nincs karaktere
+end</code>
+    </div>
+</section>
+
+<!-- ── Szerver események ── -->
+<section>
+    <div class="section-title">Szerver események</div>
+    <div class="card">
+        <table class="param-table">
+            <thead><tr><th>Esemény neve</th><th>Oldal</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="pn">fvg-identity:server:IdentitySaved</td>
+                    <td><span class="export-side side-event" style="margin:0">Server</span></td>
+                    <td class="pt">src, identity, isNew</td>
+                    <td>Karakter mentésekor / frissítésekor. <span class="pv">isNew</span> = első regisztráció-e</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-identity:client:Ready</td>
+                    <td><span class="export-side side-client" style="margin:0">Client</span></td>
+                    <td class="pt">identity</td>
+                    <td>Megjelenés alkalmazása után – kliens oldali scriptek ekkor indíthatják logikájukat</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – több script reagálása</div>
+        <code>-- fvg-hud client.lua: megjelenés alkalmazása után HUD frissítés
+AddEventHandler('fvg-identity:client:Ready', function(identity)
+    exports['fvg-hud']:SetModuleValue('name', {
+        firstname = identity.firstname,
+        lastname  = identity.lastname,
+        visible   = true
+    })
+end)
+
+-- fvg-banking server.lua: első belépéskor bankszámla létrehozás
+AddEventHandler('fvg-identity:server:IdentitySaved', function(src, identity, isNew)
+    if not isNew then return end
+    local player = exports['fvg-playercore']:GetPlayer(src)
+    exports['fvg-database']:Insert(
+        'INSERT IGNORE INTO `fvg_bank` (`player_id`, `balance`) VALUES (?, ?)',
+        { player.id, 2500.00 }
+    )
+end)</code>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Az <strong>fvg-identity:client:Ready</strong> esemény az ajánlott belépési pont a kliens oldali scriptek számára a játékos megjelenésének és személyi adatainak biztonságos eléréséhez — ez garantálja, hogy a ped modell és a HeadBlendData már alkalmazva van.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── Interaktív demo ── -->
+<section>
+    <div class="section-title">Interaktív export demo</div>
+    <div class="card">
+        <div class="demo-grid">
+
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-user-id-verification"></i>GetPlayerIdentity</div>
+                <select class="demo-select" id="d-identity-state">
+                    <option value="new">Nem regisztrált játékos</option>
+                    <option value="male">Regisztrált – Férfi</option>
+                    <option value="female">Regisztrált – Nő</option>
+                </select>
+                <button class="demo-btn btn-accent" onclick="demoGetIdentity()">
+                    <i class="hgi-stroke hgi-user-id-verification"></i>GetPlayerIdentity(src)
+                </button>
+                <div class="demo-output" id="d-identity-out"></div>
+            </div>
+
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-checkmark-circle-02"></i>HasIdentity</div>
+                <select class="demo-select" id="d-has-state">
+                    <option value="yes">Regisztrált</option>
+                    <option value="no">Nem regisztrált</option>
+                </select>
+                <button class="demo-btn btn-success" onclick="demoHasIdentity()">
+                    <i class="hgi-stroke hgi-checkmark-circle-02"></i>HasIdentity(src)
+                </button>
+                <div class="demo-output" id="d-has-out"></div>
+            </div>
+
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-edit-02"></i>SetPlayerIdentity</div>
+                <select class="demo-select" id="d-set-field" style="margin-bottom:4px">
+                    <option value="firstname">firstname</option>
+                    <option value="lastname">lastname</option>
+                    <option value="nationality">nationality</option>
+                    <option value="age">age</option>
+                </select>
+                <input class="demo-input" id="d-set-value" placeholder="Új érték..." style="margin-bottom:4px"/>
+                <button class="demo-btn btn-warning" onclick="demoSetIdentity()">
+                    <i class="hgi-stroke hgi-edit-02"></i>SetPlayerIdentity futtatás
+                </button>
+                <div class="demo-output" id="d-set-out"></div>
+            </div>
+
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-information-circle"></i>GetLocalIdentity (kliens)</div>
+                <select class="demo-select" id="d-local-state">
+                    <option value="loaded">Karakter betöltve</option>
+                    <option value="none">Nem betöltve</option>
+                </select>
+                <button class="demo-btn btn-accent" onclick="demoLocalIdentity()">
+                    <i class="hgi-stroke hgi-information-circle"></i>GetLocalIdentity()
+                </button>
+                <div class="demo-output" id="d-local-out"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── server.cfg ── -->
+<section>
+    <div class="section-title">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql
+ensure fvg-database
+ensure fvg-playercore
+ensure fvg-notify
+ensure fvg-identity     # ← itt, playercore után
+ensure fvg-needs
+ensure fvg-stress
+ensure fvg-admin
+ensure fvg-hud</code>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>Az <strong>fvg-identity</strong>-nek az <strong>fvg-playercore</strong> után kell indulnia, mivel a <code>PlayerLoaded</code> eseményre reagálva ellenőrzi, hogy az adott játékosnak van-e már karaktere. Ha előbb indul, az esemény nem lesz elkapva.</span>
+        </div>
+    </div>
+</section>
+
+<script>
+    const mockIdentities = {
+        male: {
+            firstname:'János', lastname:'Kovács', sex:0, dob:'1995-04-12',
+            age:29, height:182, weight:82, nationality:'Los Santos',
+            appearance:{ shapeId:5, skinId:2, hairStyle:1, hairColor:3, eyeColor:1,
+                         top:15, topTex:0, pants:14, pantsTex:0, shoes:34, shoesTex:0, shirt:15, shirtTex:0 },
+            registered:true
+        },
+        female: {
+            firstname:'Mária', lastname:'Nagy', sex:1, dob:'1998-09-23',
+            age:26, height:168, weight:58, nationality:'Los Santos',
+            appearance:{ shapeId:12, skinId:1, hairStyle:3, hairColor:6, eyeColor:2,
+                         top:22, topTex:1, pants:9, pantsTex:0, shoes:12, shoesTex:0, shirt:8, shirtTex:0 },
+            registered:true
+        }
+    };
+
+    const cachedIdentity = { value: null };
+
+    function demoGetIdentity() {
+        const state = document.getElementById('d-identity-state').value;
+        const el    = document.getElementById('d-identity-out');
+        if (state === 'new') {
+            el.className = 'demo-output err';
+            el.innerHTML = `→ GetPlayerIdentity(src) = <span style="color:#ef4444">nil</span> (nem regisztrált)`;
+        } else {
+            const id = mockIdentities[state];
+            cachedIdentity.value = id;
+            el.className = 'demo-output ok';
+            el.innerHTML = `→ { firstname: '<span style="color:#86efac">${id.firstname}</span>',`
+                + ` lastname: '<span style="color:#86efac">${id.lastname}</span>',`
+                + ` sex: <span style="color:#f59e0b">${id.sex}</span>,`
+                + ` age: <span style="color:#f59e0b">${id.age}</span>,`
+                + ` height: <span style="color:#f59e0b">${id.height}</span>,`
+                + ` registered: <span style="color:#22c55e">true</span> }`;
+        }
+    }
+
+    function demoHasIdentity() {
+        const state = document.getElementById('d-has-state').value;
+        const el    = document.getElementById('d-has-out');
+        const has   = state === 'yes';
+        el.className = 'demo-output ' + (has ? 'ok' : 'err');
+        el.innerHTML = `→ HasIdentity(src) = <strong style="color:${has ? '#22c55e' : '#ef4444'}">${has}</strong>`;
+    }
+
+    function demoSetIdentity() {
+        const field = document.getElementById('d-set-field').value;
+        const value = document.getElementById('d-set-value').value;
+        const el    = document.getElementById('d-set-out');
+        if (!value.trim()) {
+            el.className = 'demo-output err'; el.textContent = '→ Hiba: üres érték'; return;
+        }
+        if (cachedIdentity.value) cachedIdentity.value[field] = value;
+        el.className = 'demo-output ok';
+        el.innerHTML = `→ SetPlayerIdentity(src, '<span style="color:#a78bfa">${field}</span>', '<span style="color:#86efac">${value}</span>') = <strong style="color:#22c55e">true</strong>`;
+    }
+
+    function demoLocalIdentity() {
+        const state = document.getElementById('d-local-state').value;
+        const el    = document.getElementById('d-local-out');
+        if (state === 'none') {
+            el.className = 'demo-output err';
+            el.innerHTML = `→ GetLocalIdentity() = <span style="color:#ef4444">nil</span>`;
+        } else {
+            const id = mockIdentities.male;
+            el.className = 'demo-output ok';
+            el.innerHTML = `→ IsRegistered() = <strong style="color:#22c55e">true</strong><br>`
+                + `→ GetLocalIdentity().firstname = '<span style="color:#86efac">${id.firstname}</span>'`;
+        }
+    }
+</script>
+</body>
+</html>
