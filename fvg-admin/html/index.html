@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-admin</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ─────────────────────────────────── -->
+        <div class="panel-header">
+            <div class="header-left">
+                <i class="hgi-stroke hgi-shield-user"></i>
+                <span>Admin Panel</span>
+                <span class="role-badge" id="role-badge">admin</span>
+            </div>
+            <div class="header-right">
+                <button class="hdr-btn" id="btn-refresh" title="Frissítés"><i class="hgi-stroke hgi-refresh"></i></button>
+                <button class="hdr-btn danger" id="btn-close" title="Bezárás"><i class="hgi-stroke hgi-cancel-01"></i></button>
+            </div>
+        </div>
+
+        <!-- ── TAB SÁV ─────────────────────────────────── -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="players"><i class="hgi-stroke hgi-user-multiple-02"></i>Játékosok</button>
+            <button class="tab" data-tab="vehicles"><i class="hgi-stroke hgi-car-03"></i>Járművek</button>
+            <button class="tab" data-tab="server"><i class="hgi-stroke hgi-server-04"></i>Szerver</button>
+            <button class="tab" data-tab="bans"><i class="hgi-stroke hgi-ban"></i>Banok</button>
+        </div>
+
+        <!-- ── TARTALOM ────────────────────────────────── -->
+        <div class="panel-body">
+
+            <!-- ══ JÁTÉKOSOK TAB ══ -->
+            <div class="tab-content active" id="tab-players">
+                <div class="split-layout">
+
+                    <!-- Játékos lista -->
+                    <div class="player-list-col">
+                        <div class="search-bar">
+                            <i class="hgi-stroke hgi-search-02"></i>
+                            <input type="text" id="search-input" placeholder="Keresés..."/>
+                        </div>
+                        <div class="player-list" id="player-list">
+                            <!-- dinamikusan töltődik -->
+                        </div>
+                    </div>
+
+                    <!-- Kiválasztott játékos akciói -->
+                    <div class="player-detail-col" id="player-detail">
+                        <div class="no-selection">
+                            <i class="hgi-stroke hgi-user-circle"></i>
+                            <span>Válassz játékost a listából</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ══ JÁRMŰVEK TAB ══ -->
+            <div class="tab-content" id="tab-vehicles">
+                <div class="veh-top-actions">
+                    <button class="action-btn danger" onclick="App.deleteVehicle()"><i class="hgi-stroke hgi-delete-02"></i>Jármű törlés</button>
+                    <button class="action-btn success" onclick="App.fixVehicle()"><i class="hgi-stroke hgi-wrench-01"></i>Jármű javítás</button>
+                </div>
+                <div id="veh-categories">
+                    <!-- dinamikusan töltődik -->
+                </div>
+            </div>
+
+            <!-- ══ SZERVER TAB ══ -->
+            <div class="tab-content" id="tab-server">
+                <div class="server-grid">
+
+                    <!-- Időjárás -->
+                    <div class="server-card">
+                        <div class="sc-title"><i class="hgi-stroke hgi-sun-cloud-02"></i>Időjárás</div>
+                        <div class="weather-grid" id="weather-grid"></div>
+                    </div>
+
+                    <!-- Idő -->
+                    <div class="server-card">
+                        <div class="sc-title"><i class="hgi-stroke hgi-clock-02"></i>Szerver idő</div>
+                        <div class="time-controls">
+                            <div class="time-row">
+                                <label>Óra</label>
+                                <input type="range" id="time-hour" min="0" max="23" value="12" oninput="document.getElementById('time-hour-val').textContent = this.value"/>
+                                <span id="time-hour-val" class="range-val">12</span>
+                            </div>
+                            <div class="time-row">
+                                <label>Perc</label>
+                                <input type="range" id="time-minute" min="0" max="59" value="0" oninput="document.getElementById('time-minute-val').textContent = this.value"/>
+                                <span id="time-minute-val" class="range-val">0</span>
+                            </div>
+                            <button class="action-btn full" onclick="App.setTime()"><i class="hgi-stroke hgi-checkmark-circle-02"></i>Idő beállítása</button>
+                        </div>
+                    </div>
+
+                    <!-- Bejelentés -->
+                    <div class="server-card full-width">
+                        <div class="sc-title"><i class="hgi-stroke hgi-megaphone-02"></i>Szerver bejelentés</div>
+                        <div class="announce-row">
+                            <input type="text" id="announce-input" class="text-input" placeholder="Bejelentés szövege..."/>
+                            <button class="action-btn warning" onclick="App.announce()"><i class="hgi-stroke hgi-sent"></i>Küldés</button>
+                        </div>
+                    </div>
+
+                    <!-- Noclip -->
+                    <div class="server-card">
+                        <div class="sc-title"><i class="hgi-stroke hgi-fly"></i>Noclip</div>
+                        <button class="action-btn toggle" id="noclip-btn" onclick="App.toggleNoclip()">
+                            <i class="hgi-stroke hgi-fly"></i>Noclip bekapcsolás
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ══ BANOK TAB ══ -->
+            <div class="tab-content" id="tab-bans">
+                <div class="ban-header">
+                    <button class="action-btn" onclick="App.getBanList()"><i class="hgi-stroke hgi-refresh"></i>Lista frissítése</button>
+                </div>
+                <div class="ban-search-bar">
+                    <i class="hgi-stroke hgi-search-02"></i>
+                    <input type="text" id="ban-search" placeholder="Keresés identifier / név alapján..." oninput="App.filterBans()"/>
+                </div>
+                <div class="ban-list" id="ban-list">
+                    <div class="empty-state"><i class="hgi-stroke hgi-information-circle"></i>Kattints a "Lista frissítése" gombra</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL ─────────────────────────────────────────────── -->
+<div id="modal" class="hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span id="modal-title">Megerősítés</span>
+            <button class="hdr-btn" onclick="App.closeModal()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+        </div>
+        <div id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

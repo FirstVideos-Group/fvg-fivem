@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-admin – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep: #0a0c12;
+            --fvg-bg-card: #161b24;
+            --fvg-bg-code: #0f172a;
+            --fvg-border:  #1e293b;
+            --fvg-text-p:  #f1f5f9;
+            --fvg-text-s:  #94a3b8;
+            --fvg-text-m:  #475569;
+            --fvg-accent:  #38bdf8;
+            --fvg-radius:  10px;
+            --fvg-font:    'Segoe UI', system-ui, sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 120px; max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.7; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,0.12);
+            color: var(--fvg-accent); font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle; border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.8;
+        }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-server { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .side-event  { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th {
+            font-size: 10px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.08em; text-align: left;
+            padding: 6px 10px; border-bottom: 1px solid var(--fvg-border);
+        }
+        .param-table td {
+            font-size: 12px; padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: top; color: var(--fvg-text-s);
+        }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .pv { font-family: monospace; color: #7dd3fc; }
+        .code-label {
+            font-size: 10px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 6px; margin-top: 14px;
+        }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        code .cm  { color: #475569; }
+        code .kw  { color: #a78bfa; }
+        code .str { color: #86efac; }
+        code .num { color: #f59e0b; }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+        .warn-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(245,158,11,0.07);
+            border: 1px solid rgba(245,158,11,0.2); font-size: 12px;
+            color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+
+        /* Jogosultság táblázat */
+        .perm-table { width: 100%; border-collapse: collapse; }
+        .perm-table th {
+            font-size: 10px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            text-align: left; padding: 8px 12px;
+            border-bottom: 1px solid var(--fvg-border);
+        }
+        .perm-table td {
+            padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 12px; color: var(--fvg-text-s);
+        }
+        .perm-table tr:last-child td { border-bottom: none; }
+        .perm-table td:first-child { font-family: monospace; color: #7dd3fc; }
+        .role-chip {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px; margin-right: 4px;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .r-mod   { background: rgba(56,189,248,0.12); color: #38bdf8;  border: 1px solid rgba(56,189,248,0.2); }
+        .r-admin { background: rgba(168,85,247,0.12); color: #a855f7;  border: 1px solid rgba(168,85,247,0.2); }
+        .r-super { background: rgba(239,68,68,0.12);  color: #ef4444;  border: 1px solid rgba(239,68,68,0.2); }
+
+        /* Interaktív demo */
+        .demo-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        .demo-card {
+            background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .demo-card-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .demo-card-title i { font-size: 14px; color: var(--fvg-accent); }
+        .demo-input {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--fvg-border);
+            border-radius: 7px; padding: 7px 10px; color: var(--fvg-text-p);
+            font-size: 12px; outline: none; font-family: var(--fvg-font); width: 100%;
+        }
+        .demo-input:focus { border-color: rgba(56,189,248,0.4); }
+        .demo-select {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--fvg-border);
+            border-radius: 7px; padding: 7px 10px; color: var(--fvg-text-p);
+            font-size: 12px; outline: none; font-family: var(--fvg-font); width: 100%;
+        }
+        .demo-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s; font-family: var(--fvg-font);
+            width: 100%;
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+        .btn-danger  { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .btn-success { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .btn-accent  { background: rgba(56,189,248,0.15); color: var(--fvg-accent); border: 1px solid rgba(56,189,248,0.25); }
+        .btn-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .btn-neutral { background: rgba(148,163,184,0.1); color: var(--fvg-text-s); border: 1px solid rgba(148,163,184,0.2); }
+        .demo-output {
+            font-family: monospace; font-size: 11px; color: var(--fvg-text-m);
+            min-height: 18px; margin-top: 4px;
+        }
+        .demo-output.ok  { color: #22c55e; }
+        .demo-output.err { color: #ef4444; }
+
+        /* ACE konfig blokk */
+        .ace-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .ace-card {
+            padding: 12px 14px; border-radius: 9px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--fvg-border);
+        }
+        .ace-role  { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+        .ace-ace   { font-family: monospace; font-size: 11px; color: #7dd3fc; margin-bottom: 6px; }
+        .ace-perms { font-size: 11px; color: var(--fvg-text-m); line-height: 1.7; }
+
+        @media (max-width: 700px) {
+            .demo-section { grid-template-columns: 1fr; }
+            .ace-grid     { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-admin <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Admin rendszer – szerver export dokumentáció, ACE jogosultságok, interaktív demo<br>
+    <strong>Csak szerver oldali exportok.</strong> A NUI menü F10 billentyűvel nyitható, de ez a konfigban módosítható.</p>
+</div>
+
+<!-- ══ ACE Jogosultságok ══ -->
+<section>
+    <div class="section-title">ACE jogosultságok és szerepkörök</div>
+    <div class="card">
+        <div class="export-desc">
+            Az <strong>fvg-admin</strong> a FiveM beépített ACE (Access Control Entry) rendszerét használja. A <code>server.cfg</code>-ben kell megadni, ki milyen szerepkört kap. Minden szerver-oldali esemény <strong>IsPlayerAceAllowed</strong>-dal ellenőriz a végrehajtás előtt.
+        </div>
+        <div class="ace-grid">
+            <div class="ace-card">
+                <div class="ace-role" style="color:#38bdf8">Moderátor</div>
+                <div class="ace-ace">fvg.moderator</div>
+                <div class="ace-perms">Kick, Freeze<br>Teleport, Spectate<br>Revive</div>
+            </div>
+            <div class="ace-card">
+                <div class="ace-role" style="color:#a855f7">Admin</div>
+                <div class="ace-ace">fvg.admin</div>
+                <div class="ace-perms">+ Ban, Godmode<br>+ Needs/Stress set<br>+ Jármű spawn<br>+ Időjárás, Idő<br>+ Announce, Noclip</div>
+            </div>
+            <div class="ace-card">
+                <div class="ace-role" style="color:#ef4444">Superadmin</div>
+                <div class="ace-ace">fvg.superadmin</div>
+                <div class="ace-perms">Teljes hozzáférés<br>+ Unban<br>+ Karakter szerkesztés</div>
+            </div>
+        </div>
+        <div class="code-label">server.cfg példa</div>
+        <code># Spieler hozzárendelése szerepkörhöz
+add_ace identifier.license:abc123def456  fvg.superadmin  allow
+add_ace identifier.license:fedcba654321  fvg.admin       allow
+add_ace identifier.license:111222333444  fvg.moderator   allow
+
+# Steam ID alapon is működik
+add_ace identifier.steam:11000010abcdef  fvg.admin       allow</code>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>Minden szerver esemény <strong>kétszer ellenőriz</strong>: először a szerepkört, majd az adott funkcióra vonatkozó konkrét jogot (<code>Config.FunctionPerms</code>). Ha valaki event-tel próbálja megkerülni a NUI-t, szerver oldalon sem fog sikerülni.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Jogosultság táblázat ══ -->
+<section>
+    <div class="section-title">Funkció-jogosultság mátrix</div>
+    <div class="card">
+        <table class="perm-table">
+            <thead>
+                <tr>
+                    <th>Funkció</th>
+                    <th>Leírás</th>
+                    <th>Szerepkörök</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>kick</td>
+                    <td>Játékos kirúgása indokkal</td>
+                    <td><span class="role-chip r-mod">moderátor</span><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>ban</td>
+                    <td>Időzített vagy örök kitiltás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>freeze</td>
+                    <td>Játékos mozgásának befagyasztása</td>
+                    <td><span class="role-chip r-mod">moderátor</span><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>teleport</td>
+                    <td>Teleport oda / ide</td>
+                    <td><span class="role-chip r-mod">moderátor</span><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>spectate</td>
+                    <td>Játékos megfigyelése</td>
+                    <td><span class="role-chip r-mod">moderátor</span><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>revive</td>
+                    <td>Játékos felébresztése</td>
+                    <td><span class="role-chip r-mod">moderátor</span><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>godmode</td>
+                    <td>Sebezhetetlen állapot be/ki</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>setneeds</td>
+                    <td>Éhség / szomjúság beállítás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>setstress</td>
+                    <td>Stressz érték beállítás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>spawnveh</td>
+                    <td>Jármű spawolás, javítás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>deleteveh</td>
+                    <td>Jármű törlés</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>setweather</td>
+                    <td>Szerver időjárás beállítás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>settime</td>
+                    <td>Szerver idő beállítás</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>noclip</td>
+                    <td>Noclip mód toggle</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+                <tr>
+                    <td>announce</td>
+                    <td>Szerver-szintű bejelentés</td>
+                    <td><span class="role-chip r-admin">admin</span><span class="role-chip r-super">super</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A <code>Config.FunctionPerms</code> táblában bármikor módosíthatod, melyik szerepkör milyen funkciót érhet el – újraindítás nélkül nem frissül, de a konfig rugalmas marad.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Szerver Exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok – más scriptek által használható</div>
+
+    <!-- Kick -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:KickPlayer(source, reason)</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Kirúg egy játékost jogosultság ellenőrzés nélkül – más scriptek (pl. <code>fvg-anticheat</code>) hívhatják közvetlenül. A szerver oldali esemény verziója (<code>fvg-admin:server:KickPlayer</code>) ACE ellenőrzéssel van védve.
+        </div>
+        <div class="code-label">Lua példa – fvg-anticheat</div>
+        <code>-- Szabályszegés észlelésekor azonnali kirúgás
+exports['fvg-admin']:KickPlayer(src, 'Anticheat: tiltott módosítás észlelve.')</code>
+    </div>
+
+    <!-- Ban -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:BanPlayer(source, reason, minutes)</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Kitilt egy játékost. A <code>minutes</code> értéke <code>-1</code> esetén permanens ban. Az identifier automatikusan kinyerésre kerül, és bekerül az <code>fvg_bans</code> táblába.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td>  <td class="pt">number</td> <td>Célpont szerver ID-ja</td></tr>
+                <tr><td class="pn">reason</td>  <td class="pt">string</td> <td>Ban indoka (megjelenik a kick üzenetben és DB-ben)</td></tr>
+                <tr><td class="pn">minutes</td> <td class="pt">number</td> <td>Tartam percben. <span class="pv">-1</span> = örökre</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa</div>
+        <code>-- 1 napos ban
+exports['fvg-admin']:BanPlayer(src, 'Szerver szabályzat megsértése', 1440)
+
+-- Permanens ban
+exports['fvg-admin']:BanPlayer(src, 'Cheat program használata', -1)</code>
+    </div>
+
+    <!-- IsAdmin -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:IsAdmin(source) → boolean</div>
+        <div class="export-sig">exports['fvg-admin']:GetAdminRole(source) → string | nil</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Ellenőrzi, hogy egy játékos rendelkezik-e bármilyen admin jogosultsággal. A <code>GetAdminRole</code> visszaadja a pontos szerepkört (<code>'moderator'</code> / <code>'admin'</code> / <code>'superadmin'</code>), vagy <code>nil</code>-t ha nincs joga.
+        </div>
+        <div class="code-label">Lua példa – fvg-jobs bizonyos admin-only parancs</div>
+        <code>RegisterNetEvent('fvg-jobs:server:AdminSetJob', function(targetSrc, job)
+    local src  = source
+    local role = exports['fvg-admin']:GetAdminRole(src)
+
+    if not role then
+        exports['fvg-notify']:Notify(src, { type='error', message='Nincs jogod.' })
+        return
+    end
+
+    exports['fvg-playercore']:SetPlayerData(targetSrc, 'job', job)
+end)</code>
+    </div>
+
+    <!-- HasPermission -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:HasPermission(source, action) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Ellenőrzi, hogy az adott játékosnak van-e joga egy konkrét funkcióra a <code>Config.FunctionPerms</code> alapján. Ez az export más scriptek számára is elérhetővé teszi az admin jogosultság rendszert.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td> <td class="pt">number</td> <td>Játékos szerver ID-ja</td></tr>
+                <tr><td class="pn">action</td> <td class="pt">string</td> <td>Funkció neve: <span class="pv">'kick'</span>, <span class="pv">'ban'</span>, <span class="pv">'godmode'</span> stb.</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – egyedi script jogosultság ellenőrzés</div>
+        <code>RegisterNetEvent('fvg-prison:server:ReleasePrisoner', function(targetSrc)
+    local src = source
+
+    -- Csak admin+ tud foglyot elengedni
+    if not exports['fvg-admin']:HasPermission(src, 'ban') then
+        return
+    end
+
+    exports['fvg-playercore']:SetPlayerData(targetSrc, 'inPrison', false)
+end)</code>
+    </div>
+
+    <!-- IsBanned -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:IsBanned(identifier) → table | nil</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Ellenőrzi, hogy egy identifier aktív ban alatt áll-e. Ha igen, visszaadja a ban bejegyzést (reason, expires_at, permanent), ha nem, <code>nil</code>-t ad vissza. Csatlakozáskor automatikusan lefut, de manuálisan is hívható.
+        </div>
+        <div class="code-label">Lua példa</div>
+        <code>local ban = exports['fvg-admin']:IsBanned('license:abc123')
+if ban then
+    print('Kitiltva. Ok: ' .. ban.reason)
+    print('Lejár: ' .. (ban.permanent == 1 and 'Soha' or tostring(ban.expires_at)))
+end</code>
+    </div>
+
+    <!-- Unban -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-admin']:UnbanPlayer(identifier) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Feloldja az összes aktív bant egy adott identifier alól az adatbázisban. <code>true</code>-t ad vissza ha sikeres, <code>false</code>-t ha nem volt aktív ban.
+        </div>
+        <div class="code-label">Lua példa</div>
+        <code>local ok = exports['fvg-admin']:UnbanPlayer('license:abc123')
+if ok then print('Ban feloldva.') end</code>
+    </div>
+</section>
+
+<!-- ══ Szerver Események ══ -->
+<section>
+    <div class="section-title">Szerver események – más scriptek figyelhetik</div>
+    <div class="card">
+        <table class="param-table">
+            <thead><tr><th>Esemény neve</th><th>Leírás</th><th>Paraméterek</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnKick</td>
+                    <td>Játékos kirúgáskor triggerelődik</td>
+                    <td><span class="pt">adminSrc, targetSrc, reason</span></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnBan</td>
+                    <td>Játékos kitiltásakor triggerelődik</td>
+                    <td><span class="pt">adminSrc, identifier, reason, minutes</span></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnUnban</td>
+                    <td>Ban feloldásakor triggerelődik</td>
+                    <td><span class="pt">adminSrc, identifier</span></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnRevive</td>
+                    <td>Játékos felébresztésekor</td>
+                    <td><span class="pt">adminSrc, targetSrc</span></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnWeatherChange</td>
+                    <td>Időjárás változásakor</td>
+                    <td><span class="pt">adminSrc, weather</span></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-admin:server:OnAnnounce</td>
+                    <td>Szerver bejelentés küldésekor</td>
+                    <td><span class="pt">adminSrc, message</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – fvg-logs naplózás admin eseményekre</div>
+        <code>-- Minden kick naplózása Discord webhook-ba (pl. fvg-logs script)
+AddEventHandler('fvg-admin:server:OnKick', function(adminSrc, targetSrc, reason)
+    local admin  = exports['fvg-playercore']:GetPlayer(adminSrc)
+    local target = exports['fvg-playercore']:GetPlayer(targetSrc)
+
+    -- Discord webhook hívás...
+    print(string.format('[KICK] %s kirúgta: %s – Ok: %s',
+        admin and admin.name or 'Ismeretlen',
+        target and target.name or tostring(targetSrc),
+        reason
+    ))
+end)</code>
+    </div>
+</section>
+
+<!-- ══ Interaktív demo ══ -->
+<section>
+    <div class="section-title">Interaktív export demo (szimuláció)</div>
+    <div class="card">
+        <div class="export-desc">
+            Az alábbi panel szimulálja, hogyan működnének az export hívások valódi szerver környezetben. Az eredmények a konszolos kimeneteket modellezik.
+        </div>
+        <div class="demo-section">
+
+            <!-- IsAdmin / GetAdminRole -->
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-shield-user"></i>IsAdmin / GetAdminRole</div>
+                <select class="demo-select" id="d-role-sel">
+                    <option value="none">Sima játékos</option>
+                    <option value="moderator">Moderátor</option>
+                    <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
+                </select>
+                <button class="demo-btn btn-accent" onclick="demoIsAdmin()">
+                    <i class="hgi-stroke hgi-shield-user"></i>IsAdmin(src) futtatás
+                </button>
+                <div class="demo-output" id="d-isadmin-out"></div>
+            </div>
+
+            <!-- HasPermission -->
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-key-02"></i>HasPermission</div>
+                <select class="demo-select" id="d-perm-role" style="margin-bottom:6px">
+                    <option value="none">Sima játékos</option>
+                    <option value="moderator">Moderátor</option>
+                    <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
+                </select>
+                <select class="demo-select" id="d-perm-action">
+                    <option value="kick">kick</option>
+                    <option value="ban">ban</option>
+                    <option value="freeze">freeze</option>
+                    <option value="godmode">godmode</option>
+                    <option value="setneeds">setneeds</option>
+                    <option value="noclip">noclip</option>
+                    <option value="announce">announce</option>
+                </select>
+                <button class="demo-btn btn-accent" onclick="demoHasPerm()">
+                    <i class="hgi-stroke hgi-key-02"></i>HasPermission futtatás
+                </button>
+                <div class="demo-output" id="d-hasperm-out"></div>
+            </div>
+
+            <!-- IsBanned -->
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-ban"></i>IsBanned szimuláció</div>
+                <input class="demo-input" id="d-ban-id" placeholder="license:abc123..." style="margin-bottom:6px"/>
+                <button class="demo-btn btn-danger" onclick="demoBan()">
+                    <i class="hgi-stroke hgi-ban"></i>BanPlayer (szimulált)
+                </button>
+                <button class="demo-btn btn-success" style="margin-top:4px" onclick="demoUnban()">
+                    <i class="hgi-stroke hgi-checkmark-circle-02"></i>UnbanPlayer (szimulált)
+                </button>
+                <div class="demo-output" id="d-ban-out"></div>
+            </div>
+
+            <!-- KickPlayer -->
+            <div class="demo-card">
+                <div class="demo-card-title"><i class="hgi-stroke hgi-logout-02"></i>KickPlayer szimuláció</div>
+                <input class="demo-input" id="d-kick-src" placeholder="source (pl. 3)" type="number" style="margin-bottom:6px"/>
+                <input class="demo-input" id="d-kick-reason" placeholder="Indok..." style="margin-bottom:6px"/>
+                <button class="demo-btn btn-warning" onclick="demoKick()">
+                    <i class="hgi-stroke hgi-logout-02"></i>KickPlayer futtatás
+                </button>
+                <div class="demo-output" id="d-kick-out"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ══ server.cfg indítási sorrend ══ -->
+<section>
+    <div class="section-title">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql           # 1. DB driver
+ensure fvg-database       # 2. DB core
+ensure fvg-playercore     # 3. játékos életciklus
+ensure fvg-notify         # 4. értesítések
+ensure fvg-needs          # 5. éhség / szomj
+ensure fvg-stress         # 6. stressz
+ensure fvg-admin          # 7. ← admin rendszer
+# ... többi fvg- script</code>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>Az <strong>fvg-admin</strong>-nak az <strong>fvg-needs</strong> és <strong>fvg-stress</strong> után kell indulnia, mivel a menü megjeleníti ezek aktuális értékeit. Ha előbb indul, az exportok nem találhatók meg és Lua hibát okoz.</span>
+        </div>
+    </div>
+</section>
+
+<script>
+    // ── Jogosultság definíciók (Config.FunctionPerms tükröző) ──
+    const funcPerms = {
+        kick:       ['moderator','admin','superadmin'],
+        ban:        ['admin','superadmin'],
+        freeze:     ['moderator','admin','superadmin'],
+        teleport:   ['moderator','admin','superadmin'],
+        spectate:   ['moderator','admin','superadmin'],
+        revive:     ['moderator','admin','superadmin'],
+        godmode:    ['admin','superadmin'],
+        setneeds:   ['admin','superadmin'],
+        setstress:  ['admin','superadmin'],
+        spawnveh:   ['admin','superadmin'],
+        deleteveh:  ['admin','superadmin'],
+        setweather: ['admin','superadmin'],
+        settime:    ['admin','superadmin'],
+        noclip:     ['admin','superadmin'],
+        announce:   ['admin','superadmin'],
+    };
+
+    // Szimulált ban lista
+    const bannedList = {};
+
+    function roleColor(role) {
+        return role === 'superadmin' ? '#ef4444'
+             : role === 'admin'      ? '#a855f7'
+             : role === 'moderator'  ? '#38bdf8'
+             : '#475569';
+    }
+
+    function demoIsAdmin() {
+        const role = document.getElementById('d-role-sel').value;
+        const el   = document.getElementById('d-isadmin-out');
+        const isAdmin = role !== 'none';
+        if (isAdmin) {
+            el.className = 'demo-output ok';
+            el.innerHTML = `→ IsAdmin(src) = <strong>true</strong><br>→ GetAdminRole(src) = '<span style="color:${roleColor(role)}">${role}</span>'`;
+        } else {
+            el.className = 'demo-output err';
+            el.innerHTML = `→ IsAdmin(src) = <strong>false</strong><br>→ GetAdminRole(src) = <span style="color:#ef4444">nil</span>`;
+        }
+    }
+
+    function demoHasPerm() {
+        const role   = document.getElementById('d-perm-role').value;
+        const action = document.getElementById('d-perm-action').value;
+        const el     = document.getElementById('d-hasperm-out');
+        const allowed = funcPerms[action] || [];
+        const has     = allowed.includes(role);
+        el.className  = 'demo-output ' + (has ? 'ok' : 'err');
+        el.innerHTML  = `→ HasPermission(<span style="color:${roleColor(role)}">'${role}'</span>, '${action}') = <strong style="color:${has ? '#22c55e' : '#ef4444'}">${has}</strong>`;
+    }
+
+    function demoBan() {
+        const id = document.getElementById('d-ban-id').value.trim();
+        const el = document.getElementById('d-ban-out');
+        if (!id) { el.className='demo-output err'; el.textContent='→ Hiba: üres identifier'; return; }
+        bannedList[id] = { reason: 'Szimulált ban', expires_at: null, permanent: 1 };
+        el.className   = 'demo-output ok';
+        el.innerHTML   = `→ BanPlayer OK<br>→ IsBanned('<span style="color:#7dd3fc">${id}</span>') = <strong style="color:#ef4444">true</strong>`;
+    }
+
+    function demoUnban() {
+        const id = document.getElementById('d-ban-id').value.trim();
+        const el = document.getElementById('d-ban-out');
+        if (!bannedList[id]) {
+            el.className = 'demo-output err';
+            el.innerHTML = `→ UnbanPlayer = <strong style="color:#ef4444">false</strong> (nem található aktív ban)`;
+            return;
+        }
+        delete bannedList[id];
+        el.className = 'demo-output ok';
+        el.innerHTML = `→ UnbanPlayer('<span style="color:#7dd3fc">${id}</span>') = <strong style="color:#22c55e">true</strong>`;
+    }
+
+    function demoKick() {
+        const src    = document.getElementById('d-kick-src').value || '?';
+        const reason = document.getElementById('d-kick-reason').value || 'Admin által kirúgva';
+        const el     = document.getElementById('d-kick-out');
+        el.className = 'demo-output ok';
+        el.innerHTML = `→ KickPlayer(<span style="color:#f59e0b">${src}</span>, '${reason}')<br>→ DropPlayer() meghívva → játékos eltávolítva`;
+    }
+</script>
+
+</body>
+</html>
