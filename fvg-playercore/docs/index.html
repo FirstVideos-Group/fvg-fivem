@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-playercore – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep:  #0a0c12;
+            --fvg-bg-card:  #161b24;
+            --fvg-bg-code:  #0f172a;
+            --fvg-border:   #1e293b;
+            --fvg-text-p:   #f1f5f9;
+            --fvg-text-s:   #94a3b8;
+            --fvg-text-m:   #475569;
+            --fvg-accent:   #38bdf8;
+            --fvg-radius:   10px;
+            --fvg-font:     'Segoe UI', system-ui, sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 100px; max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.7; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,0.12);
+            color: var(--fvg-accent); font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle; border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.6;
+        }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .side-event  { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+        .warn-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(245,158,11,0.07);
+            border: 1px solid rgba(245,158,11,0.2); font-size: 12px;
+            color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+
+        /* Flow ábra */
+        .flow { display: flex; flex-direction: column; gap: 0; margin-top: 16px; }
+        .flow-row { display: flex; gap: 8px; align-items: stretch; }
+        .flow-box {
+            flex: 1; padding: 9px 12px; border-radius: 8px; font-size: 11px;
+            font-weight: 600; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--fvg-border); text-align: center;
+            display: flex; align-items: center; justify-content: center;
+            gap: 7px; color: var(--fvg-text-s); line-height: 1.4;
+        }
+        .flow-box.blue   { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2);  color: #3b82f6; }
+        .flow-box.green  { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.2);   color: #22c55e; }
+        .flow-box.purple { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.2);  color: #a855f7; }
+        .flow-box.yellow { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2);  color: #f59e0b; }
+        .flow-box.red    { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2);   color: #ef4444; }
+        .flow-down { height: 18px; display: flex; align-items: center; justify-content: center; color: var(--fvg-text-m); font-size: 13px; }
+        .flow-label { font-size: 9px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: center; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-playercore <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Játékos életciklus kezelés – csatlakozás, betöltés, mentés, kilépés.<br>
+    Az összes fvg- script erre az alapra épít játékos adatok olvasásához és írásához.</p>
+</div>
+
+<!-- ══ Teljes életciklus ══ -->
+<section>
+    <div class="section-title">Játékos életciklus</div>
+    <div class="card">
+        <div class="flow">
+            <div class="flow-label">Szerver</div>
+            <div class="flow-row">
+                <div class="flow-box blue"><i class="hgi-stroke hgi-user-add-02"></i>playerConnecting<br><span style="font-size:10px;opacity:.6">deferrals.defer()</span></div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box yellow"><i class="hgi-stroke hgi-database-02"></i>fvg-database:<br>GetOrCreatePlayer()</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-checkmark-circle-02"></i>deferrals.done()<br><span style="font-size:10px;opacity:.6">Players[src] feltöltve</span></div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-label">Kliens</div>
+            <div class="flow-row">
+                <div class="flow-box purple"><i class="hgi-stroke hgi-arrow-up-02"></i>RequestSpawn esemény<br>→ szerverre</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-user-circle"></i>OnPlayerLoaded:<br>modell, spawn, fade</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-checkmark-circle-02"></i>PlayerReady → szerver<br><span style="font-size:10px;opacity:.6">p.loaded = true</span></div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box purple"><i class="hgi-stroke hgi-notification-02"></i>fvg-playercore:server:PlayerLoaded<br><span style="font-size:10px;opacity:.6">más scriptek reagálnak</span></div>
+            </div>
+            <div class="flow-down">↓ (30mp-enként)</div>
+            <div class="flow-row">
+                <div class="flow-box yellow"><i class="hgi-stroke hgi-location-04"></i>SavePosition<br><span style="font-size:10px;opacity:.6">lastPos frissítés</span></div>
+            </div>
+            <div class="flow-down">↓ (kilépéskor)</div>
+            <div class="flow-row">
+                <div class="flow-box red"><i class="hgi-stroke hgi-logout-02"></i>playerDropped → SavePlayer<br><span style="font-size:10px;opacity:.6">teljes adat mentés</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Szerver exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-playercore']:GetPlayer(source) → table | nil</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">A szerver oldali memóriában tárolt játékos objektumot adja vissza. Ez a leggyakrabban használt export más scripteknél.</div>
+        <table class="param-table">
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>         <td class="pt">number</td>  <td>DB auto-increment ID</td></tr>
+                <tr><td class="pn">identifier</td> <td class="pt">string</td>  <td>license:... azonosító</td></tr>
+                <tr><td class="pn">name</td>        <td class="pt">string</td>  <td>Steam/Rockstar játékosnév</td></tr>
+                <tr><td class="pn">firstname</td>   <td class="pt">string</td>  <td>Karakter keresztnév</td></tr>
+                <tr><td class="pn">lastname</td>    <td class="pt">string</td>  <td>Karakter vezetéknév</td></tr>
+                <tr><td class="pn">metadata</td>    <td class="pt">table</td>   <td>cash, bank, job, stress stb.</td></tr>
+                <tr><td class="pn">loaded</td>      <td class="pt">boolean</td> <td>Teljesen betöltött-e</td></tr>
+                <tr><td class="pn">isNew</td>       <td class="pt">boolean</td> <td>Első belépés-e</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – fvg-jobs</div>
+        <code>RegisterServerEvent('fvg-jobs:server:GetJob', function()
+    local src = source
+    local p   = exports['fvg-playercore']:GetPlayer(src)
+    if not p then return end
+
+    local job = p.metadata.job or 'unemployed'
+    TriggerClientEvent('fvg-jobs:client:SetJob', src, job)
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-playercore']:SetPlayerData(source, key, value) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">Beállít egy metadat mezőt a játékos objektumán, és <strong>automatikusan szinkronizálja a klienssel</strong>. A módosítás a kilépéskor automatikusan DB-be mentődik.</div>
+        <div class="code-label">Lua példa – fvg-banking</div>
+        <code>-- Banki egyenleg frissítés
+exports['fvg-playercore']:SetPlayerData(src, 'bank', 5000)
+
+-- Munka beállítás
+exports['fvg-playercore']:SetPlayerData(src, 'job',   'police')
+exports['fvg-playercore']:SetPlayerData(src, 'grade', 2)</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-playercore']:GetPlayerData(source, key?) → any</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">Lekérdez egy vagy az összes metadat mezőt. Ha <code>key</code> nincs megadva, a teljes játékos objektumot adja vissza.</div>
+        <div class="code-label">Lua példa</div>
+        <code>-- Egy mező
+local cash = exports['fvg-playercore']:GetPlayerData(src, 'cash')
+
+-- Teljes objektum
+local p = exports['fvg-playercore']:GetPlayerData(src)</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-playercore']:GetAllPlayers() → table[]</div>
+        <div class="export-sig" style="margin-top:6px">exports['fvg-playercore']:GetPlayerByIdentifier(identifier) → table | nil</div>
+        <div class="export-sig" style="margin-top:6px">exports['fvg-playercore']:IsPlayerLoaded(source) → boolean</div>
+        <div class="export-sig" style="margin-top:6px">exports['fvg-playercore']:SaveAllPlayers() → number</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">Kiegészítő helper exportok. A <code>SaveAllPlayers</code> visszaadja a mentett játékosok számát — automatikusan lefut szerver leálláskor is.</div>
+        <div class="code-label">Lua példa – fvg-admin</div>
+        <code>-- Online játékosok listázása
+local players = exports['fvg-playercore']:GetAllPlayers()
+for _, p in ipairs(players) do
+    print(p.firstname .. ' ' .. p.lastname .. ' (src: ' .. p.source .. ')')
+end
+
+-- Identifier alapú keresés
+local p = exports['fvg-playercore']:GetPlayerByIdentifier('license:abc123')
+
+-- Betöltés ellenőrzése
+if not exports['fvg-playercore']:IsPlayerLoaded(src) then return end</code>
+    </div>
+</section>
+
+<!-- ══ Kliens exportok ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-playercore']:GetLocalPlayerData(key?) → any</div>
+        <div class="export-sig" style="margin-top:6px">exports['fvg-playercore']:IsLoaded() → boolean</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Kliensen a helyi játékos adatainak szinkronizált másolatát adják vissza. A <code>SetPlayerData</code> szerver exporttal módosított értékek automatikusan frissülnek itt is.
+        </div>
+        <div class="code-label">Lua példa – fvg-hud kliens</div>
+        <code>-- Betöltés ellenőrzés
+if not exports['fvg-playercore']:IsLoaded() then return end
+
+-- Karakter neve
+local data = exports['fvg-playercore']:GetLocalPlayerData()
+print(data.firstname .. ' ' .. data.lastname)
+
+-- Egyenleg
+local cash = exports['fvg-playercore']:GetLocalPlayerData('cash')
+</code>
+    </div>
+</section>
+
+<!-- ══ Események ══ -->
+<section>
+    <div class="section-title">Szerver / kliens események (más scriptek figyelhetik)</div>
+    <div class="card">
+        <table class="param-table">
+            <thead><tr><th>Esemény neve</th><th>Oldal</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="pn">fvg-playercore:server:PlayerLoaded</td>
+                    <td><span class="export-side side-server" style="margin:0">Server</span></td>
+                    <td>Játékos teljesen betöltődött. Paraméter: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">src, playerObj</code></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-playercore:server:PlayerUnloaded</td>
+                    <td><span class="export-side side-server" style="margin:0">Server</span></td>
+                    <td>Játékos kilépett. Paraméter: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">src, playerObj</code></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-playercore:client:PlayerLoaded</td>
+                    <td><span class="export-side side-client" style="margin:0">Client</span></td>
+                    <td>Kliens oldali betöltés kész. Paraméter: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">playerData</code></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-playercore:client:DataUpdated</td>
+                    <td><span class="export-side side-client" style="margin:0">Client</span></td>
+                    <td>Egy metaadat mező változott. Paraméter: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">key, value</code></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – más scriptek reagálnak</div>
+        <code>-- fvg-needs server.lua: játékos betöltésekor needs adat lekérdezés
+AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
+    local needs = exports['fvg-database']:QuerySingle(
+        'SELECT * FROM `fvg_needs` WHERE `player_id` = ?',
+        { player.id }
+    )
+    -- needs értékek küldése a kliensnek...
+end)
+
+-- fvg-hud client.lua: adatváltozáskor HUD frissítés
+AddEventHandler('fvg-playercore:client:DataUpdated', function(key, value)
+    if key == 'cash' or key == 'bank' then
+        -- HUD pénz modul frissítése
+    end
+end)</code>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A <strong>PlayerLoaded</strong> esemény az egyetlen megbízható pont, ahol más scriptek el tudják kezdeni az adott játékosra vonatkozó logikájukat. Sosem szabad <code>playerConnecting</code>-re építeni az adatbetöltést, mert ott a játékos még nem töltötte be a klienst.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══ server.cfg sorrend ══ -->
+<section>
+    <div class="section-title">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <div class="code-label">server.cfg</div>
+        <code>ensure oxmysql           # 1. DB driver
+ensure fvg-database       # 2. DB core / migrációk
+ensure fvg-playercore     # 3. játékos életciklus ← ITT
+ensure fvg-notify         # 4. értesítések
+ensure fvg-hud            # 5. player HUD
+ensure fvg-vehiclehud     # 6. jármű HUD
+ensure fvg-seatbelt       # 7+. többi script...</code>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>Az <strong>fvg-playercore</strong>-nak mindig az <strong>fvg-database</strong> után kell indulnia. Más scriptek csak az <strong>fvg-playercore:server:PlayerLoaded</strong> esemény után kezdjenek játékos-specifikus adatot olvasni vagy írni.</span>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
