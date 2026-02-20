@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-courier – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root{--bg:#0a0c12;--card:#161b24;--code:#0f172a;--border:#1e293b;--tp:#f1f5f9;--ts:#94a3b8;--tm:#475569;--ac:#f59e0b;--font:'Segoe UI',system-ui,sans-serif}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--tp);font-family:var(--font);padding:48px 28px 120px;max-width:1020px;margin:0 auto}
+        h1{font-size:28px;font-weight:800;margin-bottom:6px}
+        .sub{color:var(--tm);font-size:14px;line-height:1.7;margin-bottom:48px}
+        .badge{display:inline-block;background:rgba(245,158,11,.12);color:var(--ac);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.05em;margin-left:10px;border:1px solid rgba(245,158,11,.25)}
+        section{margin-bottom:44px}
+        .st{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px}
+        .sig{font-family:monospace;font-size:13px;font-weight:700;color:var(--ac);margin-bottom:6px;line-height:1.9}
+        .side{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+        .ss{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .sc{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .desc{font-size:13px;color:var(--ts);line-height:1.65;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;margin-bottom:14px}
+        th{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+        td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--ts);vertical-align:top}
+        tr:last-child td{border-bottom:none}
+        .pn{font-family:monospace;color:#a78bfa}.pt{font-family:monospace;color:#f59e0b}.pv{font-family:monospace;color:#7dd3fc}
+        .cl{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:14px}
+        code{display:block;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace;white-space:pre;overflow-x:auto;line-height:1.7}
+        .info{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);font-size:12px;color:#fcd34d;line-height:1.6;margin-top:14px}
+        .info i{font-size:16px;flex-shrink:0;color:var(--ac)}
+        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .dc{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+        .dct{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+        .dct i{font-size:14px;color:var(--ac)}
+        .dbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:var(--font);width:100%}
+        .dbtn:hover{opacity:.8}
+        .ba{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+        .bs{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .bd{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .bw{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .dout{font-family:monospace;font-size:11px;color:var(--tm);min-height:16px;line-height:1.7}
+        .dout.ok{color:#22c55e}.dout.err{color:#ef4444}.dout.warn{color:#f59e0b}
+        .dsel,.dinp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--tp);font-size:12px;outline:none;font-family:var(--font);width:100%}
+        .event-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);margin-right:6px}
+        .level-bar{height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin:6px 0}
+        .level-fill{height:100%;background:var(--ac);border-radius:99px;transition:width .4s ease}
+    </style>
+</head>
+<body>
+
+<h1>fvg-courier <span class="badge">v1.0.0</span></h1>
+<p class="sub">
+    FirstVideos Group · Futár munkaszystem — csomagkézbesítés, XP/szint progresszió, sorozat bónuszok, ranglista.<br>
+    DB táblák: <code style="display:inline;font-size:12px;color:#7dd3fc">fvg_courier_stats · fvg_courier_deliveries</code><br>
+    Integrációk: <strong>fvg-playercore</strong> (job ellenőrzés) · <strong>fvg-banking</strong> (jutalom) ·
+    <strong>fvg-inventory</strong> (csomag item) · <strong>fvg-dispatch</strong> (kör értesítés) ·
+    <strong>fvg-unemployment</strong> (courier job forrás)
+</p>
+
+<!-- ══════════════════════════════════════════════════════════
+     SZERVER EXPORTOK
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <!-- GetActiveDelivery -->
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:GetActiveDelivery(source) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a játékos aktuálisan futó körének adatait, vagy <code>nil</code>-t ha nincs aktív kör.
+            Hasznos más scripteknél pl. ha futár közben nem akarjuk engedni a bolt megnyitást.
+        </div>
+        <table>
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">runId</td>       <td class="pt">string</td>  <td>Kör azonosítója (pl. <code>RUN-042817</code>)</td></tr>
+                <tr><td class="pn">spots</td>        <td class="pt">table[]</td> <td>Kézbesítési helyszínek tömbje (<code>{label, coords, done}</code>)</td></tr>
+                <tr><td class="pn">currentIdx</td>   <td class="pt">number</td>  <td>Jelenlegi cél index (1-től indul)</td></tr>
+                <tr><td class="pn">totalReward</td>  <td class="pt">number</td>  <td>Eddig összegyűlt jutalom ($)</td></tr>
+                <tr><td class="pn">isPerfect</td>    <td class="pt">boolean</td> <td>Igaz, ha még minden kézbesítés időn belül volt</td></tr>
+                <tr><td class="pn">rewardMult</td>   <td class="pt">number</td>  <td>Szint alapú szorzó (pl. 1.2)</td></tr>
+                <tr><td class="pn">startedAt</td>    <td class="pt">number</td>  <td>Unix timestamp – kör kezdete</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – külső script kondicionálás</div>
+        <code>-- Bolt script: futár közben ne lehessen árut adni
+AddEventHandler('fvg-shop:server:BuyItem', function(src, item)
+    local run = exports['fvg-courier']:GetActiveDelivery(src)
+    if run then
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type='warning', message='Kézbesítés közben nem vásárolhatsz!'
+        })
+        return
+    end
+    -- ... vásárlás logika
+end)</code>
+    </div>
+
+    <!-- GetPlayerStats -->
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:GetPlayerStats(source) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a játékos teljes futár statisztikáját a szerver cache-ből.
+            Hasznos jutalomrendszerekhez, admin panelekhez vagy más scriptekhez ahol a futár tapasztalat számít.
+        </div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">xp</td>               <td class="pt">number</td> <td>Összesített XP</td></tr>
+                <tr><td class="pn">level</td>             <td class="pt">number</td> <td>Jelenlegi szint (1–5)</td></tr>
+                <tr><td class="pn">total_deliveries</td>  <td class="pt">number</td> <td>Összes kézbesítés</td></tr>
+                <tr><td class="pn">total_runs</td>        <td class="pt">number</td> <td>Összes befejezett kör</td></tr>
+                <tr><td class="pn">perfect_runs</td>      <td class="pt">number</td> <td>Tökéletes körök száma</td></tr>
+                <tr><td class="pn">streak</td>            <td class="pt">number</td> <td>Jelenlegi sorozat (megszakítás nélküli körök)</td></tr>
+                <tr><td class="pn">total_earned</td>      <td class="pt">number</td> <td>Összes megkeresett $ összeg</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – admin lekérés</div>
+        <code>-- Admin parancs: játékos futár statisztika
+RegisterCommand('courierstats', function(src, args)
+    if not exports['fvg-admin']:IsAdmin(src) then return end
+    local target = tonumber(args[1])
+    local stats  = exports['fvg-courier']:GetPlayerStats(target)
+    if not stats then
+        TriggerClientEvent('fvg-notify:client:Notify', src, { type='error', message='Nincs adat.' })
+        return
+    end
+    print(string.format(
+        '[COURIER] %s → XP: %d | Szint: %d | Kézbesítés: %d | Kereset: $%d',
+        GetPlayerName(target), stats.xp, stats.level,
+        stats.total_deliveries, stats.total_earned
+    ))
+end, true)</code>
+    </div>
+
+    <!-- GetLeaderboard -->
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:GetLeaderboard(limit?) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a legjobb futárokat kézbesítések száma szerint rendezve.
+            A <code>limit</code> paraméter opcionális, alapértelmezett értéke 10, maximum 50.
+            Más scriptekből is lekérhető, pl. egy általános ranglista script számára.
+        </div>
+        <table>
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">player_id</td>        <td class="pt">number</td> <td>DB player ID</td></tr>
+                <tr><td class="pn">firstname</td>         <td class="pt">string</td> <td>Keresztnév (fvg_players alapján)</td></tr>
+                <tr><td class="pn">lastname</td>          <td class="pt">string</td> <td>Vezetéknév</td></tr>
+                <tr><td class="pn">xp</td>                <td class="pt">number</td> <td>Összesített XP</td></tr>
+                <tr><td class="pn">level</td>             <td class="pt">number</td> <td>Szint</td></tr>
+                <tr><td class="pn">total_deliveries</td>  <td class="pt">number</td> <td>Összes kézbesítés</td></tr>
+                <tr><td class="pn">total_earned</td>      <td class="pt">number</td> <td>Összes kereset</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – általános ranglista scriptnek</div>
+        <code>-- fvg-leaderboard script integrálás
+exports('GetCourierTop10', function()
+    return exports['fvg-courier']:GetLeaderboard(10)
+end)</code>
+    </div>
+
+    <!-- ForceStartDelivery -->
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:ForceStartDelivery(source) → void</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Admin / esemény alapú kör kényszerített indítás. Megkerüli a depot helyszín ellenőrzést,
+            de a job és aktív kör feltételek továbbra is érvényesek.
+            Hasznos speciális missziók indításához vagy admin teszteléshez.
+        </div>
+        <div class="cl">Lua példa – admin parancs</div>
+        <code>RegisterCommand('startcourier', function(src, args)
+    if not exports['fvg-admin']:IsAdmin(src) then return end
+    local target = tonumber(args[1]) or src
+    exports['fvg-courier']:ForceStartDelivery(target)
+end, true)</code>
+    </div>
+
+    <!-- CancelDelivery -->
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:CancelDelivery(source) → void</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Megszakítja a játékos aktív körét szerver oldalról. A klienst értesíti a törlésről,
+            a csomagokat eltávolítja az inventoryból és a sorozatot nullázza.
+            Használható letartóztatásnál, kórháznál, vagy admin büntetésnél.
+        </div>
+        <div class="cl">Lua példa – letartóztatásnál</div>
+        <code>-- fvg-police: letartóztatás megszakítja a futár kört
+AddEventHandler('fvg-police:server:PlayerArrested', function(suspectSrc)
+    local run = exports['fvg-courier']:GetActiveDelivery(suspectSrc)
+    if run then
+        exports['fvg-courier']:CancelDelivery(suspectSrc)
+        TriggerClientEvent('fvg-notify:client:Notify', suspectSrc, {
+            type='error', message='Letartóztatás – futár kör megszakítva.'
+        })
+    end
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     KLIENS EXPORTOK
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Kliens exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-courier']:IsOnDuty() → boolean</div>
+        <div class="sig">exports['fvg-courier']:GetLocalDelivery() → table | nil</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            <code>IsOnDuty()</code> megadja, hogy a helyi játékos be van-e lépve futár munkába.
+            <code>GetLocalDelivery()</code> visszaadja az aktuális kör kliens oldali cache-ét.
+            Más HUD scriptek, vagy input blokkolók használhatják ezeket.
+        </div>
+        <div class="cl">Lua példa – fvg-hud integrálás</div>
+        <code>-- HUD: futár ikon megjelenítés duty alatt
+CreateThread(function()
+    while true do
+        Wait(3000)
+        local isDuty = exports['fvg-courier']:IsOnDuty()
+        local run    = exports['fvg-courier']:GetLocalDelivery()
+        SendNUIMessage({
+            action      = 'setCourierStatus',
+            onDuty      = isDuty,
+            hasActiveRun= run ~= nil,
+            progress    = run and {
+                done  = #(run.spots or {}),
+                total = #(run.spots or {}),
+            } or nil,
+        })
+    end
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SZERVER ESEMÉNY API
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Esemény API – más scripteknek</div>
+
+    <div class="card">
+        <div class="desc">
+            Az alábbi szerver oldali események figyelhetők más scriptekből az
+            <code>AddEventHandler</code> segítségével. Például a rendőrségi script figyelheti
+            a befejezett köröket jutalomhoz, vagy az admin panel logolhatja az összes kört.
+        </div>
+        <table>
+            <thead><tr><th>Esemény</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="pn">fvg-courier:server:RunCompleted</td>
+                    <td class="pt">src, totalReward, isPerfect</td>
+                    <td>Kör sikeresen befejezve</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-courier:server:RunTimedOut</td>
+                    <td class="pt">src</td>
+                    <td>Kör időtúllépés miatt megszakadt</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-courier:client:AlertReceived</td>
+                    <td class="pt">alert</td>
+                    <td>Kliens: dispatch értesítés érkezett</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-courier:client:LevelUp</td>
+                    <td class="pt">levelData</td>
+                    <td>Kliens: szint emelkedés</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-courier:client:DataUpdated</td>
+                    <td class="pt">localData</td>
+                    <td>Kliens: helyi cache frissült</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – kör befejezés figyelése</div>
+        <code>-- Tökéletes kör után különleges jutalom
+AddEventHandler('fvg-courier:server:RunCompleted', function(src, reward, isPerfect)
+    if isPerfect then
+        -- Speciális item jutalom tökéletes körért
+        exports['fvg-inventory']:AddItem(src, 'courier_badge', 1)
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type    = 'success',
+            title   = '🏅 Tökéletes futár!',
+            message = 'Jutalom: Futár jelvény + $' .. reward
+        })
+    end
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     XP / SZINT RENDSZER
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">XP és szint rendszer</div>
+    <div class="card">
+        <div class="desc">
+            A futár szintrendszer 5 fokozatból áll. Minden kézbesítés XP-t ad,
+            tökéletes körnél bónusz XP jár. A szint <strong>jutalom szorzót</strong> ad —
+            magasabb szintű futárok ugyanannyi munka után többet keresnek.
+        </div>
+        <table>
+            <thead><tr><th>Szint</th><th>Megnevezés</th><th>Szükséges XP</th><th>Jutalom szorzó</th></tr></thead>
+            <tbody>
+                <tr><td class="pv">1</td><td>Kezdő futár</td>       <td class="pt">0 XP</td>    <td class="pn">x1.0</td></tr>
+                <tr><td class="pv">2</td><td>Tapasztalt futár</td>  <td class="pt">200 XP</td>  <td class="pn">x1.1</td></tr>
+                <tr><td class="pv">3</td><td>Senior futár</td>      <td class="pt">500 XP</td>  <td class="pn">x1.2</td></tr>
+                <tr><td class="pv">4</td><td>Profi futár</td>       <td class="pt">1000 XP</td> <td class="pn">x1.35</td></tr>
+                <tr><td class="pv">5</td><td>Elit futár</td>        <td class="pt">2000 XP</td> <td class="pn">x1.5</td></tr>
+            </tbody>
+        </table>
+        <div class="info">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Az XP értékek és a szorzók a <code>Config.Levels</code> tömbben szabadon módosíthatók.
+            A szint szorzó minden jutalomra vonatkozik: alap, időbónusz, sorozat és tökéletes kör bónusz is.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     JUTALOM STRUKTÚRA
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Jutalom struktúra</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Jutalom típus</th><th>Alap összeg</th><th>Feltétel</th><th>Config kulcs</th></tr></thead>
+            <tbody>
+                <tr><td>Alap kézbesítés</td>       <td class="pt">$300 / csomag</td>       <td>Minden kézbesítésnél</td>             <td class="pn">Config.BaseReward</td></tr>
+                <tr><td>Gyors kézbesítés bónusz</td><td class="pt">+$150 / csomag</td>     <td>Ha az összes idő ≤180 mp</td>         <td class="pn">Config.TimeBonus</td></tr>
+                <tr><td>Tökéletes kör bónusz</td>  <td class="pt">+$500 / kör</td>         <td>Minden csomag időn belül kézbesítve</td><td class="pn">Config.PerfectRunBonus</td></tr>
+                <tr><td>Sorozat bónusz</td>         <td class="pt">+$50 / sorozat x5</td>  <td>Minden 5. megszakítatlan körnél</td>  <td class="pn">Config.StreakBonus</td></tr>
+                <tr><td>XP / kézbesítés</td>        <td class="pt">10 XP</td>              <td>Mindig</td>                           <td class="pn">Config.XPPerDelivery</td></tr>
+                <tr><td>XP tökéletes körért</td>    <td class="pt">+5 XP / csomag</td>     <td>Ha isPerfect = true</td>              <td class="pn">Config.XPStreak</td></tr>
+            </tbody>
+        </table>
+        <div class="info">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Minden pénzjutalom a játékos szint szorzójával kerül szorozásra kifizetés előtt.
+            Például Elit futárnál (x1.5) egy tökéletes 5 csomagos kör: (5×300 + 5×150 + 500) × 1.5 = <strong>$4,125</strong>.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     INTERAKTÍV EXPORT DEMO
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+
+            <!-- Bal oldal: Stats + GetLeaderboard -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-chart-bar-line"></i>GetPlayerStats szimuláció</div>
+                <select class="dsel" id="d-level">
+                    <option value="1">Szint 1 – Kezdő (0 XP)</option>
+                    <option value="2">Szint 2 – Tapasztalt (200 XP)</option>
+                    <option value="3">Szint 3 – Senior (500 XP)</option>
+                    <option value="4">Szint 4 – Profi (1000 XP)</option>
+                    <option value="5">Szint 5 – Elit (2000 XP)</option>
+                </select>
+                <button class="dbtn ba" onclick="demoGetStats()">
+                    <i class="hgi-stroke hgi-search-02"></i>GetPlayerStats
+                </button>
+                <button class="dbtn bw" onclick="demoGetLeaderboard()">
+                    <i class="hgi-stroke hgi-ranking"></i>GetLeaderboard(5)
+                </button>
+                <div class="dout" id="d-stats-out"></div>
+                <div class="level-bar"><div class="level-fill" id="d-xp-bar" style="width:0%"></div></div>
+                <div style="font-size:10px;color:var(--tm)" id="d-xp-label">XP: 0</div>
+            </div>
+
+            <!-- Jobb oldal: Kör szimuláció -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-route-02"></i>Kör jutalom kalkulátor</div>
+                <select class="dsel" id="d-calc-level">
+                    <option value="1.0">Szint 1 – x1.0 szorzó</option>
+                    <option value="1.1">Szint 2 – x1.1 szorzó</option>
+                    <option value="1.2">Szint 3 – x1.2 szorzó</option>
+                    <option value="1.35">Szint 4 – x1.35 szorzó</option>
+                    <option value="1.5">Szint 5 – x1.5 szorzó</option>
+                </select>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <label style="font-size:11px;color:var(--tm);white-space:nowrap">Gyors?</label>
+                    <input type="checkbox" id="d-fast" checked style="width:auto"/>
+                    <label style="font-size:11px;color:var(--tm);white-space:nowrap">Tökéletes?</label>
+                    <input type="checkbox" id="d-perfect" checked style="width:auto"/>
+                    <label style="font-size:11px;color:var(--tm);white-space:nowrap">Sorozat:</label>
+                    <input type="number" class="dinp" id="d-streak" value="5" min="0" max="25" style="width:54px"/>
+                </div>
+                <button class="dbtn bs" onclick="demoCalcReward()">
+                    <i class="hgi-stroke hgi-calculator"></i>Jutalom kiszámítása
+                </button>
+                <div class="dout" id="d-calc-out"></div>
+            </div>
+
+        </div>
+
+        <!-- ForceStart / Cancel szimuláció -->
+        <div class="dgrid" style="margin-top:12px">
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-play-circle-02"></i>ForceStartDelivery</div>
+                <button class="dbtn bs" onclick="demoForceStart()">
+                    <i class="hgi-stroke hgi-play-circle-02"></i>ForceStartDelivery(src)
+                </button>
+                <button class="dbtn bd" onclick="demoCancel()">
+                    <i class="hgi-stroke hgi-cancel-01"></i>CancelDelivery(src)
+                </button>
+                <div class="dout" id="d-run-out"></div>
+            </div>
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-user-check-01"></i>IsOnDuty / GetLocalDelivery</div>
+                <button class="dbtn ba" onclick="demoToggleDuty()">
+                    <i class="hgi-stroke hgi-toggle-off"></i>IsOnDuty toggle
+                </button>
+                <button class="dbtn bw" onclick="demoGetLocal()">
+                    <i class="hgi-stroke hgi-package-delivered"></i>GetLocalDelivery
+                </button>
+                <div class="dout" id="d-duty-out"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     INDÍTÁSI SORREND
+══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql
+ensure fvg-database
+ensure fvg-playercore
+ensure fvg-notify
+ensure fvg-banking
+ensure fvg-identity
+ensure fvg-idcard
+ensure fvg-inventory
+ensure fvg-dispatch
+ensure fvg-unemployment    # courier job forrása
+ensure fvg-courier         # ← itt
+ensure fvg-admin
+ensure fvg-hud</code>
+    </div>
+</section>
+
+<script>
+    // ── Szimulációs állapot ──────────────────────────────────
+    const levelData = {
+        1: { label: 'Kezdő futár',      xp: 0,    mult: 1.0,  nextXp: 200 },
+        2: { label: 'Tapasztalt futár', xp: 200,  mult: 1.1,  nextXp: 500 },
+        3: { label: 'Senior futár',     xp: 500,  mult: 1.2,  nextXp: 1000 },
+        4: { label: 'Profi futár',      xp: 1000, mult: 1.35, nextXp: 2000 },
+        5: { label: 'Elit futár',       xp: 2000, mult: 1.5,  nextXp: null },
+    };
+
+    let simOnDuty  = false;
+    let simHasRun  = false;
+    let simRunData = null;
+    const spots    = ['Alta Street', 'Pillbox Hill', 'Vinewood Blvd.', 'Del Perro strand', 'Rockford Hills'];
+
+    function fmt(n) { return '$' + Number(n).toLocaleString('hu-HU'); }
+
+    // GetPlayerStats
+    function demoGetStats() {
+        const lvl = parseInt(document.getElementById('d-level').value);
+        const ld  = levelData[lvl];
+        const simStats = {
+            xp: ld.xp + Math.floor(Math.random() * (ld.nextXp ? ld.nextXp - ld.xp : 100)),
+            level: lvl,
+            total_deliveries: Math.floor(Math.random() * 300) + lvl * 50,
+            total_runs: Math.floor(Math.random() * 60) + lvl * 10,
+            perfect_runs: Math.floor(Math.random() * 20),
+            streak: Math.floor(Math.random() * 10),
+            total_earned: Math.floor(Math.random() * 50000) + lvl * 5000,
+        };
+        const el = document.getElementById('d-stats-out');
+        el.className = 'dout ok';
+        el.innerHTML = `→ GetPlayerStats()<br>
+  xp: <strong style="color:#f59e0b">${simStats.xp}</strong> | szint: <strong>${simStats.level}</strong> (${ld.label})<br>
+  kézbesítés: ${simStats.total_deliveries} | kör: ${simStats.total_runs} | tökéletes: ${simStats.perfect_runs}<br>
+  sorozat: ${simStats.streak} | kereset: <strong style="color:#22c55e">${fmt(simStats.total_earned)}</strong>`;
+
+        // XP bar
+        const pct = ld.nextXp
+            ? Math.min(((simStats.xp - ld.xp) / (ld.nextXp - ld.xp)) * 100, 100)
+            : 100;
+        document.getElementById('d-xp-bar').style.width = pct + '%';
+        document.getElementById('d-xp-label').textContent = `XP: ${simStats.xp} ${ld.nextXp ? '/ ' + ld.nextXp : '(MAX)'}`;
+    }
+
+    // GetLeaderboard
+    function demoGetLeaderboard() {
+        const names = [
+            ['Kovács', 'Béla'], ['Nagy', 'Anna'], ['Tóth', 'Péter'],
+            ['Szabó', 'Erika'], ['Horváth', 'Gábor']
+        ];
+        const el = document.getElementById('d-stats-out');
+        el.className = 'dout ok';
+        el.innerHTML = '→ GetLeaderboard(5)<br>' + names.map((n, i) => {
+            const lvl   = 5 - i;
+            const dels  = 500 - i * 80 + Math.floor(Math.random() * 30);
+            const earned= dels * 2100;
+            return `  #${i+1} <strong style="color:#f59e0b">${n[0]} ${n[1]}</strong> | Szint ${lvl} | ${dels} kézbesítés | ${fmt(earned)}`;
+        }).join('<br>');
+        document.getElementById('d-xp-bar').style.width = '0%';
+        document.getElementById('d-xp-label').textContent = '';
+    }
+
+    // Jutalom kalkulátor
+    function demoCalcReward() {
+        const mult    = parseFloat(document.getElementById('d-calc-level').value);
+        const isFast  = document.getElementById('d-fast').checked;
+        const isPerf  = document.getElementById('d-perfect').checked;
+        const streak  = parseInt(document.getElementById('d-streak').value) || 0;
+
+        const base    = Math.floor(300 * mult) * 5;
+        const timeBon = isFast  ? Math.floor(150 * mult) * 5 : 0;
+        const perfBon = isPerf  ? Math.floor(500 * mult)     : 0;
+        const strkBon = streak >= 5 ? (Math.floor(streak / 5) * 50) : 0;
+        const total   = base + timeBon + perfBon + strkBon;
+
+        const el = document.getElementById('d-calc-out');
+        el.className = 'dout ok';
+        el.innerHTML = `→ Jutalom kalkuláció (x${mult} szorzó)<br>
+  Alap (5×):      <strong style="color:#22c55e">${fmt(base)}</strong><br>
+  Gyors bónusz:   <strong style="color:#f59e0b">${isFast ? '+' + fmt(timeBon) : '–'}</strong><br>
+  Tökéletes kör:  <strong style="color:#f59e0b">${isPerf ? '+' + fmt(perfBon) : '–'}</strong><br>
+  Sorozat (${streak}x): <strong style="color:#f59e0b">${strkBon > 0 ? '+' + fmt(strkBon) : '–'}</strong><br>
+  ──────────────────────────<br>
+  ÖSSZESEN:       <strong style="color:#22c55e;font-size:13px">${fmt(total)}</strong>`;
+    }
+
+    // ForceStart / Cancel
+    function demoForceStart() {
+        const el = document.getElementById('d-run-out');
+        if (!simOnDuty) {
+            el.className = 'dout err';
+            el.textContent = '→ ForceStartDelivery() = hiba – játékos nincs duty-ban'; return;
+        }
+        if (simHasRun) {
+            el.className = 'dout warn';
+            el.textContent = '→ ForceStartDelivery() = hiba – már van aktív köre'; return;
+        }
+        simHasRun  = true;
+        simRunData = {
+            runId: 'RUN-' + String(Math.floor(Math.random() * 999999)).padStart(6,'0'),
+            spots: spots.map(s => ({ label: s, done: false })),
+            currentIdx: 1, totalReward: 0,
+        };
+        el.className = 'dout ok';
+        el.innerHTML = `→ ForceStartDelivery() = OK<br>  runId: <strong style="color:#f59e0b">${simRunData.runId}</strong><br>  spots: ${spots.length} helyszín`;
+    }
+
+    function demoCancel() {
+        const el = document.getElementById('d-run-out');
+        if (!simHasRun) {
+            el.className = 'dout err';
+            el.textContent = '→ CancelDelivery() = false – nincs aktív kör'; return;
+        }
+        const id  = simRunData.runId;
+        simHasRun  = false;
+        simRunData = null;
+        el.className = 'dout ok';
+        el.innerHTML = `→ CancelDelivery() = OK | kör törölve: <strong>${id}</strong><br>  → sorozat nullázva, csomagok eltávolítva`;
+    }
+
+    // IsOnDuty / GetLocalDelivery
+    function demoToggleDuty() {
+        simOnDuty = !simOnDuty;
+        if (!simOnDuty) { simHasRun = false; simRunData = null; }
+        const el  = document.getElementById('d-duty-out');
+        el.className = 'dout ' + (simOnDuty ? 'ok' : 'warn');
+        el.innerHTML = `→ IsOnDuty() = <strong style="color:${simOnDuty ? '#22c55e' : '#f59e0b'}">${simOnDuty}</strong>${simOnDuty ? ' | jármű spawned' : ' | jármű törölve'}`;
+    }
+
+    function demoGetLocal() {
+        const el = document.getElementById('d-duty-out');
+        if (!simHasRun || !simRunData) {
+            el.className = 'dout warn';
+            el.textContent = '→ GetLocalDelivery() = nil (nincs aktív kör)'; return;
+        }
+        el.className = 'dout ok';
+        el.innerHTML = `→ GetLocalDelivery()<br>  runId: <strong style="color:#f59e0b">${simRunData.runId}</strong><br>  currentIdx: ${simRunData.currentIdx} | totalReward: ${fmt(simRunData.totalReward)}<br>  isPerfect: true`;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-courier</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ── HUD (duty alatt mindig látható) ──────────────────────── -->
+<div id="courier-hud" class="hidden">
+    <div class="hud-icon"><i class="hgi-stroke hgi-package-delivered"></i></div>
+    <div class="hud-info">
+        <div class="hud-top">
+            <span class="hud-label" id="hud-label">Nincs aktív kör</span>
+            <span class="hud-timer hidden" id="hud-timer">10:00</span>
+        </div>
+        <div class="hud-progress hidden" id="hud-progress">
+            <div class="hud-prog-track">
+                <div class="hud-prog-fill" id="hud-prog-fill"></div>
+            </div>
+            <span class="hud-prog-text" id="hud-prog-text">0 / 5</span>
+        </div>
+    </div>
+    <div class="hud-reward hidden" id="hud-reward">$<span id="hud-reward-val">0</span></div>
+</div>
+
+<!-- ── OVERLAY (panel) ──────────────────────────────────────── -->
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- FEJLÉC -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="hgi-stroke hgi-package-delivered"></i></div>
+                <div>
+                    <div class="ph-title">Futár Rendszer</div>
+                    <div class="ph-sub" id="ph-sub">Los Santos Express Courier</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <button class="duty-btn" id="duty-btn">
+                    <i class="hgi-stroke hgi-play-circle-02"></i>Munkába lépés
+                </button>
+                <button class="close-btn" id="close-btn">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB SÁV -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="dashboard">
+                <i class="hgi-stroke hgi-dashboard-square-02"></i>Irányítópult
+            </button>
+            <button class="tab" data-tab="run">
+                <i class="hgi-stroke hgi-route-02"></i>Aktív kör
+            </button>
+            <button class="tab" data-tab="leaderboard">
+                <i class="hgi-stroke hgi-ranking"></i>Ranglista
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="panel-body">
+
+            <!-- ══ IRÁNYÍTÓPULT ══ -->
+            <div class="tab-content active" id="tab-dashboard">
+
+                <!-- XP / Szint kártya -->
+                <div class="level-card" id="level-card">
+                    <div class="lc-top">
+                        <div class="lc-icon"><i class="hgi-stroke hgi-star-02"></i></div>
+                        <div class="lc-meta">
+                            <div class="lc-level" id="lc-level">1. szint</div>
+                            <div class="lc-title" id="lc-title">Kezdő futár</div>
+                        </div>
+                        <div class="lc-mult" id="lc-mult">x1.0</div>
+                    </div>
+                    <div class="xp-bar">
+                        <div class="xp-fill" id="xp-fill"></div>
+                    </div>
+                    <div class="xp-labels">
+                        <span id="xp-current">0 XP</span>
+                        <span id="xp-next">200 XP szükséges</span>
+                    </div>
+                </div>
+
+                <!-- Stat kártyák -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="hgi-stroke hgi-package-delivered"></i>
+                        <div class="stat-val" id="stat-deliveries">0</div>
+                        <div class="stat-label">Kézbesítés</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="hgi-stroke hgi-route-02"></i>
+                        <div class="stat-val" id="stat-runs">0</div>
+                        <div class="stat-label">Kör</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="hgi-stroke hgi-star-02"></i>
+                        <div class="stat-val" id="stat-perfect">0</div>
+                        <div class="stat-label">Tökéletes kör</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="hgi-stroke hgi-money-bag-02"></i>
+                        <div class="stat-val" id="stat-earned">$0</div>
+                        <div class="stat-label">Összes kereset</div>
+                    </div>
+                </div>
+
+                <!-- Sorozat -->
+                <div class="streak-card" id="streak-card">
+                    <i class="hgi-stroke hgi-fire-02"></i>
+                    <div class="streak-info">
+                        <div class="streak-val" id="streak-val">0</div>
+                        <div class="streak-label">kör sorozat</div>
+                    </div>
+                    <div class="streak-next" id="streak-next">Következő bónusz: 5 körnél</div>
+                </div>
+
+                <!-- Kör indítás -->
+                <button class="start-run-btn" id="start-run-btn">
+                    <i class="hgi-stroke hgi-play-circle-02"></i>
+                    Új kör indítása
+                </button>
+
+                <!-- Jutalom infó -->
+                <div class="reward-info">
+                    <div class="ri-item">
+                        <i class="hgi-stroke hgi-money-bag-02"></i>
+                        <span>Alap jutalom</span>
+                        <strong id="ri-base">$300 / csomag</strong>
+                    </div>
+                    <div class="ri-item">
+                        <i class="hgi-stroke hgi-lightning-02"></i>
+                        <span>Gyors kézbesítés</span>
+                        <strong id="ri-time">+$150</strong>
+                    </div>
+                    <div class="ri-item">
+                        <i class="hgi-stroke hgi-star-02"></i>
+                        <span>Tökéletes kör</span>
+                        <strong id="ri-perfect">+$500</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ AKTÍV KÖR ══ -->
+            <div class="tab-content" id="tab-run">
+                <div class="no-run" id="no-run">
+                    <i class="hgi-stroke hgi-package-delivered"></i>
+                    <div>Nincs aktív kör</div>
+                    <button class="start-run-btn-sm" id="start-run-btn-2">
+                        <i class="hgi-stroke hgi-play-circle-02"></i>Kör indítása
+                    </button>
+                </div>
+                <div class="run-view hidden" id="run-view">
+                    <!-- Időmérő -->
+                    <div class="run-timer-card">
+                        <div class="rtc-left">
+                            <div class="rtc-label">Hátralévő idő</div>
+                            <div class="rtc-time" id="rtc-time">10:00</div>
+                        </div>
+                        <div class="rtc-right">
+                            <div class="rtc-label">Összegyűjtött jutalom</div>
+                            <div class="rtc-reward" id="rtc-reward">$0</div>
+                        </div>
+                        <button class="cancel-run-btn" id="cancel-run-btn">
+                            <i class="hgi-stroke hgi-cancel-01"></i>Lemondás
+                        </button>
+                    </div>
+
+                    <!-- Spot lista -->
+                    <div class="spots-list" id="spots-list"></div>
+                </div>
+            </div>
+
+            <!-- ══ RANGLISTA ══ -->
+            <div class="tab-content" id="tab-leaderboard">
+                <div class="lb-header">
+                    <i class="hgi-stroke hgi-ranking"></i>
+                    <span>Legjobb futárok</span>
+                </div>
+                <div class="lb-list" id="lb-list">
+                    <!-- dinamikus -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── KÉZBESÍTÉS ÖSSZEFOGLALÓ MODAL ──────────────────── -->
+    <div id="summary-modal" class="modal hidden">
+        <div class="modal-box">
+            <div class="modal-header" id="sm-header">
+                <i class="hgi-stroke hgi-checkmark-circle-02"></i>
+                <span>Kör összefoglaló</span>
+            </div>
+            <div class="modal-body" id="sm-body"></div>
+            <div class="modal-footer">
+                <button class="modal-ok-btn" onclick="Courier.closeModal()">
+                    <i class="hgi-stroke hgi-checkmark-02"></i>Bezárás
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
