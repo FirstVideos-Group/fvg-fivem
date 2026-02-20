@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-notify – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0f1116;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 40px 24px;
+        }
+        h1 { font-size: 26px; font-weight: 800; color: #f8fafc; margin-bottom: 6px; }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 40px; }
+        .badge { display: inline-block; background: #1e293b; color: #3b82f6; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.05em; margin-left: 10px; vertical-align: middle; }
+        section { margin-bottom: 36px; }
+        h2 { font-size: 16px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; border-bottom: 1px solid #1e293b; padding-bottom: 8px; }
+        .card { background: #161b24; border: 1px solid #1e293b; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; }
+        .export-name { font-size: 15px; font-weight: 700; color: #38bdf8; font-family: monospace; margin-bottom: 6px; }
+        .export-desc { font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.6; }
+        .params { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .param { display: flex; gap: 10px; align-items: flex-start; }
+        .param-name { font-family: monospace; font-size: 12px; background: #0f172a; color: #a78bfa; padding: 2px 8px; border-radius: 4px; min-width: 80px; }
+        .param-info { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+        .param-info span { color: #f59e0b; font-family: monospace; }
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        button {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 16px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: opacity 0.15s;
+        }
+        button:hover { opacity: 0.8; }
+        .btn-success { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+        .btn-error   { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        .btn-info    { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+        .btn-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+        .btn-police  { background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); }
+        .btn-money   { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        code { display: block; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc; font-family: monospace; margin-top: 14px; white-space: pre; overflow-x: auto; }
+
+        /* Notify konténer (demo) */
+        #demo-notify-container {
+            position: fixed; top: 24px; right: 24px;
+            display: flex; flex-direction: column; gap: 10px;
+            z-index: 9999; width: 360px; align-items: flex-end;
+            pointer-events: none;
+        }
+        .fvg-notify {
+            width: 100%; display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 16px; border-radius: 10px;
+            background: rgba(15,17,22,0.97); border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            position: relative; overflow: hidden;
+            pointer-events: all; opacity: 0;
+            transform: translateX(30px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .fvg-notify.show { opacity:1; transform:translateX(0); }
+        .fvg-notify.hide { opacity:0; transform:translateX(30px); }
+        .fvg-notify::before {
+            content:''; position:absolute; left:0; top:0; bottom:0;
+            width:4px; border-radius:10px 0 0 10px;
+        }
+        .fvg-notify.success::before{background:#22c55e}.fvg-notify.error::before{background:#ef4444}
+        .fvg-notify.info::before{background:#3b82f6}.fvg-notify.warning::before{background:#f59e0b}
+        .fvg-notify.police::before{background:#6366f1}.fvg-notify.money::before{background:#10b981}
+        .fvg-notify.success .ni{color:#22c55e}.fvg-notify.error .ni{color:#ef4444}
+        .fvg-notify.info .ni{color:#3b82f6}.fvg-notify.warning .ni{color:#f59e0b}
+        .fvg-notify.police .ni{color:#6366f1}.fvg-notify.money .ni{color:#10b981}
+        .ni{font-size:22px;flex-shrink:0;margin-top:1px;margin-left:6px}
+        .nb{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+        .nt{font-size:13px;font-weight:700;color:#f1f5f9;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .nm{font-size:12px;color:#94a3b8;line-height:1.5;word-break:break-word}
+        .nc{background:none;border:none;cursor:pointer;color:#475569;font-size:16px;flex-shrink:0;padding:0;line-height:1;transition:color .2s;margin-top:1px}
+        .nc:hover{color:#f1f5f9}
+        .np{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08);border-radius:0 0 10px 10px;overflow:hidden}
+        .npb{height:100%;width:100%;transform-origin:left;border-radius:0 0 10px 10px}
+        .fvg-notify.success .npb{background:#22c55e}.fvg-notify.error .npb{background:#ef4444}
+        .fvg-notify.info .npb{background:#3b82f6}.fvg-notify.warning .npb{background:#f59e0b}
+        .fvg-notify.police .npb{background:#6366f1}.fvg-notify.money .npb{background:#10b981}
+    </style>
+</head>
+<body>
+    <h1>fvg-notify <span class="badge">v1.0.0</span></h1>
+    <p class="subtitle">FirstVideos Group – FiveM Értesítési Rendszer · Export dokumentáció & interaktív demo</p>
+
+    <section>
+        <h2>Kliens exportok</h2>
+        <div class="card">
+            <div class="export-name">exports['fvg-notify']:Notify(data)</div>
+            <div class="export-desc">Értesítést jelenít meg az aktuális kliens képernyőjén. Hívható bármely más script kliens oldaláról.</div>
+            <div class="params">
+                <div class="param"><span class="param-name">type</span><div class="param-info"><span>string</span> – success · error · info · warning · police · money</div></div>
+                <div class="param"><span class="param-name">title</span><div class="param-info"><span>string</span> – Értesítés fejléce (opcionális)</div></div>
+                <div class="param"><span class="param-name">message</span><div class="param-info"><span>string</span> – Értesítés szövege</div></div>
+                <div class="param"><span class="param-name">duration</span><div class="param-info"><span>number</span> – Megjelenési idő ms-ben (alapért. 4000)</div></div>
+            </div>
+            <div class="demo-row">
+                <button class="btn-success" onclick="demoNotify('success','Sikeres!','Az akció sikeresen végrehajtva.')"><i class="hgi-stroke hgi-checkmark-circle-02"></i>Success</button>
+                <button class="btn-error"   onclick="demoNotify('error','Hiba!','Nincs elegendő pénzed.')"><i class="hgi-stroke hgi-cancel-circle"></i>Error</button>
+                <button class="btn-info"    onclick="demoNotify('info','Információ','Következő esemény 10 perc múlva.')"><i class="hgi-stroke hgi-information-circle"></i>Info</button>
+                <button class="btn-warning" onclick="demoNotify('warning','Figyelem!','Rendőr közeledik.')"><i class="hgi-stroke hgi-alert-02"></i>Warning</button>
+                <button class="btn-police"  onclick="demoNotify('police','Rendőrség','Keresett személy a területen.')"><i class="hgi-stroke hgi-police-badge"></i>Police</button>
+                <button class="btn-money"   onclick="demoNotify('money','Fizetés','Megkaptad: $5,000')"><i class="hgi-stroke hgi-money-bag-02"></i>Money</button>
+            </div>
+<code>-- Lua példa (kliens script)
+exports['fvg-notify']:Notify({
+    type     = 'success',
+    title    = 'Sikeres!',
+    message  = 'Az autót sikeresen beparkoltad.',
+    duration = 4000
+})</code>
+        </div>
+    </section>
+
+    <section>
+        <h2>Szerver exportok</h2>
+        <div class="card">
+            <div class="export-name">exports['fvg-notify']:NotifyPlayer(source, data)</div>
+            <div class="export-desc">Egyetlen játékosnak küld értesítést szerver oldalról.</div>
+<code>-- Lua példa (szerver script)
+exports['fvg-notify']:NotifyPlayer(source, {
+    type    = 'money',
+    title   = 'Fizetés',
+    message = 'Megkaptad a heti fizetésedet: $5,000'
+})</code>
+        </div>
+        <div class="card">
+            <div class="export-name">exports['fvg-notify']:NotifyAll(data)</div>
+            <div class="export-desc">Minden online játékosnak küld értesítést egyszerre.</div>
+<code>-- Lua példa (szerver script)
+exports['fvg-notify']:NotifyAll({
+    type    = 'info',
+    title   = 'Szerver',
+    message = 'A szerver 5 perc múlva újraindul!'
+})</code>
+        </div>
+    </section>
+
+    <div id="demo-notify-container"></div>
+
+    <script>
+        const types = {
+            success: { icon: 'hgi-stroke hgi-checkmark-circle-02' },
+            error:   { icon: 'hgi-stroke hgi-cancel-circle' },
+            info:    { icon: 'hgi-stroke hgi-information-circle' },
+            warning: { icon: 'hgi-stroke hgi-alert-02' },
+            police:  { icon: 'hgi-stroke hgi-police-badge' },
+            money:   { icon: 'hgi-stroke hgi-money-bag-02' }
+        };
+        const cont = document.getElementById('demo-notify-container');
+        let count = 0;
+
+        function demoNotify(type, title, message, duration) {
+            duration = duration || 4000;
+            if (cont.children.length >= 5) return;
+            const icon = types[type]?.icon || types.info.icon;
+            const el = document.createElement('div');
+            el.className = 'fvg-notify ' + type;
+            el.innerHTML = `
+                <i class="ni ${icon}"></i>
+                <div class="nb">
+                    <span class="nt">${title}</span>
+                    <span class="nm">${message}</span>
+                </div>
+                <button class="nc" title="Bezárás"><i class="hgi-stroke hgi-cancel-01"></i></button>
+                <div class="np"><div class="npb"></div></div>
+            `;
+            cont.appendChild(el);
+            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+            const bar = el.querySelector('.npb');
+            bar.style.transition = `transform ${duration}ms linear`;
+            requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = 'scaleX(0)'; }));
+            const timer = setTimeout(() => close(el), duration);
+            el.querySelector('.nc').addEventListener('click', () => { clearTimeout(timer); close(el); });
+        }
+        function close(el) {
+            el.classList.remove('show'); el.classList.add('hide');
+            setTimeout(() => el.remove(), 350);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none;
+}
+
+/* ── Konténer pozíciók ────────────────────────────── */
+#fvg-notify-container {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 360px;
+    width: 360px;
+}
+
+.pos-top-right    { top: 24px;    right: 24px;   align-items: flex-end; }
+.pos-top-left     { top: 24px;    left:  24px;   align-items: flex-start; }
+.pos-bottom-right { bottom: 24px; right: 24px;   align-items: flex-end;   flex-direction: column-reverse; }
+.pos-bottom-left  { bottom: 24px; left:  24px;   align-items: flex-start; flex-direction: column-reverse; }
+
+/* ── Értesítés kártya ─────────────────────────────── */
+.fvg-notify {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(15, 17, 22, 0.92);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    position: relative;
+    overflow: hidden;
+    pointer-events: all;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fvg-notify.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fvg-notify.hide {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+/* bal oldali színes csík */
+.fvg-notify::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 10px 0 0 10px;
+}
+
+/* ── Típus színek ─────────────────────────────────── */
+.fvg-notify.success::before { background: #22c55e; }
+.fvg-notify.error::before   { background: #ef4444; }
+.fvg-notify.info::before    { background: #3b82f6; }
+.fvg-notify.warning::before { background: #f59e0b; }
+.fvg-notify.police::before  { background: #6366f1; }
+.fvg-notify.money::before   { background: #10b981; }
+
+.fvg-notify.success .notify-icon { color: #22c55e; }
+.fvg-notify.error   .notify-icon { color: #ef4444; }
+.fvg-notify.info    .notify-icon { color: #3b82f6; }
+.fvg-notify.warning .notify-icon { color: #f59e0b; }
+.fvg-notify.police  .notify-icon { color: #6366f1; }
+.fvg-notify.money   .notify-icon { color: #10b981; }
+
+/* ── Ikon ─────────────────────────────────────────── */
+.notify-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    margin-left: 6px;
+}
+
+/* ── Szöveg ───────────────────────────────────────── */
+.notify-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.notify-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notify-message {
+    font-size: 12px;
+    font-weight: 400;
+    color: #94a3b8;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* ── Bezárás gomb ─────────────────────────────────── */
+.notify-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #475569;
+    font-size: 16px;
+    flex-shrink: 0;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+    pointer-events: all;
+    margin-top: 1px;
+}
+
+.notify-close:hover {
+    color: #f1f5f9;
+}
+
+/* ── Haladásjelző sáv ─────────────────────────────── */
+.notify-progress {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+}
+
+.notify-progress-bar {
+    height: 100%;
+    width: 100%;
+    transform-origin: left;
+    transition: transform linear;
+    border-radius: 0 0 10px 10px;
+}
+
+.fvg-notify.success .notify-progress-bar { background: #22c55e; }
+.fvg-notify.error   .notify-progress-bar { background: #ef4444; }
+.fvg-notify.info    .notify-progress-bar { background: #3b82f6; }
+.fvg-notify.warning .notify-progress-bar { background: #f59e0b; }
+.fvg-notify.police  .notify-progress-bar { background: #6366f1; }
+.fvg-notify.money   .notify-progress-bar { background: #10b981; }
