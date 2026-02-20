@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-inventory</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ─────────────────────────────────────── -->
+        <div class="inv-header">
+            <div class="inv-header-left">
+                <i class="hgi-stroke hgi-backpack-02"></i>
+                <div>
+                    <div class="inv-title">Leltár</div>
+                    <div class="inv-weight-bar-wrap">
+                        <div class="inv-weight-track">
+                            <div class="inv-weight-fill" id="weight-fill"></div>
+                        </div>
+                        <span class="inv-weight-label" id="weight-label">0 / 30 kg</span>
+                    </div>
+                </div>
+            </div>
+            <button class="inv-close" id="btn-close">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+
+        <!-- ── KATEGÓRIA SÁV ──────────────────────────────── -->
+        <div class="cat-bar" id="cat-bar">
+            <!-- dinamikus -->
+        </div>
+
+        <!-- ── SLOT RÁCSHÁLÓ ──────────────────────────────── -->
+        <div class="inv-body">
+            <div class="inv-grid" id="inv-grid">
+                <!-- dinamikus -->
+            </div>
+        </div>
+
+        <!-- ── GYORSSÁV ───────────────────────────────────── -->
+        <div class="hotbar" id="hotbar">
+            <!-- dinamikus -->
+        </div>
+
+    </div>
+
+    <!-- ── TOOLTIP ──────────────────────────────────────────── -->
+    <div id="tooltip" class="hidden">
+        <div class="tt-name"  id="tt-name"></div>
+        <div class="tt-cat"   id="tt-cat"></div>
+        <div class="tt-weight"id="tt-weight"></div>
+        <div class="tt-meta"  id="tt-meta"></div>
+        <div class="tt-actions" id="tt-actions"></div>
+    </div>
+
+    <!-- ── KONTEXTUS MENÜ ───────────────────────────────────── -->
+    <div id="ctx-menu" class="hidden">
+        <!-- dinamikus -->
+    </div>
+
+    <!-- ── MENNYISÉG MODAL ──────────────────────────────────── -->
+    <div id="amount-modal" class="hidden">
+        <div class="am-box">
+            <div class="am-title" id="am-title">Mennyiség</div>
+            <input type="number" class="am-input" id="am-input" min="1" value="1"/>
+            <div class="am-actions">
+                <button class="am-btn cancel" onclick="Inv.closeAmountModal()">Mégse</button>
+                <button class="am-btn confirm" id="am-confirm">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

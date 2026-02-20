@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-inventory – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --bg:#0a0c12;--card:#161b24;--code:#0f172a;--border:#1e293b;
+            --tp:#f1f5f9;--ts:#94a3b8;--tm:#475569;--ac:#38bdf8;
+            --font:'Segoe UI',system-ui,sans-serif;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--tp);font-family:var(--font);padding:48px 28px 120px;max-width:1020px;margin:0 auto}
+        h1{font-size:28px;font-weight:800;margin-bottom:6px}
+        p.sub{color:var(--tm);font-size:14px;line-height:1.7;margin-bottom:48px}
+        .badge{display:inline-block;background:rgba(56,189,248,.12);color:var(--ac);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.05em;margin-left:10px;vertical-align:middle;border:1px solid rgba(56,189,248,.25)}
+        section{margin-bottom:44px}
+        .st{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px}
+        .sig{font-family:monospace;font-size:14px;font-weight:700;color:var(--ac);margin-bottom:6px;line-height:1.8}
+        .side{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+        .ss{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .sc{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .desc{font-size:13px;color:var(--ts);line-height:1.65;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;margin-bottom:14px}
+        th{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+        td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;color:var(--ts)}
+        tr:last-child td{border-bottom:none}
+        .pn{font-family:monospace;color:#a78bfa}
+        .pt{font-family:monospace;color:#f59e0b}
+        .pv{font-family:monospace;color:#7dd3fc}
+        .cl{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:14px}
+        code{display:block;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace;white-space:pre;overflow-x:auto;line-height:1.7}
+        .info{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);font-size:12px;color:#93c5fd;line-height:1.6;margin-top:14px}
+        .info i{font-size:16px;flex-shrink:0;margin-top:1px;color:var(--ac)}
+        .warn{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);font-size:12px;color:#fcd34d;line-height:1.6;margin-top:14px}
+        .warn i{font-size:16px;flex-shrink:0;margin-top:1px;color:#f59e0b}
+        /* Demo */
+        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .dc{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+        .dct{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+        .dct i{font-size:14px;color:var(--ac)}
+        .dbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:var(--font);width:100%}
+        .dbtn:hover{opacity:.8}
+        .ba{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .bs{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .bw{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+        .bd{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .dout{font-family:monospace;font-size:11px;color:var(--tm);min-height:18px;margin-top:4px}
+        .dout.ok{color:#22c55e}.dout.err{color:#ef4444}
+        .dsel,.dinp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--tp);font-size:12px;outline:none;font-family:var(--font);width:100%}
+    </style>
+</head>
+<body>
+
+<h1>fvg-inventory <span class="badge">v1.0.0</span></h1>
+<p class="sub">FirstVideos Group · Slot-alapú leltárrendszer. DB: <code style="color:#7dd3fc;font-size:12px">fvg_inventory · fvg_stashes · fvg_drops</code></p>
+
+<!-- Szerver exportok -->
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:AddItem(source, itemName, amount, metadata?, slot?) → boolean, string?</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Hozzáad egy itemet a játékos inventory-jához. Súly- és slot-ellenőrzés után stack-eli vagy új slotba helyezi. Visszaad egy boolean értéket és opcionálisan a hibaüzenetet.</div>
+        <table>
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td>   <td class="pt">number</td>  <td>Játékos szerver ID</td></tr>
+                <tr><td class="pn">itemName</td> <td class="pt">string</td>  <td>Item egyedi neve (ld. <span class="pv">Config.Items</span>)</td></tr>
+                <tr><td class="pn">amount</td>   <td class="pt">number</td>  <td>Mennyiség (default: 1)</td></tr>
+                <tr><td class="pn">metadata</td> <td class="pt">table?</td>  <td>Opcionális metadata pl. <span class="pv">{ ammo = 30, serial = 'ABC' }</span></td></tr>
+                <tr><td class="pn">slot</td>     <td class="pt">number?</td> <td>Kényszerített slot szám (opcionális)</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa</div>
+        <code>-- Egyszerű add
+local ok, err = exports['fvg-inventory']:AddItem(src, 'bread', 3)
+if not ok then print('Hiba: ' .. err) end
+
+-- Metadata-val (fegyver)
+exports['fvg-inventory']:AddItem(src, 'weapon_pistol', 1, { serial = 'FVG-1234', ammo = 30 })</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:RemoveItem(source, itemName, amount) → boolean, string?</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Eltávolít itemet a játékos inventory-jából. Ha nincs elég item, <code>false</code>-t és hibaüzenetet ad vissza. Stackable itemek esetén több slotból is összeszedi.</div>
+        <div class="cl">Lua példa</div>
+        <code>-- Vásárláskor item levonás
+RegisterNetEvent('fvg-shop:server:BuyItem', function(itemName, amount)
+    local src = source
+    local price = Config.ShopItems[itemName].price * amount
+    if exports['fvg-banking']:GetBalance(src) < price then return end
+
+    local ok = exports['fvg-inventory']:AddItem(src, itemName, amount)
+    if ok then
+        exports['fvg-banking']:RemoveMoney(src, price)
+    end
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:HasItem(source, itemName, amount?) → boolean</div>
+        <div class="sig">exports['fvg-inventory']:GetItemCount(source, itemName) → number</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Ellenőrzi, hogy a játékos rendelkezik-e az adott itemmel (opcionálisan megadott mennyiségben).</div>
+        <div class="cl">Lua példa</div>
+        <code>-- Craftinghoz anyag ellenőrzés
+if not exports['fvg-inventory']:HasItem(src, 'iron', 5) then
+    exports['fvg-notify']:Notify(src, { type='error', message='Nincs elég vasérc.' })
+    return
+end
+exports['fvg-inventory']:RemoveItem(src, 'iron', 5)
+exports['fvg-inventory']:AddItem(src, 'repair_kit', 1)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:GetInventory(source) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja a teljes inventory tartalmát slot-onként rendezett tömbként, az item definíció mezőkkel kiegészítve (label, weight, category, image, usable, stackable).</div>
+        <div class="cl">Lua példa</div>
+        <code>local inv = exports['fvg-inventory']:GetInventory(src)
+for _, slotData in ipairs(inv) do
+    print(string.format('Slot %d: %s x%d', slotData.slot, slotData.label, slotData.amount))
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:ClearInventory(source)</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Teljesen törli a játékos inventory-ját és szinkronizálja a klienssel. Használható halálkor, bankolásnál stb.</div>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:GetStash(stashId) → table</div>
+        <div class="sig">exports['fvg-inventory']:AddToStash(stashId, itemName, amount, metadata?) → boolean</div>
+        <div class="sig">exports['fvg-inventory']:RemoveFromStash(stashId, itemName, amount) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Stash (tároló) kezelés. A <code>stashId</code> egyedi string azonosító – pl. <span class="pv">'vehicle_123'</span>, <span class="pv">'house_12_stash'</span>. Az adatok az <code>fvg_stashes</code> táblában tárolódnak perzisztensen.</div>
+        <div class="cl">Lua példa – jármű csomagtartó</div>
+        <code>-- Betesz a csomagtartóba
+exports['fvg-inventory']:AddToStash('vehicle_' .. vehicleNetId, 'iron', 10)
+
+-- Kivesz
+exports['fvg-inventory']:RemoveFromStash('vehicle_' .. vehicleNetId, 'iron', 5)
+
+-- Lekér
+local stash = exports['fvg-inventory']:GetStash('vehicle_' .. vehicleNetId)
+for slot, data in pairs(stash) do
+    print(slot, data.item, data.amount)
+end</code>
+    </div>
+</section>
+
+<!-- Kliens exportok -->
+<section>
+    <div class="st">Kliens exportok</div>
+    <div class="card">
+        <div class="sig">exports['fvg-inventory']:GetLocalInventory() → table</div>
+        <div class="sig">exports['fvg-inventory']:GetLocalItemCount(itemName) → number</div>
+        <div class="sig">exports['fvg-inventory']:HasLocalItem(itemName, amount?) → boolean</div>
+        <span class="side sc">Client</span>
+        <div class="desc">Kliens oldali cache – szerver szinkron után azonnal elérhető. HUD-ok, mission scriptek használhatják szerver event nélkül.</div>
+        <div class="cl">Lua példa – fvg-hud</div>
+        <code>-- Telefonon item megjelenítés kliens oldalon
+local count = exports['fvg-inventory']:GetLocalItemCount('water')
+if count > 0 then
+    -- Mutasd a vízpalack ikont a HUD-on
+end</code>
+    </div>
+</section>
+
+<!-- Use callback regisztráció -->
+<section>
+    <div class="st">Use callback regisztráció</div>
+    <div class="card">
+        <div class="desc">Más scriptek egyedi use logikát regisztrálhatnak egy itemhez a <code>RegisterUseCallback</code> Lua függvénnyel. Ez felülírja az alapértelmezett viselkedést.</div>
+        <div class="cl">Lua példa – fvg-phone</div>
+        <code>-- fvg-phone server.lua
+CreateThread(function()
+    Wait(500) -- várjuk meg az fvg-inventory betöltését
+
+    -- Regisztráljuk a telefon use callbacket
+    RegisterUseCallback('phone', function(src, slot, data)
+        TriggerClientEvent('fvg-phone:client:OpenPhone', src)
+        -- Nem vesszük el az itemet (nem fogyasztható)
+    end)
+
+    -- ID kártya use
+    RegisterUseCallback('id_card', function(src, slot, data)
+        local identity = exports['fvg-identity']:GetPlayerIdentity(src)
+        if not identity then return end
+        TriggerClientEvent('fvg-identity:client:ShowIDCard', src, identity)
+    end)
+end)</code>
+        <div class="info">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A <code>RegisterUseCallback</code> globális Lua függvényként érhető el az fvg-inventory server.lua-ban definiálva. Más server scriptek közvetlenül hívhatják, mivel az fvg-inventory mindig korábban töltődik be.</span>
+        </div>
+    </div>
+</section>
+
+<!-- Események -->
+<section>
+    <div class="st">Szerver események</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Esemény</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">fvg-inventory:server:ItemUsed</td><td class="pt">src, itemName, metadata</td><td>Ha nincs use callback regisztrálva, ez az esemény triggerelődik</td></tr>
+                <tr><td class="pn">fvg-inventory:server:ItemAdded</td><td class="pt">src, itemName, amount</td><td>Item hozzáadás után (export hívás eredménye)</td></tr>
+                <tr><td class="pn">fvg-inventory:server:ItemRemoved</td><td class="pt">src, itemName, amount</td><td>Item eltávolítás után</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Interaktív demo -->
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-add-circle"></i>AddItem szimuláció</div>
+                <select class="dsel" id="d-item">
+                    <option value="bread">bread (Kenyér – 0.2kg)</option>
+                    <option value="water">water (Víz – 0.3kg)</option>
+                    <option value="medkit">medkit (Elsősegély – 0.5kg)</option>
+                    <option value="weapon_pistol">weapon_pistol (Pisztoly – 2.0kg)</option>
+                    <option value="iron">iron (Vasérc – 2.0kg)</option>
+                </select>
+                <input class="dinp" id="d-amount" type="number" min="1" max="50" value="1" placeholder="Mennyiség"/>
+                <button class="dbtn bs" onclick="demoAdd()"><i class="hgi-stroke hgi-add-circle"></i>AddItem</button>
+                <div class="dout" id="d-add-out"></div>
+            </div>
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-remove-circle"></i>RemoveItem / HasItem</div>
+                <select class="dsel" id="d-remove-item">
+                    <option value="bread">bread</option>
+                    <option value="water">water</option>
+                    <option value="medkit">medkit</option>
+                    <option value="weapon_pistol">weapon_pistol</option>
+                    <option value="iron">iron</option>
+                </select>
+                <input class="dinp" id="d-remove-amount" type="number" min="1" value="1"/>
+                <button class="dbtn bd" onclick="demoRemove()"><i class="hgi-stroke hgi-remove-circle"></i>RemoveItem</button>
+                <button class="dbtn ba" onclick="demoHas()" style="margin-top:4px"><i class="hgi-stroke hgi-checkmark-circle-02"></i>HasItem</button>
+                <div class="dout" id="d-remove-out"></div>
+            </div>
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-backpack-02"></i>GetInventory</div>
+                <button class="dbtn ba" onclick="demoGetInv()"><i class="hgi-stroke hgi-backpack-02"></i>GetInventory(src)</button>
+                <div class="dout" id="d-inv-out"></div>
+            </div>
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-package"></i>Stash műveletek</div>
+                <input class="dinp" id="d-stash-id" value="vehicle_42" style="margin-bottom:4px"/>
+                <select class="dsel" id="d-stash-item" style="margin-bottom:4px">
+                    <option value="iron">iron</option>
+                    <option value="bread">bread</option>
+                    <option value="lockpick">lockpick</option>
+                </select>
+                <button class="dbtn bs" onclick="demoStashAdd()"><i class="hgi-stroke hgi-add-circle"></i>AddToStash</button>
+                <button class="dbtn bd" onclick="demoStashRemove()" style="margin-top:4px"><i class="hgi-stroke hgi-remove-circle"></i>RemoveFromStash</button>
+                <div class="dout" id="d-stash-out"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script>
+    const itemDefs = {
+        bread:         { label:'Kenyér',       weight:0.2, stackable:true,  category:'food'    },
+        water:         { label:'Víz',           weight:0.3, stackable:true,  category:'food'    },
+        medkit:        { label:'Elsősegély',    weight:0.5, stackable:true,  category:'medical' },
+        weapon_pistol: { label:'Pisztoly',      weight:2.0, stackable:false, category:'weapon'  },
+        iron:          { label:'Vasérc',        weight:2.0, stackable:true,  category:'material'},
+        lockpick:      { label:'Zárfeszítő',    weight:0.2, stackable:true,  category:'tool'    },
+    };
+
+    const maxWeight = 30.0;
+    let simInv   = [];
+    let simStash = {};
+
+    function calcWeight() {
+        return simInv.reduce((acc, s) => acc + (itemDefs[s.item]?.weight || 0) * s.amount, 0);
+    }
+
+    function demoAdd() {
+        const item   = document.getElementById('d-item').value;
+        const amount = parseInt(document.getElementById('d-amount').value) || 1;
+        const def    = itemDefs[item];
+        const el     = document.getElementById('d-add-out');
+        const addW   = def.weight * amount;
+
+        if (calcWeight() + addW > maxWeight) {
+            el.className = 'dout err';
+            el.innerHTML = `→ AddItem() = <strong>false</strong> – 'Túl nehéz! (${(calcWeight() + addW).toFixed(1)} / ${maxWeight} kg)'`;
+            return;
+        }
+        if (!def.stackable && simInv.find(s => s.item === item)) {
+            el.className = 'dout err';
+            el.innerHTML = `→ AddItem() = <strong>false</strong> – 'Nem stack-elhető, már van'`;
+            return;
+        }
+        const exist = def.stackable && simInv.find(s => s.item === item);
+        if (exist) { exist.amount += amount; }
+        else { simInv.push({ item, amount, slot: simInv.length + 1 }); }
+        el.className = 'dout ok';
+        el.innerHTML = `→ AddItem('<span style="color:#86efac">${item}</span>', ${amount}) = <strong>true</strong> | Súly: ${calcWeight().toFixed(1)} kg`;
+    }
+
+    function demoRemove() {
+        const item   = document.getElementById('d-remove-item').value;
+        const amount = parseInt(document.getElementById('d-remove-amount').value) || 1;
+        const el     = document.getElementById('d-remove-out');
+        const total  = simInv.filter(s => s.item === item).reduce((a,s)=>a+s.amount,0);
+        if (total < amount) {
+            el.className = 'dout err';
+            el.innerHTML = `→ RemoveItem() = <strong>false</strong> – 'Nincs elég: ${total} / ${amount}'`;
+            return;
+        }
+        let toRm = amount;
+        simInv = simInv.filter(s => {
+            if (s.item !== item || toRm <= 0) return true;
+            if (s.amount <= toRm) { toRm -= s.amount; return false; }
+            s.amount -= toRm; toRm = 0; return true;
+        });
+        el.className = 'dout ok';
+        el.innerHTML = `→ RemoveItem('<span style="color:#86efac">${item}</span>', ${amount}) = <strong>true</strong>`;
+    }
+
+    function demoHas() {
+        const item   = document.getElementById('d-remove-item').value;
+        const amount = parseInt(document.getElementById('d-remove-amount').value) || 1;
+        const el     = document.getElementById('d-remove-out');
+        const total  = simInv.filter(s => s.item === item).reduce((a,s)=>a+s.amount,0);
+        const has    = total >= amount;
+        el.className = 'dout ' + (has ? 'ok' : 'err');
+        el.innerHTML = `→ HasItem('<span style="color:#86efac">${item}</span>', ${amount}) = <strong style="color:${has?'#22c55e':'#ef4444'}">${has}</strong> (van: ${total})`;
+    }
+
+    function demoGetInv() {
+        const el = document.getElementById('d-inv-out');
+        if (!simInv.length) { el.className='dout err'; el.textContent='→ Inventory üres – adj hozzá itemeket'; return; }
+        el.className = 'dout ok';
+        el.innerHTML = simInv.map((s,i) =>
+            `→ [${i+1}] slot:<span style="color:#f59e0b">${s.slot}</span> item:'<span style="color:#86efac">${s.item}</span>' amount:<span style="color:#f59e0b">${s.amount}</span>`
+        ).join('<br>');
+    }
+
+    function demoStashAdd() {
+        const stashId = document.getElementById('d-stash-id').value;
+        const item    = document.getElementById('d-stash-item').value;
+        const el      = document.getElementById('d-stash-out');
+        if (!simStash[stashId]) simStash[stashId] = {};
+        const def = itemDefs[item];
+        if (def?.stackable && simStash[stashId][item]) {
+            simStash[stashId][item].amount += 1;
+        } else {
+            simStash[stashId][item] = { item, amount: 1 };
+        }
+        el.className = 'dout ok';
+        el.innerHTML = `→ AddToStash('<span style="color:#7dd3fc">${stashId}</span>', '${item}') = <strong>true</strong>`;
+    }
+
+    function demoStashRemove() {
+        const stashId = document.getElementById('d-stash-id').value;
+        const item    = document.getElementById('d-stash-item').value;
+        const el      = document.getElementById('d-stash-out');
+        if (!simStash[stashId]?.[item]) {
+            el.className='dout err'; el.innerHTML=`→ RemoveFromStash() = <strong>false</strong> – nem található`; return;
+        }
+        delete simStash[stashId][item];
+        el.className='dout ok'; el.innerHTML=`→ RemoveFromStash('<span style="color:#7dd3fc">${stashId}</span>', '${item}') = <strong>true</strong>`;
+    }
+</script>
+</body>
+</html>
