@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-banking</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ─────────────────────────────────────── -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="hgi-stroke hgi-bank"></i></div>
+                <div>
+                    <div class="ph-title" id="ph-title">Maze Bank</div>
+                    <div class="ph-sub">Los Santos Banking Services</div>
+                </div>
+            </div>
+            <button class="close-btn" id="close-btn">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+
+        <!-- ── EGYENLEG KÁRTYÁK ───────────────────────────── -->
+        <div class="balance-row">
+            <div class="balance-card" id="bc-checking">
+                <div class="bc-top">
+                    <i class="hgi-stroke hgi-bank"></i>
+                    <span class="bc-label">Folyószámla</span>
+                </div>
+                <div class="bc-amount" id="bal-checking">$0</div>
+                <div class="bc-iban"   id="iban-checking">LS••••••••••••••••••</div>
+            </div>
+            <div class="balance-card savings" id="bc-savings">
+                <div class="bc-top">
+                    <i class="hgi-stroke hgi-piggy-bank"></i>
+                    <span class="bc-label">Megtakarítás</span>
+                </div>
+                <div class="bc-amount" id="bal-savings">$0</div>
+                <div class="bc-iban"   id="iban-savings">LS••••••••••••••••••</div>
+            </div>
+            <div class="balance-card cash" id="bc-cash">
+                <div class="bc-top">
+                    <i class="hgi-stroke hgi-money-bag-02"></i>
+                    <span class="bc-label">Készpénz</span>
+                </div>
+                <div class="bc-amount" id="bal-cash">$0</div>
+                <div class="bc-iban" style="opacity:0">–</div>
+            </div>
+        </div>
+
+        <!-- ── TAB SÁV ────────────────────────────────────── -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="actions">
+                <i class="hgi-stroke hgi-exchange-01"></i>Műveletek
+            </button>
+            <button class="tab" data-tab="history">
+                <i class="hgi-stroke hgi-clock-02"></i>Előzmények
+            </button>
+            <button class="tab atm-hide" data-tab="transfer">
+                <i class="hgi-stroke hgi-transfer-horizontal-02"></i>Átutalás
+            </button>
+            <button class="tab atm-hide" data-tab="internal">
+                <i class="hgi-stroke hgi-move-02"></i>Átvezetés
+            </button>
+        </div>
+
+        <!-- ── PANEL BODY ─────────────────────────────────── -->
+        <div class="panel-body">
+
+            <!-- ══ MŰVELETEK ══ -->
+            <div class="tab-content active" id="tab-actions">
+
+                <div class="action-grid">
+
+                    <!-- Befizetés -->
+                    <div class="action-card">
+                        <div class="ac-header">
+                            <i class="hgi-stroke hgi-money-receive-02" style="color:var(--success)"></i>
+                            <span>Befizetés</span>
+                        </div>
+                        <div class="ac-form">
+                            <div class="input-group">
+                                <label>Számla</label>
+                                <select class="form-select" id="dep-account">
+                                    <option value="checking">Folyószámla</option>
+                                    <option value="savings">Megtakarítás</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Összeg ($)</label>
+                                <div class="amount-input">
+                                    <span>$</span>
+                                    <input type="number" id="dep-amount" min="1" placeholder="0"/>
+                                </div>
+                            </div>
+                            <div class="quick-amounts">
+                                <button onclick="Bank.quickAmount('dep-amount',500)">$500</button>
+                                <button onclick="Bank.quickAmount('dep-amount',1000)">$1K</button>
+                                <button onclick="Bank.quickAmount('dep-amount',5000)">$5K</button>
+                                <button onclick="Bank.quickAmount('dep-amount','all')">Max</button>
+                            </div>
+                            <button class="action-btn deposit-btn" onclick="Bank.deposit()">
+                                <i class="hgi-stroke hgi-money-receive-02"></i>Befizetés
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kifizetés -->
+                    <div class="action-card">
+                        <div class="ac-header">
+                            <i class="hgi-stroke hgi-money-send-02" style="color:var(--warning)"></i>
+                            <span>Kifizetés</span>
+                        </div>
+                        <div class="ac-form">
+                            <div class="input-group">
+                                <label>Számla</label>
+                                <select class="form-select" id="with-account">
+                                    <option value="checking">Folyószámla</option>
+                                    <option value="savings">Megtakarítás</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Összeg ($)</label>
+                                <div class="amount-input">
+                                    <span>$</span>
+                                    <input type="number" id="with-amount" min="1" placeholder="0"/>
+                                </div>
+                            </div>
+                            <div class="quick-amounts">
+                                <button onclick="Bank.quickAmount('with-amount',500)">$500</button>
+                                <button onclick="Bank.quickAmount('with-amount',1000)">$1K</button>
+                                <button onclick="Bank.quickAmount('with-amount',5000)">$5K</button>
+                                <button onclick="Bank.quickAmount('with-amount','all')">Max</button>
+                            </div>
+                            <button class="action-btn withdraw-btn" onclick="Bank.withdraw()">
+                                <i class="hgi-stroke hgi-money-send-02"></i>Kifizetés
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ══ ELŐZMÉNYEK ══ -->
+            <div class="tab-content" id="tab-history">
+                <div class="history-filter">
+                    <select class="form-select sm" id="hist-account">
+                        <option value="checking">Folyószámla</option>
+                        <option value="savings">Megtakarítás</option>
+                    </select>
+                </div>
+                <div class="tx-list" id="tx-list">
+                    <div class="empty-state">
+                        <i class="hgi-stroke hgi-file-not-found"></i>
+                        <span>Nincs tranzakció</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ ÁTUTALÁS ══ -->
+            <div class="tab-content" id="tab-transfer">
+                <div class="single-form">
+                    <div class="input-group">
+                        <label>Célszámla IBAN száma</label>
+                        <input type="text" class="form-input" id="tr-iban"
+                            placeholder="LSXXXXXXXXXXXXXXXXXX" maxlength="20"/>
+                    </div>
+                    <div class="input-group">
+                        <label>Összeg ($)</label>
+                        <div class="amount-input">
+                            <span>$</span>
+                            <input type="number" id="tr-amount" min="1" placeholder="0"/>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Közlemény (opcionális)</label>
+                        <input type="text" class="form-input" id="tr-desc"
+                            placeholder="Pl: Havi bérleti díj..." maxlength="80"/>
+                    </div>
+                    <div class="transfer-fee" id="tr-fee" style="display:none">
+                        <i class="hgi-stroke hgi-information-circle"></i>
+                        <span>Tranzakciós díj: <strong id="tr-fee-val">$0</strong></span>
+                    </div>
+                    <button class="action-btn transfer-btn" onclick="Bank.transfer()">
+                        <i class="hgi-stroke hgi-transfer-horizontal-02"></i>Átutalás küldése
+                    </button>
+                </div>
+            </div>
+
+            <!-- ══ BELSŐ ÁTVEZETÉS ══ -->
+            <div class="tab-content" id="tab-internal">
+                <div class="single-form">
+                    <div class="internal-visual" id="internal-visual">
+                        <div class="iv-from">
+                            <i class="hgi-stroke hgi-bank"></i>
+                            <span id="iv-from-label">Folyószámla</span>
+                            <span class="iv-bal" id="iv-from-bal">$0</span>
+                        </div>
+                        <button class="iv-swap" id="iv-swap" onclick="Bank.swapInternal()">
+                            <i class="hgi-stroke hgi-exchange-01"></i>
+                        </button>
+                        <div class="iv-to">
+                            <i class="hgi-stroke hgi-piggy-bank"></i>
+                            <span id="iv-to-label">Megtakarítás</span>
+                            <span class="iv-bal" id="iv-to-bal">$0</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Összeg ($)</label>
+                        <div class="amount-input">
+                            <span>$</span>
+                            <input type="number" id="int-amount" min="1" placeholder="0"/>
+                        </div>
+                    </div>
+                    <div class="quick-amounts">
+                        <button onclick="Bank.quickAmount('int-amount',1000)">$1K</button>
+                        <button onclick="Bank.quickAmount('int-amount',5000)">$5K</button>
+                        <button onclick="Bank.quickAmount('int-amount',10000)">$10K</button>
+                        <button onclick="Bank.quickAmount('int-amount','int-max')">Max</button>
+                    </div>
+                    <button class="action-btn internal-btn" onclick="Bank.internalTransfer()">
+                        <i class="hgi-stroke hgi-move-02"></i>Átvezetés
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+:root {
+    --bg-deep:  #080b12;
+    --bg-panel: #0f1420;
+    --bg-card:  #141a26;
+    --bg-hover: #1a2234;
+    --border:   #1e2d45;
+    --text-p:   #e2e8f0;
+    --text-s:   #8899b4;
+    --text-m:   #3d5275;
+    --accent:   #38bdf8;
+    --success:  #22c55e;
+    --warning:  #f59e0b;
+    --danger:   #ef4444;
+    --radius:   10px;
+    --font:     'Segoe UI', system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: var(--font); background: transparent; color: var(--text-p);
+    height: 100vh; width: 100vw; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+}
+.hidden { display: none !important; }
+
+/* ── OVERLAY + PANEL ─────────────────────────────────────── */
+#overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+}
+#panel {
+    width: 620px; max-height: 90vh;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 16px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 36px 90px rgba(0,0,0,0.75);
+    animation: panelIn 0.25s ease;
+}
+@keyframes panelIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── FEJLÉC ──────────────────────────────────────────────── */
+.panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.ph-left { display: flex; align-items: center; gap: 13px; }
+.ph-icon {
+    width: 42px; height: 42px; border-radius: 11px;
+    background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--accent); flex-shrink: 0;
+}
+.ph-title { font-size: 15px; font-weight: 800; }
+.ph-sub   { font-size: 11px; color: var(--text-m); margin-top: 2px; }
+.close-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none;
+    background: rgba(255,255,255,0.04); color: var(--text-s); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: all 0.15s;
+}
+.close-btn:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+/* ── EGYENLEG KÁRTYÁK ────────────────────────────────────── */
+.balance-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.balance-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 11px; padding: 12px 14px; border-top: 2px solid var(--accent);
+}
+.balance-card.savings { border-top-color: var(--success); }
+.balance-card.cash    { border-top-color: var(--warning); }
+.bc-top   { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.bc-top i { font-size: 15px; color: var(--accent); }
+.balance-card.savings .bc-top i { color: var(--success); }
+.balance-card.cash    .bc-top i { color: var(--warning); }
+.bc-label { font-size: 10px; font-weight: 700; color: var(--text-m); text-transform: uppercase; letter-spacing: 0.08em; }
+.bc-amount{ font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+.bc-iban  { font-size: 9px; color: var(--text-m); font-family: monospace; letter-spacing: 0.05em; }
+
+/* ── TAB SÁV ─────────────────────────────────────────────── */
+.tab-bar {
+    display: flex; gap: 2px; padding: 8px 16px 0;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 12px; border: none; background: transparent;
+    color: var(--text-m); font-size: 12px; font-weight: 700;
+    cursor: pointer; border-radius: 8px 8px 0 0; font-family: var(--font);
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s;
+}
+.tab:hover  { color: var(--text-s); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(56,189,248,0.05); }
+.tab i { font-size: 13px; }
+
+/* ── PANEL BODY ──────────────────────────────────────────── */
+.panel-body { flex: 1; overflow: hidden; }
+.tab-content { display: none; height: 100%; overflow-y: auto; padding: 16px 20px; flex-direction: column; gap: 14px; }
+.tab-content.active { display: flex; }
+.tab-content::-webkit-scrollbar { width: 4px; }
+.tab-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ── MŰVELETEK ───────────────────────────────────────────── */
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.action-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.ac-header {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 13px; font-weight: 800;
+}
+.ac-header i { font-size: 18px; }
+.ac-form { display: flex; flex-direction: column; gap: 9px; }
+
+/* Form elemek */
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+.input-group label { font-size: 10px; font-weight: 700; color: var(--text-m); text-transform: uppercase; letter-spacing: 0.08em; }
+.form-select, .form-input {
+    background: var(--bg-hover); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 11px; color: var(--text-p);
+    font-size: 12px; outline: none; font-family: var(--font); width: 100%;
+    transition: border-color 0.15s;
+}
+.form-select:focus, .form-input:focus { border-color: rgba(56,189,248,0.4); }
+.form-select.sm { padding: 6px 10px; font-size: 11px; width: auto; }
+
+.amount-input {
+    display: flex; align-items: center; gap: 0;
+    background: var(--bg-hover); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; transition: border-color 0.15s;
+}
+.amount-input:focus-within { border-color: rgba(56,189,248,0.4); }
+.amount-input > span {
+    padding: 8px 10px; font-size: 13px; font-weight: 700; color: var(--text-m);
+    background: rgba(255,255,255,0.03); border-right: 1px solid var(--border);
+}
+.amount-input input {
+    flex: 1; padding: 8px 11px; background: transparent;
+    border: none; outline: none; color: var(--text-p);
+    font-size: 13px; font-weight: 700; font-family: var(--font);
+    -moz-appearance: textfield;
+}
+.amount-input input::-webkit-outer-spin-button,
+.amount-input input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* Gyors összegek */
+.quick-amounts { display: flex; gap: 5px; }
+.quick-amounts button {
+    flex: 1; padding: 5px 0; border-radius: 6px; border: none;
+    background: rgba(56,189,248,0.08); color: var(--accent);
+    border: 1px solid rgba(56,189,248,0.15);
+    font-size: 10px; font-weight: 700; cursor: pointer; font-family: var(--font);
+    transition: opacity 0.15s;
+}
+.quick-amounts button:hover { opacity: 0.75; }
+
+/* Akció gombok */
+.action-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 10px; border-radius: 9px; border: none;
+    font-size: 13px; font-weight: 800; cursor: pointer; font-family: var(--font);
+    transition: opacity 0.15s; letter-spacing: 0.02em;
+}
+.action-btn:hover { opacity: 0.85; }
+.deposit-btn   { background: rgba(34,197,94,0.12);  color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+.withdraw-btn  { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+.transfer-btn  { background: rgba(56,189,248,0.12); color: var(--accent);  border: 1px solid rgba(56,189,248,0.25); }
+.internal-btn  { background: rgba(168,85,247,0.12); color: #a855f7;        border: 1px solid rgba(168,85,247,0.25); }
+
+/* ── ELŐZMÉNYEK ──────────────────────────────────────────── */
+.history-filter { display: flex; justify-content: flex-end; flex-shrink: 0; }
+.tx-list { display: flex; flex-direction: column; gap: 7px; }
+
+.tx-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 14px; transition: all 0.15s;
+}
+.tx-item:hover { background: var(--bg-hover); }
+.tx-icon {
+    width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.tx-info { flex: 1; min-width: 0; }
+.tx-type  { font-size: 12px; font-weight: 700; }
+.tx-desc  { font-size: 10px; color: var(--text-m); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount{ font-size: 14px; font-weight: 900; }
+.tx-amount.positive { color: var(--success); }
+.tx-amount.negative { color: var(--danger); }
+.tx-bal   { font-size: 10px; color: var(--text-m); margin-top: 2px; }
+.tx-date  { font-size: 9px; color: var(--text-m); margin-top: 2px; }
+
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 40px 20px; color: var(--text-m); font-size: 13px;
+}
+.empty-state i { font-size: 30px; opacity: 0.4; }
+
+/* ── ÁTUTALÁS ────────────────────────────────────────────── */
+.single-form { display: flex; flex-direction: column; gap: 12px; max-width: 440px; margin: 0 auto; width: 100%; }
+
+.transfer-fee {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 13px; border-radius: 8px;
+    background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+    font-size: 12px; color: var(--warning);
+}
+.transfer-fee i { font-size: 14px; }
+
+/* ── BELSŐ ÁTVEZETÉS ─────────────────────────────────────── */
+.internal-visual {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 11px; padding: 14px 16px;
+}
+.iv-from, .iv-to {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; text-align: center;
+}
+.iv-from i, .iv-to i { font-size: 20px; color: var(--accent); margin-bottom: 2px; }
+.iv-from span:not(.iv-bal), .iv-to span:not(.iv-bal) { font-size: 11px; font-weight: 700; color: var(--text-s); }
+.iv-bal { font-size: 16px; font-weight: 900; color: var(--text-p); }
+
+.iv-swap {
+    width: 34px; height: 34px; border-radius: 50%; border: none; flex-shrink: 0;
+    background: rgba(56,189,248,0.1); color: var(--accent);
+    border: 1px solid rgba(56,189,248,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; transition: all 0.2s;
+}
+.iv-swap:hover { background: rgba(56,189,248,0.2); }
+.iv-swap.swapped { transform: rotate(180deg); }

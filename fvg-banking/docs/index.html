@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-banking – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root{--bg:#0a0c12;--card:#161b24;--code:#0f172a;--border:#1e293b;--tp:#f1f5f9;--ts:#94a3b8;--tm:#475569;--ac:#38bdf8;--font:'Segoe UI',system-ui,sans-serif}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--tp);font-family:var(--font);padding:48px 28px 120px;max-width:1020px;margin:0 auto}
+        h1{font-size:28px;font-weight:800;margin-bottom:6px}
+        .sub{color:var(--tm);font-size:14px;line-height:1.7;margin-bottom:48px}
+        .badge{display:inline-block;background:rgba(56,189,248,.12);color:var(--ac);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.05em;margin-left:10px;border:1px solid rgba(56,189,248,.25)}
+        section{margin-bottom:44px}
+        .st{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px}
+        .sig{font-family:monospace;font-size:13px;font-weight:700;color:var(--ac);margin-bottom:6px;line-height:1.9}
+        .side{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+        .ss{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .sc{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .desc{font-size:13px;color:var(--ts);line-height:1.65;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;margin-bottom:14px}
+        th{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+        td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--ts);vertical-align:top}
+        tr:last-child td{border-bottom:none}
+        .pn{font-family:monospace;color:#a78bfa}.pt{font-family:monospace;color:#f59e0b}.pv{font-family:monospace;color:#7dd3fc}
+        .cl{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:14px}
+        code{display:block;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace;white-space:pre;overflow-x:auto;line-height:1.7}
+        .info{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);font-size:12px;color:#93c5fd;line-height:1.6;margin-top:14px}
+        .info i{font-size:16px;flex-shrink:0;color:var(--ac)}
+        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .dc{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+        .dct{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+        .dct i{font-size:14px;color:var(--ac)}
+        .dbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:var(--font);width:100%}
+        .dbtn:hover{opacity:.8}
+        .ba{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .bs{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .bd{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .bw{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+        .dout{font-family:monospace;font-size:11px;color:var(--tm);min-height:16px;line-height:1.7}
+        .dout.ok{color:#22c55e}.dout.err{color:#ef4444}.dout.warn{color:#f59e0b}
+        .dsel,.dinp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--tp);font-size:12px;outline:none;font-family:var(--font);width:100%}
+    </style>
+</head>
+<body>
+
+<h1>fvg-banking <span class="badge">v1.0.0</span></h1>
+<p class="sub">
+    FirstVideos Group · Bankrendszer — folyószámla, megtakarítás, ATM, átutalás, tranzakció napló.<br>
+    DB táblák: <code style="display:inline;font-size:12px;color:#7dd3fc">fvg_bank_accounts · fvg_transactions</code><br>
+    Integrációk: <strong>fvg-playercore</strong> (cash szinkron) · <strong>fvg-notify</strong> · <strong>fvg-database</strong>
+</p>
+
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:GetBalance(source, accType?) → number</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja a játékos bankszámla egyenlegét. Az <code>accType</code> opcionális: <code>'checking'</code> (alapértelmezett) vagy <code>'savings'</code>.</div>
+        <div class="cl">Lua példa</div>
+        <code>local bal = exports['fvg-banking']:GetBalance(src, 'checking')
+print('Folyószámla egyenleg: $' .. bal)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:HasSufficientFunds(source, amount, accType?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Ellenőrzi, hogy a játékosnak van-e elég egyenlege a megadott összeghez. Nem von le semmit — csak ellenőrz.</div>
+        <div class="cl">Lua példa – vásárlás előtti ellenőrzés</div>
+        <code>if not exports['fvg-banking']:HasSufficientFunds(src, 5000) then
+    TriggerClientEvent('fvg-notify:client:Notify', src, {
+        type='error', message='Nincs elég egyenleg!'
+    })
+    return
+end
+exports['fvg-banking']:RemoveBalance(src, 5000, 'checking', 'Autó vásárlás', 'payment')</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:AddBalance(source, amount, accType?, description?, txType?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Hozzáad egy összeget a játékos bankszámlájához. Automatikusan naplózza a tranzakciót és szinkronizálja a kliensnek. A <code>txType</code> bármely <code>Config.TxTypes</code> kulcs lehet.</div>
+        <table>
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td>     <td class="pt">number</td> <td>Szerver player ID</td></tr>
+                <tr><td class="pn">amount</td>      <td class="pt">number</td> <td>Összeadandó $ összeg (egész)</td></tr>
+                <tr><td class="pn">accType</td>     <td class="pt">string?</td><td><code>'checking'</code> vagy <code>'savings'</code> (alap: checking)</td></tr>
+                <tr><td class="pn">description</td> <td class="pt">string?</td><td>Tranzakció leírása (max 120 karakter)</td></tr>
+                <tr><td class="pn">txType</td>      <td class="pt">string?</td><td><code>'salary'</code>, <code>'reward'</code>, <code>'benefit'</code>, <code>'received'</code> stb.</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – fizetés kifizetés</div>
+        <code>-- Óránkénti fizetés kifizetése
+exports['fvg-banking']:AddBalance(src, 3500, 'checking', 'Rendőrségi fizetés', 'salary')</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:RemoveBalance(source, amount, accType?, description?, txType?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Levon egy összeget a bankszámláról. Visszaad <code>false</code>-t ha nincs elég fedezet — soha nem megy mínuszba. Naplóz és klienst szinkronizál.</div>
+        <div class="cl">Lua példa – bírság levonás</div>
+        <code>-- Rendőr bírságot szab ki
+local ok = exports['fvg-banking']:RemoveBalance(
+    suspectSrc, 2500, 'checking',
+    'Közlekedési szabálysértés – ' .. officerName, 'fine'
+)
+if not ok then
+    -- Nincs elég egyenleg → alternatív büntetés
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:Transfer(fromSrc, toSrc, amount, description?) → boolean, errorCode</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Online játékosok közötti közvetlen átutalás szerver oldalról. Mindkét félnél naplóz, szinkronizál. Visszaad egy hibakódot is (<code>'insufficient_funds'</code>, <code>'too_large'</code> stb.).</div>
+        <div class="cl">Lua példa – fizetés felosztás</div>
+        <code>-- Rablás jutalék felosztása
+local share = math.floor(totalLoot / #crew)
+for _, memberSrc in ipairs(crew) do
+    exports['fvg-banking']:Transfer(leaderSrc, memberSrc, share, 'Rablás részesedés')
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:GetTransactions(source, accType?, limit?) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja a játékos tranzakció előzményeit csökkenő időrendben. A <code>limit</code> maximum <code>Config.MaxTransactionLog</code> (alapértelmezett 50) lehet.</div>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:GetAccountByIdentifier(identifier) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">IBAN számlaszám vagy játékos identifier alapján keres számlát az adatbázisban. Offline játékosoknál is működik — DB lekérdezéssel.</div>
+        <div class="cl">Lua példa – adó rendszer</div>
+        <code>-- Adó levonás IBAN alapján (offline is)
+local acc = exports['fvg-banking']:GetAccountByIdentifier('LSXXXXXXXXXXXXXXXXXXX')
+if acc then
+    exports['fvg-database']:Execute(
+        'UPDATE `fvg_bank_accounts` SET `balance`=balance-? WHERE `id`=?',
+        { taxAmount, acc.id }
+    )
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:CreateTransaction(source, txType, amount, description?, refSrc?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Csak naplóbejegyzést hoz létre egyenleg módosítás nélkül. Hasznos ha más script kezeli a pénzt, de a tranzakciót is látni kell a bank előzményekben.</div>
+        <div class="cl">Lua példa – készpénzes vásárlás logolása</div>
+        <code>-- Készpénzes tranzakciót is logoljuk a bank előzményekbe
+exports['fvg-playercore']:RemoveCash(src, 800)
+exports['fvg-banking']:CreateTransaction(src, 'payment', -800, 'Élelmiszerbolt – készpénz')</code>
+    </div>
+</section>
+
+<section>
+    <div class="st">Kliens exportok</div>
+    <div class="card">
+        <div class="sig">exports['fvg-banking']:GetLocalBalance(accType?) → number</div>
+        <div class="sig">exports['fvg-banking']:OpenBank() → void</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            <code>GetLocalBalance()</code> visszaadja a kliens cache-elt egyenleget — nincs szerver round-trip,
+            HUD-ban vagy gyors ellenőrzésnél ideális. <code>OpenBank()</code> programatikusan nyitja meg a bank panelt.
+        </div>
+        <div class="cl">Lua példa – HUD egyenleg megjelenítés</div>
+        <code>CreateThread(function()
+    while true do
+        Wait(5000)
+        local bal = exports['fvg-banking']:GetLocalBalance('checking')
+        SendNUIMessage({ action = 'updateBalance', balance = bal })
+    end
+end)</code>
+    </div>
+</section>
+
+<section>
+    <div class="st">Szerver esemény lista</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Esemény</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">fvg-banking:server:BalanceChanged</td>    <td class="pt">src, accType, newBal, delta, mode</td><td>Egyenleg változáskor (<code>mode</code>: <code>'add'</code>|<code>'remove'</code>)</td></tr>
+                <tr><td class="pn">fvg-banking:server:TransferCompleted</td> <td class="pt">fromSrc, toSrc, amount</td>           <td>Sikeres átutalás után</td></tr>
+                <tr><td class="pn">fvg-banking:server:Deposited</td>         <td class="pt">src, amount, accType</td>             <td>Befizetés után</td></tr>
+                <tr><td class="pn">fvg-banking:server:Withdrawn</td>         <td class="pt">src, amount, accType</td>             <td>Kifizetés után</td></tr>
+                <tr><td class="pn">fvg-banking:client:AccountsUpdated</td>   <td class="pt">localAccounts</td>                    <td>Kliens: számlák frissülésekor</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-bank"></i>Egyenleg műveletek</div>
+                <div style="font-size:11px;color:var(--tm)">
+                    Folyószámla: $<span id="d-bal">5000</span> |
+                    Készpénz: $<span id="d-cash">1000</span>
+                </div>
+                <input class="dinp" id="d-amount" type="number" placeholder="Összeg ($)" value="500"/>
+                <select class="dsel" id="d-txtype">
+                    <option value="salary">salary – Fizetés</option>
+                    <option value="reward">reward – Jutalom</option>
+                    <option value="fine">fine – Bírság</option>
+                    <option value="benefit">benefit – Segély</option>
+                    <option value="payment">payment – Fizetés</option>
+                </select>
+                <button class="dbtn bs" onclick="demoAdd()"><i class="hgi-stroke hgi-money-receive-02"></i>AddBalance</button>
+                <button class="dbtn bd" onclick="demoRemove()"><i class="hgi-stroke hgi-money-send-02"></i>RemoveBalance</button>
+                <button class="dbtn ba" onclick="demoCheck()"><i class="hgi-stroke hgi-search-02"></i>HasSufficientFunds</button>
+                <div class="dout" id="d-bal-out"></div>
+            </div>
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-transfer-horizontal-02"></i>Átutalás szimuláció</div>
+                <div style="font-size:11px;color:var(--tm)">
+                    Játékos A: $<span id="d-a-bal">8000</span> |
+                    Játékos B: $<span id="d-b-bal">2000</span>
+                </div>
+                <input class="dinp" id="d-tr-amount" type="number" placeholder="Összeg ($)" value="1000"/>
+                <input class="dinp" id="d-tr-desc"   type="text"   placeholder="Közlemény..."/>
+                <button class="dbtn ba" onclick="demoTransfer('a2b')">
+                    <i class="hgi-stroke hgi-transfer-horizontal-02"></i>Transfer A → B
+                </button>
+                <button class="dbtn bw" onclick="demoTransfer('b2a')">
+                    <i class="hgi-stroke hgi-transfer-horizontal-02"></i>Transfer B → A
+                </button>
+                <button class="dbtn bs" onclick="demoGetTx()">
+                    <i class="hgi-stroke hgi-clock-02"></i>GetTransactions
+                </button>
+                <div class="dout" id="d-tr-out"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="st">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql
+ensure fvg-database
+ensure fvg-playercore
+ensure fvg-notify
+ensure fvg-banking         # ← itt, korán!
+ensure fvg-identity
+ensure fvg-idcard
+ensure fvg-inventory
+ensure fvg-dispatch
+ensure fvg-unemployment
+ensure fvg-courier
+ensure fvg-admin
+ensure fvg-hud</code>
+    </div>
+</section>
+
+<script>
+    let simBal  = 5000;
+    let simCash = 1000;
+    let simA    = 8000;
+    let simB    = 2000;
+    let txLog   = [];
+
+    const fmt = (n) => '$' + Math.abs(n).toLocaleString('hu-HU');
+
+    function updateDisplay() {
+        document.getElementById('d-bal').textContent  = simBal.toLocaleString('hu-HU');
+        document.getElementById('d-cash').textContent = simCash.toLocaleString('hu-HU');
+        document.getElementById('d-a-bal').textContent= simA.toLocaleString('hu-HU');
+        document.getElementById('d-b-bal').textContent= simB.toLocaleString('hu-HU');
+    }
+
+    function demoAdd() {
+        const amt  = parseInt(document.getElementById('d-amount').value) || 0;
+        const type = document.getElementById('d-txtype').value;
+        const el   = document.getElementById('d-bal-out');
+        if (amt <= 0) { el.className='dout err'; el.textContent='→ Érvénytelen összeg'; return; }
+        simBal += amt;
+        txLog.unshift({ type, amount: amt, balance_after: simBal, description: type + ' +' + fmt(amt) });
+        updateDisplay();
+        el.className = 'dout ok';
+        el.innerHTML = `→ AddBalance(${fmt(amt)}, '${type}') = <strong>true</strong><br>  Új egyenleg: <strong style="color:#22c55e">${fmt(simBal)}</strong>`;
+    }
+
+    function demoRemove() {
+        const amt = parseInt(document.getElementById('d-amount').value) || 0;
+        const el  = document.getElementById('d-bal-out');
+        if (amt <= 0) { el.className='dout err'; el.textContent='→ Érvénytelen összeg'; return; }
+        if (simBal < amt) {
+            el.className='dout err'; el.innerHTML=`→ RemoveBalance(${fmt(amt)}) = <strong>false</strong> – Nincs fedezet`; return;
+        }
+        simBal -= amt;
+        txLog.unshift({ type:'payment', amount:-amt, balance_after:simBal, description:'RemoveBalance demo' });
+        updateDisplay();
+        el.className='dout ok';
+        el.innerHTML=`→ RemoveBalance(${fmt(amt)}) = <strong>true</strong><br>  Új egyenleg: <strong style="color:#22c55e">${fmt(simBal)}</strong>`;
+    }
+
+    function demoCheck() {
+        const amt = parseInt(document.getElementById('d-amount').value) || 0;
+        const has = simBal >= amt;
+        const el  = document.getElementById('d-bal-out');
+        el.className = 'dout ' + (has ? 'ok' : 'err');
+        el.innerHTML = `→ HasSufficientFunds(${fmt(amt)}) = <strong style="color:${has?'#22c55e':'#ef4444'}">${has}</strong><br>  Egyenleg: ${fmt(simBal)} ${has?'≥':'<'} ${fmt(amt)}`;
+    }
+
+    function demoTransfer(dir) {
+        const amt  = parseInt(document.getElementById('d-tr-amount').value) || 0;
+        const desc = document.getElementById('d-tr-desc').value || 'Átutalás demo';
+        const el   = document.getElementById('d-tr-out');
+        if (amt <= 0) { el.className='dout err'; el.textContent='→ Érvénytelen összeg'; return; }
+        const from = dir === 'a2b' ? 'A' : 'B';
+        const to   = dir === 'a2b' ? 'B' : 'A';
+        const bal  = dir === 'a2b' ? simA : simB;
+        if (bal < amt) {
+            el.className='dout err'; el.innerHTML=`→ Transfer(${from}→${to}) = <strong>false</strong> – insufficient_funds`; return;
+        }
+        if (dir === 'a2b') { simA -= amt; simB += amt; }
+        else               { simB -= amt; simA += amt; }
+        updateDisplay();
+        el.className='dout ok';
+        el.innerHTML=`→ Transfer(${from}→${to}, ${fmt(amt)}) = <strong>true</strong>, 'ok'<br>  '${desc}'<br>  A: ${fmt(simA)} | B: ${fmt(simB)}`;
+    }
+
+    function demoGetTx() {
+        const el = document.getElementById('d-tr-out');
+        if (!txLog.length) { el.className='dout warn'; el.textContent='→ GetTransactions() = [] (nincs tranzakció még)'; return; }
+        el.className='dout ok';
+        el.innerHTML = `→ GetTransactions() – utolsó ${Math.min(3,txLog.length)} bejegyzés:<br>` +
+            txLog.slice(0,3).map(t =>
+                `  type:<strong style="color:#a78bfa">${t.type}</strong> | amount:${t.amount>0?'<span style="color:#22c55e">+'+fmt(t.amount)+'</span>':'<span style="color:#ef4444">-'+fmt(t.amount)+'</span>'} | bal:${fmt(t.balance_after)}`
+            ).join('<br>');
+    }
+</script>
+</body>
+</html>
