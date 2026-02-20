@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-vehicledamage – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep:  #0a0c12;
+            --fvg-bg-card:  #161b24;
+            --fvg-bg-code:  #0f172a;
+            --fvg-border:   #1e293b;
+            --fvg-text-p:   #f1f5f9;
+            --fvg-text-s:   #94a3b8;
+            --fvg-text-m:   #475569;
+            --fvg-accent:   #38bdf8;
+            --fvg-radius:   10px;
+            --fvg-font:     'Segoe UI', system-ui, sans-serif;
+            --clr-ok:    #22c55e;
+            --clr-warn:  #f59e0b;
+            --clr-crit:  #ef4444;
+            --clr-blue:  #3b82f6;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 100px; max-width: 980px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; }
+        .badge {
+            display: inline-block;
+            background: rgba(56,189,248,0.12); color: var(--fvg-accent);
+            font-size: 11px; font-weight: 700; padding: 2px 10px;
+            border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle;
+            border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 40px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 8px; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 16px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+
+        /* Demo */
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .demo-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s; font-family: var(--fvg-font);
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+        .btn-ok      { background: rgba(34,197,94,0.15);  color: var(--clr-ok);   border: 1px solid rgba(34,197,94,0.3); }
+        .btn-warn    { background: rgba(245,158,11,0.15); color: var(--clr-warn); border: 1px solid rgba(245,158,11,0.3); }
+        .btn-crit    { background: rgba(239,68,68,0.15);  color: var(--clr-crit); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-blue    { background: rgba(59,130,246,0.15); color: var(--clr-blue); border: 1px solid rgba(59,130,246,0.3); }
+        .btn-neutral { background: rgba(148,163,184,0.1); color: var(--fvg-text-s); border: 1px solid rgba(148,163,184,0.2); }
+
+        /* Élő sérülés panel */
+        #damage-panel {
+            position: fixed; bottom: 28px; right: 28px;
+            display: flex; flex-direction: column; gap: 6px;
+            z-index: 9999; pointer-events: none; width: 210px;
+        }
+        .dp-card {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 14px 8px 12px;
+            background: rgba(18,21,30,0.95);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+            position: relative; overflow: hidden;
+        }
+        .dp-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            border-radius: 10px 0 0 10px; background: var(--dc, #22c55e);
+            transition: background 0.25s;
+        }
+        .dp-icon { font-size: 18px; color: var(--dc, #22c55e); flex-shrink: 0; transition: color 0.25s; }
+        .dp-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .dp-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; }
+        .dp-track { width: 100%; height: 5px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .dp-fill  { height: 100%; border-radius: 99px; background: var(--dc, #22c55e); transition: width 0.3s ease, background 0.25s; }
+        .dp-fill.warn { background: var(--clr-warn) !important; }
+        .dp-fill.crit { background: var(--clr-crit) !important; animation: dp-pulse 1s ease-in-out infinite; }
+        .dp-val  { font-size: 11px; font-weight: 700; color: #94a3b8; min-width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+        /* Gumik */
+        .tire-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 8px 12px; }
+        .tire-dot  {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; color: var(--fvg-text-s);
+        }
+        .tire-dot .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--clr-ok); transition: background 0.25s; }
+        .tire-dot .dot.burst { background: var(--clr-crit); animation: dp-pulse 0.8s ease-in-out infinite; }
+        .tire-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 14px 4px 12px;
+            font-size: 10px; font-weight: 700; color: #475569;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .tire-header i { font-size: 15px; color: #475569; }
+
+        @keyframes dp-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+        #getstate-result { margin-top: 10px; font-size: 12px; color: var(--fvg-text-s); min-height: 20px; font-family: monospace; white-space: pre; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-vehicledamage <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Jármű sérülés rendszer – Export dokumentáció &amp; interaktív demo</p>
+</div>
+
+<!-- ══ Kliens exportok ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <!-- GetDamageState -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehicledamage']:GetDamageState() → table</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Visszaadja a jármű teljes sérülési állapotát – motor, karosszéria, gumiabroncsok. Más scriptek (fvg-mechanic, fvg-fuel) ezzel kérdezik le az aktuális állapotot.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">inVehicle</td>    <td class="pt">boolean</td> <td>Járműben van-e</td></tr>
+                <tr><td class="pn">engineHealth</td> <td class="pt">number</td>  <td>Motor egészség (0–1000)</td></tr>
+                <tr><td class="pn">enginePct</td>    <td class="pt">number</td>  <td>Motor egészség százalékban (0–100)</td></tr>
+                <tr><td class="pn">engineStatus</td> <td class="pt">string</td>  <td><code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">ok</code> · <code style="display:inline;color:#f59e0b;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">warn</code> · <code style="display:inline;color:#ef4444;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">crit</code></td></tr>
+                <tr><td class="pn">bodyHealth</td>   <td class="pt">number</td>  <td>Karosszéria egészség (0–1000)</td></tr>
+                <tr><td class="pn">bodyPct</td>      <td class="pt">number</td>  <td>Karosszéria egészség százalékban</td></tr>
+                <tr><td class="pn">tires</td>        <td class="pt">table</td>   <td>Kerékindex alapú tábla, minden kerékhez: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">{ burst, health }</code></td></tr>
+                <tr><td class="pn">isDamaged</td>    <td class="pt">boolean</td> <td>Van-e bármilyen sérülés</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoGetState()"><i class="hgi-stroke hgi-information-circle"></i>GetDamageState()</button>
+        </div>
+        <div id="getstate-result"></div>
+        <div class="code-label">Lua példa – fvg-mechanic</div>
+        <code>local dmg = exports['fvg-vehicledamage']:GetDamageState()
+if dmg.inVehicle then
+    print('Motor: ' .. dmg.enginePct .. '%  (' .. dmg.engineStatus .. ')')
+    print('Karosszéria: ' .. dmg.bodyPct .. '%')
+    for i, t in pairs(dmg.tires) do
+        if t.burst then print('Defekt: ' .. i .. '. kerék') end
+    end
+end</code>
+    </div>
+
+    <!-- RepairVehicle -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehicledamage']:RepairVehicle(silent)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Teljes javítás: motor, karosszéria, összes gumi, deformáció visszaállítás. Visszaindítja a motort az <strong>fvg-engine</strong>-en keresztül.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">silent</td><td class="pt">boolean</td><td>Ha <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">true</code>, nem küld értesítést</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-ok" onclick="demoRepair('full')"><i class="hgi-stroke hgi-wrench-02"></i>Teljes javítás</button>
+        </div>
+        <div class="code-label">Lua példa – fvg-mechanic</div>
+        <code>-- Teljes javítás (szerelőnél)
+exports['fvg-vehicledamage']:RepairVehicle(false)
+
+-- Silent javítás (pl. spawn után)
+exports['fvg-vehicledamage']:RepairVehicle(true)</code>
+    </div>
+
+    <!-- Részleges javítások -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehicledamage']:RepairEngine(silent)</div>
+        <div class="export-sig" style="margin-top:8px">exports['fvg-vehicledamage']:RepairBody(silent)</div>
+        <div class="export-sig" style="margin-top:8px">exports['fvg-vehicledamage']:RepairTires(silent)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Részleges javítások – csak az adott komponenst javítják. Lehetővé teszi a fokozatos, áras szerelési rendszer kialakítását.
+        </div>
+        <div class="demo-row">
+            <button class="demo-btn btn-warn" onclick="demoRepair('engine')"><i class="hgi-stroke hgi-car-03"></i>Motor javítás</button>
+            <button class="demo-btn btn-warn" onclick="demoRepair('body')">  <i class="hgi-stroke hgi-wrench-02"></i>Karosszéria javítás</button>
+            <button class="demo-btn btn-warn" onclick="demoRepair('tires')"> <i class="hgi-stroke hgi-tire"></i>Gumijavítás</button>
+        </div>
+        <div class="code-label">Lua példa – fvg-mechanic fokozatos javítás</div>
+        <code>-- Csak motor javítás (pl. olajcsere)
+exports['fvg-vehicledamage']:RepairEngine(false)
+
+-- Csak gumik (pl. gumiszerelő)
+exports['fvg-vehicledamage']:RepairTires(false)</code>
+    </div>
+
+    <!-- SetEngineHealth / SetBodyHealth -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehicledamage']:SetEngineHealth(value)</div>
+        <div class="export-sig" style="margin-top:8px">exports['fvg-vehicledamage']:SetBodyHealth(value)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Közvetlen egészség beállítás 0–1000 skálán. A HUD automatikusan frissül. Használható pl. robbanás szimuláció, EMP, korróziós rendszer esetén.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">value</td><td class="pt">number</td><td>0–1000 közötti egészség érték</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-ok"   onclick="demoSetHealth('engine', 1000)"><i class="hgi-stroke hgi-car-03"></i>Motor 1000</button>
+            <button class="demo-btn btn-warn" onclick="demoSetHealth('engine', 550)"> <i class="hgi-stroke hgi-car-03"></i>Motor 550</button>
+            <button class="demo-btn btn-crit" onclick="demoSetHealth('engine', 150)"> <i class="hgi-stroke hgi-car-03"></i>Motor 150</button>
+            <button class="demo-btn btn-ok"   onclick="demoSetHealth('body', 1000)">  <i class="hgi-stroke hgi-wrench-02"></i>Body 1000</button>
+            <button class="demo-btn btn-warn" onclick="demoSetHealth('body', 400)">   <i class="hgi-stroke hgi-wrench-02"></i>Body 400</button>
+            <button class="demo-btn btn-crit" onclick="demoSetHealth('body', 100)">   <i class="hgi-stroke hgi-wrench-02"></i>Body 100</button>
+            <button class="demo-btn btn-crit" onclick="demoTireBurst(0)">             <i class="hgi-stroke hgi-tire"></i>Bal első defekt</button>
+            <button class="demo-btn btn-crit" onclick="demoTireBurst(1)">             <i class="hgi-stroke hgi-tire"></i>Jobb első defekt</button>
+        </div>
+        <div class="code-label">Lua példa – fvg-emergency EMP</div>
+        <code>-- EMP hatás: motor sérülés
+exports['fvg-vehicledamage']:SetEngineHealth(200)
+exports['fvg-engine']:SetEngineOn(false, false)</code>
+    </div>
+</section>
+
+<!-- ══ Szerver exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehicledamage']:GetPlayerVehicleDamage(playerId) → table</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Szerver oldalról lekérdezi egy játékos utolsó ismert jármű sérülési adatait.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">engineHealth</td><td class="pt">number</td><td>Motor egészség (0–1000)</td></tr>
+                <tr><td class="pn">bodyHealth</td>  <td class="pt">number</td><td>Karosszéria egészség (0–1000)</td></tr>
+                <tr><td class="pn">lastUpdate</td>  <td class="pt">number</td><td>Unix timestamp az utolsó szinkronizálásról</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – szerver script</div>
+        <code>-- fvg-mechanic szerver oldal: javítási díj kiszámítása
+local dmg    = exports['fvg-vehicledamage']:GetPlayerVehicleDamage(source)
+local damage = (1000 - dmg.engineHealth) + (1000 - dmg.bodyHealth)
+local price  = math.floor(damage * 2.5)  -- $2.5 / pont sérülés
+
+-- Kényszeres szerver oldali javítás
+TriggerServerEvent('fvg-vehicledamage:server:ForceRepair', targetId, 'full', false)</code>
+    </div>
+</section>
+
+<!-- Élő sérülés panel -->
+<div id="damage-panel">
+    <!-- Motor -->
+    <div class="dp-card" id="dp-engine" style="--dc: #22c55e">
+        <i class="dp-icon hgi-stroke hgi-car-03"></i>
+        <div class="dp-body">
+            <span class="dp-label">Motor</span>
+            <div class="dp-track"><div class="dp-fill" id="dpf-engine" style="width:100%"></div></div>
+        </div>
+        <span class="dp-val" id="dpv-engine">100%</span>
+    </div>
+    <!-- Karosszéria -->
+    <div class="dp-card" id="dp-body" style="--dc: #3b82f6">
+        <i class="dp-icon hgi-stroke hgi-wrench-02"></i>
+        <div class="dp-body">
+            <span class="dp-label">Karosszéria</span>
+            <div class="dp-track"><div class="dp-fill" id="dpf-body" style="width:100%"></div></div>
+        </div>
+        <span class="dp-val" id="dpv-body">100%</span>
+    </div>
+    <!-- Gumiabroncsok -->
+    <div class="dp-card" style="flex-direction:column;padding:0;gap:0">
+        <div class="tire-header"><i class="hgi-stroke hgi-tire"></i>Gumiabroncsok</div>
+        <div class="tire-grid" id="tire-grid">
+            <div class="tire-dot"><div class="dot" id="tire-0"></div>Bal első</div>
+            <div class="tire-dot"><div class="dot" id="tire-1"></div>Jobb első</div>
+            <div class="tire-dot"><div class="dot" id="tire-2"></div>Bal hátsó</div>
+            <div class="tire-dot"><div class="dot" id="tire-3"></div>Jobb hátsó</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const state = {
+        engineHp: 1000, bodyHp: 1000,
+        tires: { 0: false, 1: false, 2: false, 3: false }
+    };
+
+    function getStatus(hp) {
+        if (hp >= 600) return 'ok';
+        if (hp >= 300) return 'warn';
+        return 'crit';
+    }
+    function getColor(status) {
+        return status === 'ok' ? '#22c55e' : status === 'warn' ? '#f59e0b' : '#ef4444';
+    }
+
+    function updatePanel() {
+        // Motor
+        const ePct  = Math.round(state.engineHp / 10);
+        const eStat = getStatus(state.engineHp);
+        const eClr  = getColor(eStat);
+        document.getElementById('dp-engine').style.setProperty('--dc', eClr);
+        const ef = document.getElementById('dpf-engine');
+        ef.style.width = ePct + '%';
+        ef.className = 'dp-fill' + (eStat === 'crit' ? ' crit' : eStat === 'warn' ? ' warn' : '');
+        document.getElementById('dpv-engine').textContent = ePct + '%';
+
+        // Body
+        const bPct  = Math.round(state.bodyHp / 10);
+        const bStat = getStatus(state.bodyHp);
+        const bClr  = getColor(bStat);
+        document.getElementById('dp-body').style.setProperty('--dc', bClr);
+        const bf = document.getElementById('dpf-body');
+        bf.style.width = bPct + '%';
+        bf.className = 'dp-fill' + (bStat === 'crit' ? ' crit' : bStat === 'warn' ? ' warn' : '');
+        document.getElementById('dpv-body').textContent = bPct + '%';
+
+        // Gumiák
+        for (let i = 0; i < 4; i++) {
+            const dot = document.getElementById('tire-' + i);
+            if (dot) dot.className = 'dot' + (state.tires[i] ? ' burst' : '');
+        }
+    }
+
+    function demoSetHealth(type, val) {
+        if (type === 'engine') state.engineHp = val;
+        else state.bodyHp = val;
+        updatePanel();
+    }
+
+    function demoTireBurst(idx) {
+        state.tires[idx] = !state.tires[idx];
+        updatePanel();
+    }
+
+    function demoRepair(part) {
+        if (part === 'full')   { state.engineHp = 1000; state.bodyHp = 1000; for(let i=0;i<4;i++) state.tires[i]=false; }
+        if (part === 'engine') { state.engineHp = 1000; }
+        if (part === 'body')   { state.bodyHp   = 1000; }
+        if (part === 'tires')  { for(let i=0;i<4;i++) state.tires[i]=false; }
+        updatePanel();
+    }
+
+    function demoGetState() {
+        const el = document.getElementById('getstate-result');
+        const eStat = getStatus(state.engineHp);
+        const bStat = getStatus(state.bodyHp);
+        el.innerHTML =
+`→ GetDamageState() = {
+  inVehicle:    <span style="color:#3b82f6">true</span>,
+  engineHealth: <span style="color:${getColor(eStat)}">${state.engineHp}</span>,
+  enginePct:    <span style="color:${getColor(eStat)}">${Math.round(state.engineHp/10)}</span>,
+  engineStatus: <span style="color:${getColor(eStat)}">'${eStat}'</span>,
+  bodyHealth:   <span style="color:${getColor(bStat)}">${state.bodyHp}</span>,
+  bodyPct:      <span style="color:${getColor(bStat)}">${Math.round(state.bodyHp/10)}</span>,
+  tires:        { 0:{burst:<span style="color:${state.tires[0]?'#ef4444':'#22c55e'}">${state.tires[0]}</span>}, 1:{burst:<span style="color:${state.tires[1]?'#ef4444':'#22c55e'}">${state.tires[1]}</span>}, ... },
+  isDamaged:    <span style="color:#f59e0b">${state.engineHp < 1000 || state.bodyHp < 1000}</span>
+}`;
+    }
+
+    updatePanel();
+</script>
+</body>
+</html>
