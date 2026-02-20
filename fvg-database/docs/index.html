@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-database – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep:  #0a0c12;
+            --fvg-bg-card:  #161b24;
+            --fvg-bg-code:  #0f172a;
+            --fvg-border:   #1e293b;
+            --fvg-text-p:   #f1f5f9;
+            --fvg-text-s:   #94a3b8;
+            --fvg-text-m:   #475569;
+            --fvg-accent:   #38bdf8;
+            --fvg-radius:   10px;
+            --fvg-font:     'Segoe UI', system-ui, sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 100px; max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.6; }
+        .badge {
+            display: inline-block;
+            background: rgba(56,189,248,0.12); color: var(--fvg-accent);
+            font-size: 11px; font-weight: 700; padding: 2px 10px;
+            border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle;
+            border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig {
+            font-family: monospace; font-size: 14px; font-weight: 700;
+            color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.6;
+        }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-server { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+        .warn-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(245,158,11,0.07);
+            border: 1px solid rgba(245,158,11,0.2); font-size: 12px;
+            color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+
+        /* Export csoportok */
+        .export-group {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 14px;
+        }
+        .exp-chip {
+            display: flex; flex-direction: column; gap: 4px;
+            padding: 12px 14px; border-radius: 8px;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--fvg-border);
+        }
+        .exp-chip-sig { font-family: monospace; font-size: 12px; font-weight: 700; color: var(--fvg-accent); }
+        .exp-chip-ret { font-family: monospace; font-size: 11px; color: #f59e0b; }
+        .exp-chip-desc { font-size: 11px; color: var(--fvg-text-m); line-height: 1.5; margin-top: 2px; }
+
+        /* Architektúra ábra */
+        .arch {
+            display: flex; flex-direction: column; gap: 10px; margin-top: 16px;
+        }
+        .arch-row {
+            display: flex; gap: 8px; align-items: stretch;
+        }
+        .arch-box {
+            flex: 1; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 600;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--fvg-border);
+            text-align: center; display: flex; align-items: center;
+            justify-content: center; gap: 7px; color: var(--fvg-text-s);
+        }
+        .arch-box.core  { background: rgba(56,189,248,0.08); border-color: rgba(56,189,248,0.25); color: var(--fvg-accent); }
+        .arch-box.db    { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.25); color: #a855f7; }
+        .arch-box.green { background: rgba(34,197,94,0.07);  border-color: rgba(34,197,94,0.2);  color: #22c55e; }
+        .arch-sep { text-align: center; color: var(--fvg-text-m); font-size: 13px; }
+
+        @media (max-width: 700px) {
+            .export-group { grid-template-columns: 1fr; }
+            .arch-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-database <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Adatbázis core réteg – oxmysql wrapper, játékos kezelés, migrációk<br>
+    <strong>Csak szerver oldali exportok.</strong> Ez a script az összes fvg- adatbázis-igényes script alapja.</p>
+</div>
+
+<!-- ══ Architektúra ══ -->
+<section>
+    <div class="section-title">Architektúra áttekintés</div>
+    <div class="card">
+        <div class="export-desc">Az <strong>fvg-database</strong> egy egységes adatbázis réteg, amely elrejti az oxmysql komplexitását, és minden fvg- script ugyanezen az interfészen keresztül ér el adatokat.</div>
+        <div class="arch">
+            <div class="arch-row">
+                <div class="arch-box green"><i class="hgi-stroke hgi-layers-02"></i>fvg-jobs</div>
+                <div class="arch-box green"><i class="hgi-stroke hgi-heart-check"></i>fvg-needs</div>
+                <div class="arch-box green"><i class="hgi-stroke hgi-money-bag-02"></i>fvg-banking</div>
+                <div class="arch-box green"><i class="hgi-stroke hgi-package-02"></i>fvg-inventory</div>
+                <div class="arch-box green"><i class="hgi-stroke hgi-more-horizontal"></i>...</div>
+            </div>
+            <div class="arch-sep">↓ exports['fvg-database']:Query / Insert / GetPlayer stb.</div>
+            <div class="arch-row">
+                <div class="arch-box core"><i class="hgi-stroke hgi-database-02"></i>fvg-database (core, cache, migrations)</div>
+            </div>
+            <div class="arch-sep">↓ MySQL.query.await / MySQL.insert.await stb.</div>
+            <div class="arch-row">
+                <div class="arch-box db"><i class="hgi-stroke hgi-server-04"></i>oxmysql</div>
+                <div class="arch-box db"><i class="hgi-stroke hgi-database-locked"></i>MariaDB / MySQL</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Alap lekérdezők ══ -->
+<section>
+    <div class="section-title">Alap lekérdező exportok</div>
+    <div class="card">
+        <div class="export-desc">Mind a hat alap lekérdező szinkron (await) futású – blokkolja az aktuális coroutine-t az eredményig, de nem blokkolja a szervert.</div>
+        <div class="export-group">
+            <div class="exp-chip">
+                <span class="exp-chip-sig">Query(query, params)</span>
+                <span class="exp-chip-ret">→ table[] | nil</span>
+                <span class="exp-chip-desc">Több sor visszaadása. SELECT-hez.</span>
+            </div>
+            <div class="exp-chip">
+                <span class="exp-chip-sig">QuerySingle(query, params)</span>
+                <span class="exp-chip-ret">→ table | nil</span>
+                <span class="exp-chip-desc">Egyetlen sor. SELECT ... LIMIT 1 esetekhez.</span>
+            </div>
+            <div class="exp-chip">
+                <span class="exp-chip-sig">Execute(query, params)</span>
+                <span class="exp-chip-ret">→ number</span>
+                <span class="exp-chip-desc">INSERT / UPDATE / DELETE – érintett sorok száma.</span>
+            </div>
+            <div class="exp-chip">
+                <span class="exp-chip-sig">Insert(query, params)</span>
+                <span class="exp-chip-ret">→ number | nil</span>
+                <span class="exp-chip-desc">INSERT – visszaadja az új sor auto-increment ID-ját.</span>
+            </div>
+            <div class="exp-chip">
+                <span class="exp-chip-sig">Update(query, params)</span>
+                <span class="exp-chip-ret">→ number</span>
+                <span class="exp-chip-desc">UPDATE – érintett sorok száma.</span>
+            </div>
+            <div class="exp-chip">
+                <span class="exp-chip-sig">Scalar(query, params)</span>
+                <span class="exp-chip-ret">→ any | nil</span>
+                <span class="exp-chip-desc">Egyetlen érték. COUNT(*), MAX() stb. esetekhez.</span>
+            </div>
+        </div>
+
+        <div class="code-label">Lua példák – fvg-jobs szerver script</div>
+        <code>-- Több sor
+local jobs = exports['fvg-database']:Query(
+    'SELECT * FROM `fvg_jobs` WHERE `active` = ?', { 1 }
+)
+
+-- Egyetlen sor
+local job = exports['fvg-database']:QuerySingle(
+    'SELECT * FROM `fvg_jobs` WHERE `name` = ?', { 'police' }
+)
+
+-- INSERT – visszaadja az új ID-t
+local newId = exports['fvg-database']:Insert(
+    'INSERT INTO `fvg_jobs` (`name`, `label`) VALUES (?, ?)',
+    { 'mechanic', 'Szerelő' }
+)
+
+-- UPDATE
+local affected = exports['fvg-database']:Update(
+    'UPDATE `fvg_players` SET `firstname` = ? WHERE `id` = ?',
+    { 'János', playerId }
+)
+
+-- COUNT
+local count = exports['fvg-database']:Scalar(
+    'SELECT COUNT(*) FROM `fvg_players`', {}
+)</code>
+    </div>
+
+    <!-- Transaction -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-database']:Transaction(queries) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Több lekérdezést hajt végre atomikusan. Ha bármelyik meghiúsul, az összes visszagörgetésre kerül. Banki átutalásoknál, inventory mozgásoknál elengedhetetlen.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">queries</td><td class="pt">table[]</td><td>Tömb, minden elem: <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">{ query = '...', values = {...} }</code></td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – fvg-banking átutalás</div>
+        <code>local success = exports['fvg-database']:Transaction({
+    {
+        query  = 'UPDATE `fvg_bank` SET `balance` = `balance` - ? WHERE `player_id` = ?',
+        values = { amount, fromPlayerId }
+    },
+    {
+        query  = 'UPDATE `fvg_bank` SET `balance` = `balance` + ? WHERE `player_id` = ?',
+        values = { amount, toPlayerId }
+    },
+    {
+        query  = 'INSERT INTO `fvg_bank_logs` (`from_id`, `to_id`, `amount`) VALUES (?, ?, ?)',
+        values = { fromPlayerId, toPlayerId, amount }
+    }
+})
+
+if success then
+    print('Átutalás sikeres')
+else
+    print('Átutalás meghiúsult – visszagörgetés megtörtént')
+end</code>
+    </div>
+</section>
+
+<!-- ══ Játékos helpers ══ -->
+<section>
+    <div class="section-title">Játékos helper exportok</div>
+
+    <!-- GetPlayer -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-database']:GetPlayer(source) → table | nil</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Lekéri a játékos adatait az adatbázisból. Az eredményt <strong>cache-eli</strong> (<code>Config.PlayerCacheTTL</code> ms-ig), így ismételt hívás nem terheli az adatbázist.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>         <td class="pt">number</td> <td>Adatbázis ID</td></tr>
+                <tr><td class="pn">identifier</td> <td class="pt">string</td> <td>Játékos azonosító (license:...)</td></tr>
+                <tr><td class="pn">name</td>        <td class="pt">string</td> <td>Steam / játékos név</td></tr>
+                <tr><td class="pn">firstname</td>   <td class="pt">string</td> <td>Karakter keresztnév</td></tr>
+                <tr><td class="pn">lastname</td>    <td class="pt">string</td> <td>Karakter vezetéknév</td></tr>
+                <tr><td class="pn">metadata</td>    <td class="pt">table</td>  <td>JSON dekódolt egyéb adatok</td></tr>
+                <tr><td class="pn">last_seen</td>   <td class="pt">string</td> <td>Utolsó belépés timestamp</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa</div>
+        <code>-- fvg-jobs server.lua
+RegisterServerEvent('fvg-jobs:server:GetJob', function()
+    local src    = source
+    local player = exports['fvg-database']:GetPlayer(src)
+    if not player then return end
+    print(player.firstname .. ' ' .. player.lastname)
+    -- player.metadata.job stb.
+end)</code>
+    </div>
+
+    <!-- GetOrCreatePlayer -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-database']:GetOrCreatePlayer(source, defaultData) → table, boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Lekéri a játékost, ha még nem létezik – létrehozza. Második visszatérési értéke <code>true</code> ha új játékosról van szó. A karakterválasztó / kreátor script ezt hívja.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td>      <td class="pt">number</td> <td>Játékos szerver ID-ja</td></tr>
+                <tr><td class="pn">defaultData</td> <td class="pt">table</td>  <td>Alapértelmezett adatok új játékosnál (opcionális)</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – játékos belépésekor</div>
+        <code>AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
+    local src = source
+    deferrals.defer()
+    Wait(0)
+
+    local player, isNew = exports['fvg-database']:GetOrCreatePlayer(src, {
+        firstname = '',
+        lastname  = '',
+        metadata  = { bank = 2500, cash = 500 }
+    })
+
+    if isNew then
+        -- Első belépés – karakterkészítő megnyitása
+        TriggerClientEvent('fvg-character:client:OpenCreator', src)
+    end
+
+    deferrals.done()
+end)</code>
+    </div>
+
+    <!-- SavePlayer -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-database']:SavePlayer(source, data) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Részleges frissítés: csak a megadott mezőket írja felül (<code>COALESCE</code> alapú UPDATE), a többi érintetlen marad. Cache-t automatikusan invalidálja.
+        </div>
+        <div class="code-label">Lua példa – játékos kilépésekor</div>
+        <code>AddEventHandler('playerDropped', function()
+    local src = source
+    exports['fvg-database']:SavePlayer(src, {
+        metadata = {
+            bank  = playerBankBalance,
+            cash  = playerCashBalance,
+            job   = playerJob,
+            stress= playerStress
+        }
+    })
+end)</code>
+    </div>
+</section>
+
+<!-- ══ Migráció rendszer ══ -->
+<section>
+    <div class="section-title">Migráció rendszer</div>
+    <div class="card">
+        <div class="export-sig">exports['fvg-database']:RegisterMigration(name, query)</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Más fvg- scriptek ezzel regisztrálják saját tábláikat. Az <strong>fvg-database</strong> induláskor (500ms késéssel) automatikusan lefuttatja az összes regisztrált migrációt. Mindig <code>CREATE TABLE IF NOT EXISTS</code> szintaxist használj, hogy idempotens legyen.
+        </div>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>A <code>RegisterMigration</code>-t a script <strong>betöltésekor</strong> kell meghívni (nem esemény belsejében), hogy az fvg-database induláskor megtalálja. Ehhez az fvg-database-nek <strong>előbb kell elindulnia</strong> a többi fvg- scriptnél a <code>server.cfg</code>-ben.</span>
+        </div>
+        <div class="code-label">Lua példa – fvg-needs/server/server.lua</div>
+        <code>-- fvg-needs indulásakor automatikusan regisztrálja a tábláját
+exports['fvg-database']:RegisterMigration('fvg_needs', [[
+    CREATE TABLE IF NOT EXISTS `fvg_needs` (
+        `player_id`  INT           NOT NULL,
+        `food`       DECIMAL(5,2)  NOT NULL DEFAULT 100.00,
+        `water`      DECIMAL(5,2)  NOT NULL DEFAULT 100.00,
+        `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                            ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`player_id`),
+        CONSTRAINT `fk_needs_player`
+            FOREIGN KEY (`player_id`) REFERENCES `fvg_players`(`id`)
+            ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+]])
+
+-- fvg-banking
+exports['fvg-database']:RegisterMigration('fvg_bank', [[
+    CREATE TABLE IF NOT EXISTS `fvg_bank` (
+        `player_id`  INT           NOT NULL,
+        `balance`    DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        `iban`       VARCHAR(30)   NOT NULL DEFAULT '',
+        `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                            ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`player_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+]])</code>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A <strong>TableExists</strong> exporttal ellenőrizheted hogy egy tábla már létezik-e, mielőtt adatot próbálsz írni bele: <code style="display:inline;color:#7dd3fc;font-size:11px">exports['fvg-database']:TableExists('fvg_needs')</code> → <code style="color:#22c55e;font-size:11px">boolean</code></span>
+        </div>
+    </div>
+</section>
+
+<!-- ══ server.cfg sorrend ══ -->
+<section>
+    <div class="section-title">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <div class="code-label">server.cfg</div>
+        <code>ensure oxmysql          # 1. adatbázis driver
+ensure fvg-database      # 2. fvg adatbázis core
+ensure fvg-notify        # 3. értesítési rendszer
+ensure fvg-hud           # 4. player HUD
+ensure fvg-vehiclehud    # 5. jármű HUD
+ensure fvg-seatbelt      # 6. biztonsági öv
+ensure fvg-engine        # 7. motor vezérlés
+ensure fvg-vehicledamage # 8. jármű sérülés
+# ... többi fvg- script</code>
+    </div>
+</section>
+
+</body>
+</html>
