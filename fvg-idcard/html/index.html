@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-idcard</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+
+    <!-- ── FŐ KÁRTYA PANEL ──────────────────────────────────── -->
+    <div id="panel">
+
+        <!-- FEJLÉC -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <i class="hgi-stroke hgi-user-id-verification"></i>
+                <div>
+                    <div class="ph-title" id="ph-title">Személyi igazolvány</div>
+                    <div class="ph-sub"   id="ph-sub">Los Santos Állam</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <button class="show-btn hidden" id="show-btn" onclick="Card.showToNearest()">
+                    <i class="hgi-stroke hgi-share-07"></i>Felmutatás
+                </button>
+                <button class="close-btn" id="close-btn">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB SÁV -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="identity">
+                <i class="hgi-stroke hgi-user-circle"></i>Személyi
+            </button>
+            <button class="tab" data-tab="licenses">
+                <i class="hgi-stroke hgi-certificate-02"></i>Engedélyek
+            </button>
+            <button class="tab" data-tab="wanted" id="tab-wanted">
+                <i class="hgi-stroke hgi-alert-02"></i>Körözés
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="panel-body">
+
+            <!-- ══ SZEMÉLYI TAB ══ -->
+            <div class="tab-content active" id="tab-identity">
+
+                <!-- ID kártya vizuál -->
+                <div class="id-card-visual" id="id-card-visual">
+                    <div class="idc-top">
+                        <div class="idc-flag">
+                            <i class="hgi-stroke hgi-city-03"></i>
+                        </div>
+                        <div class="idc-header-text">
+                            <div class="idc-country" id="idc-country">LOS SANTOS ÁLLAM</div>
+                            <div class="idc-doctype">SZEMÉLYI AZONOSÍTÓ OKMÁNY</div>
+                        </div>
+                        <div class="idc-chip">
+                            <div class="chip-lines">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="idc-body">
+                        <div class="idc-photo" id="idc-photo">
+                            <i class="hgi-stroke hgi-user-circle"></i>
+                        </div>
+                        <div class="idc-fields">
+                            <div class="idc-row">
+                                <span class="idc-label">NÉV</span>
+                                <span class="idc-val" id="idc-name">–</span>
+                            </div>
+                            <div class="idc-row">
+                                <span class="idc-label">SZÜLETÉSI DÁTUM</span>
+                                <span class="idc-val" id="idc-dob">–</span>
+                            </div>
+                            <div class="idc-row">
+                                <span class="idc-label">NEM</span>
+                                <span class="idc-val" id="idc-sex">–</span>
+                            </div>
+                            <div class="idc-row">
+                                <span class="idc-label">MAGASSÁG / SÚLY</span>
+                                <span class="idc-val" id="idc-hw">–</span>
+                            </div>
+                            <div class="idc-row">
+                                <span class="idc-label">NEMZETISÉG</span>
+                                <span class="idc-val" id="idc-nationality">–</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="idc-footer">
+                        <div class="idc-issued">
+                            <span class="idc-label">KIBOCSÁTÓ</span>
+                            <span class="idc-val-sm" id="idc-issued">–</span>
+                        </div>
+                        <div class="idc-mrz" id="idc-mrz"></div>
+                    </div>
+                    <!-- Körözési banner (ha van) -->
+                    <div class="wanted-banner hidden" id="wanted-banner">
+                        <i class="hgi-stroke hgi-alert-02"></i>
+                        <span id="wanted-banner-text">KÖRÖZÖTT SZEMÉLY</span>
+                    </div>
+                </div>
+
+                <!-- Személyi adatok részlet -->
+                <div class="info-cards" id="identity-detail">
+                    <!-- dinamikusan töltődik -->
+                </div>
+
+            </div>
+
+            <!-- ══ ENGEDÉLYEK TAB ══ -->
+            <div class="tab-content" id="tab-licenses">
+                <div class="licenses-grid" id="licenses-grid">
+                    <!-- dinamikusan töltődik -->
+                </div>
+            </div>
+
+            <!-- ══ KÖRÖZÉS TAB ══ -->
+            <div class="tab-content" id="tab-wanted">
+                <div class="wanted-section" id="wanted-section">
+                    <!-- dinamikusan töltődik -->
+                </div>
+
+                <!-- Admin/rendőr: körözés állítás -->
+                <div class="wanted-admin hidden" id="wanted-admin">
+                    <div class="wa-title">
+                        <i class="hgi-stroke hgi-shield-user"></i>Körözés kezelés
+                    </div>
+                    <div class="wa-form">
+                        <div class="wa-field">
+                            <label>Szint</label>
+                            <div class="wanted-level-btns" id="wanted-level-btns"></div>
+                        </div>
+                        <div class="wa-field">
+                            <label>Indok</label>
+                            <input type="text" class="wa-input" id="wa-reason" placeholder="Körözés indoka..."/>
+                        </div>
+                        <button class="wa-btn" id="wa-submit">
+                            <i class="hgi-stroke hgi-checkmark-circle-02"></i>Körözés beállítása
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── BEMUTATOTT IGAZOLVÁNY (csak olvasható, animált) ──── -->
+    <div id="shown-overlay" class="hidden">
+        <div class="shown-panel">
+            <div class="shown-header">
+                <i class="hgi-stroke hgi-user-id-verification"></i>
+                <span id="shown-title">Igazolvány bemutatva</span>
+                <button class="close-btn" id="shown-close"><i class="hgi-stroke hgi-cancel-01"></i></button>
+            </div>
+            <div class="shown-body" id="shown-body">
+                <!-- dinamikusan töltődik -->
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

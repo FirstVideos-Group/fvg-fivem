@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-idcard – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root{--bg:#0a0c12;--card:#161b24;--code:#0f172a;--border:#1e293b;--tp:#f1f5f9;--ts:#94a3b8;--tm:#475569;--ac:#38bdf8;--font:'Segoe UI',system-ui,sans-serif}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--tp);font-family:var(--font);padding:48px 28px 120px;max-width:1020px;margin:0 auto}
+        h1{font-size:28px;font-weight:800;margin-bottom:6px}
+        .sub{color:var(--tm);font-size:14px;line-height:1.7;margin-bottom:48px}
+        .badge{display:inline-block;background:rgba(56,189,248,.12);color:var(--ac);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.05em;margin-left:10px;vertical-align:middle;border:1px solid rgba(56,189,248,.25)}
+        section{margin-bottom:44px}
+        .st{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px}
+        .sig{font-family:monospace;font-size:14px;font-weight:700;color:var(--ac);margin-bottom:6px;line-height:1.8}
+        .side{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+        .ss{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .sc{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .desc{font-size:13px;color:var(--ts);line-height:1.65;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;margin-bottom:14px}
+        th{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+        td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;color:var(--ts)}
+        tr:last-child td{border-bottom:none}
+        .pn{font-family:monospace;color:#a78bfa}.pt{font-family:monospace;color:#f59e0b}.pv{font-family:monospace;color:#7dd3fc}
+        .cl{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:14px}
+        code{display:block;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace;white-space:pre;overflow-x:auto;line-height:1.7}
+        .info{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);font-size:12px;color:#93c5fd;line-height:1.6;margin-top:14px}
+        .info i{font-size:16px;flex-shrink:0;margin-top:1px;color:var(--ac)}
+        .warn{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);font-size:12px;color:#fcd34d;line-height:1.6;margin-top:14px}
+        .warn i{font-size:16px;flex-shrink:0;margin-top:1px;color:#f59e0b}
+        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .dc{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+        .dct{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+        .dct i{font-size:14px;color:var(--ac)}
+        .dbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:var(--font);width:100%}
+        .dbtn:hover{opacity:.8}
+        .ba{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .bs{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .bd{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .bw{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+        .dout{font-family:monospace;font-size:11px;color:var(--tm);min-height:18px;margin-top:4px}
+        .dout.ok{color:#22c55e}.dout.err{color:#ef4444}
+        .dsel,.dinp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--tp);font-size:12px;outline:none;font-family:var(--font);width:100%}
+    </style>
+</head>
+<body>
+
+<h1>fvg-idcard <span class="badge">v1.0.0</span></h1>
+<p class="sub">FirstVideos Group · Igazolvány- és engedélyrendszer. DB: <code style="color:#7dd3fc;font-size:12px">fvg_licenses · fvg_wanted</code><br>
+Exportálja az identitást az <strong>fvg-identity</strong>-ből, körözést és engedélyeket saját táblákban kezeli.</p>
+
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:GetPlayerCard(source) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja a játékos összes igazolvány-adatát: identity (fvg-identity alapján), licenses tábla, wanted szint.</div>
+        <div class="cl">Lua példa</div>
+        <code>local card = exports['fvg-idcard']:GetPlayerCard(src)
+if card then
+    print(card.identity.firstname .. ' körözési szintje: ' .. card.wanted.level)
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:HasLicense(source, licenseType) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Ellenőrzi, hogy a játékos rendelkezik-e érvényes (nem lejárt, nem felfüggesztett) engedéllyel. Más scriptek is hívhatják pl. jármű indítás előtt.</div>
+        <div class="cl">Lua példa – fvg-vehicles</div>
+        <code>-- Jogosítvány ellenőrzés jármű indításkor
+RegisterNetEvent('fvg-vehicles:server:StartEngine', function(netId)
+    local src = source
+    if not exports['fvg-idcard']:HasLicense(src, 'driving') then
+        exports['fvg-notify']:Notify(src, { type='error', message='Nincs jogosítványod!' })
+        return
+    end
+    TriggerClientEvent('fvg-vehicles:client:EngineOn', src, netId)
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:AddLicense(source, licenseType, categories?, issuedBy?, expiresAt?) → boolean</div>
+        <div class="sig">exports['fvg-idcard']:RemoveLicense(source, licenseType) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Engedély hozzáadása vagy eltávolítása. A <code>categories</code> vesszővel elválasztott string lehet (pl. <code>'B,C'</code>). Automatikusan szinkronizál a klienssel és DB-be ment.</div>
+        <div class="cl">Lua példa – fvg-drivingschool</div>
+        <code>-- Jogosítvány B kategória kiadása sikeres vizsga után
+AddEventHandler('fvg-drivingschool:server:ExamPassed', function(src, category)
+    exports['fvg-idcard']:AddLicense(src, 'driving', category, 'Közlekedési Iskola')
+    exports['fvg-notify']:Notify(src, { type='success', message='Jogosítvány kiadva: ' .. category })
+end)
+
+-- Jogosítvány visszavonás
+exports['fvg-idcard']:RemoveLicense(src, 'weapon')</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:GetAllLicenses(source) → table</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja az összes engedélyt táblaként, ahol a kulcs az engedély típusa (<code>'driving'</code>, <code>'weapon'</code> stb.).</div>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:IsWanted(source) → boolean</div>
+        <div class="sig">exports['fvg-idcard']:GetWantedLevel(source) → number</div>
+        <div class="sig">exports['fvg-idcard']:SetWanted(source, level, reason?, issuedBy?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Körözés kezelés. A szint 0–5 közé eshet (0 = nincs körözés). Beállításkor automatikusan értesíti a játékost és az eseményt kiváltja más scripteknek.</div>
+        <div class="cl">Lua példa – fvg-police</div>
+        <code>-- Körözés kiadása
+exports['fvg-idcard']:SetWanted(targetSrc, 3, 'Fegyveres rablás', GetPlayerName(src))
+
+-- Körözés törlése (pl. letartóztatás után)
+exports['fvg-idcard']:SetWanted(targetSrc, 0, nil)
+
+-- Ellenőrzés más scriptből
+if exports['fvg-idcard']:IsWanted(src) then
+    local lvl = exports['fvg-idcard']:GetWantedLevel(src)
+    -- rendőrségnek riasztás...
+end</code>
+    </div>
+</section>
+
+<section>
+    <div class="st">Kliens exportok</div>
+    <div class="card">
+        <div class="sig">exports['fvg-idcard']:GetLocalCard() → table</div>
+        <div class="sig">exports['fvg-idcard']:HasLocalLicense(licenseType) → boolean</div>
+        <span class="side sc">Client</span>
+        <div class="desc">Kliens oldali cache, szinkron után mindig naprakész. HUD-ban körözési szint megjelenítéséhez, vagy UI-ban engedély ikonokhoz használható szerver event nélkül.</div>
+        <div class="cl">Lua példa – fvg-hud</div>
+        <code>-- Körözési csillag HUD elemhez
+local card = exports['fvg-idcard']:GetLocalCard()
+local level = card.wanted and card.wanted.level or 0
+-- Rajzold ki a csillagokat a HUD-on
+
+-- Jogosítvány ikon megjelenítés
+if exports['fvg-idcard']:HasLocalLicense('driving') then
+    -- Megjelenítsd a B kategória ikont
+end</code>
+    </div>
+</section>
+
+<section>
+    <div class="st">Szerver események</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Esemény neve</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">fvg-idcard:server:LicenseAdded</td>   <td class="pt">src, licenseType</td>            <td>Engedély kiadásakor</td></tr>
+                <tr><td class="pn">fvg-idcard:server:LicenseRemoved</td> <td class="pt">src, licenseType</td>            <td>Engedély visszavorásakor</td></tr>
+                <tr><td class="pn">fvg-idcard:server:WantedChanged</td>  <td class="pt">src, level, reason</td>         <td>Körözési szint változásakor</td></tr>
+                <tr><td class="pn">fvg-idcard:server:CardShown</td>      <td class="pt">showerSrc, targetSrc</td>        <td>Igazolvány felmutatáskor</td></tr>
+                <tr><td class="pn">fvg-idcard:client:CardUpdated</td>    <td class="pt">localCard</td>                   <td>Kliens cache frissülésekor</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – fvg-dispatch körözés figyelés</div>
+        <code>AddEventHandler('fvg-idcard:server:WantedChanged', function(src, level, reason)
+    if level >= 3 then
+        local identity = exports['fvg-identity']:GetPlayerIdentity(src)
+        local name     = identity and (identity.firstname .. ' ' .. identity.lastname) or 'Ismeretlen'
+        -- Dispatch értesítés rendőrségnek
+        TriggerEvent('fvg-dispatch:server:Alert', {
+            type    = 'wanted',
+            message = name .. ' – körözési szint: ' .. level,
+            reason  = reason,
+        })
+    end
+end)</code>
+    </div>
+</section>
+
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-certificate-02"></i>HasLicense / AddLicense</div>
+                <select class="dsel" id="d-lic-type">
+                    <option value="driving">driving – Jogosítvány</option>
+                    <option value="weapon">weapon – Fegyverengedély</option>
+                    <option value="medical">medical – Orvosi engedély</option>
+                    <option value="police">police – Rendőrségi</option>
+                    <option value="business">business – Vállalkozói</option>
+                </select>
+                <button class="dbtn bs" onclick="demoAddLic()"><i class="hgi-stroke hgi-add-circle"></i>AddLicense</button>
+                <button class="dbtn ba" onclick="demoHasLic()" style="margin-top:4px"><i class="hgi-stroke hgi-checkmark-circle-02"></i>HasLicense</button>
+                <button class="dbtn bd" onclick="demoRemoveLic()" style="margin-top:4px"><i class="hgi-stroke hgi-remove-circle"></i>RemoveLicense</button>
+                <div class="dout" id="d-lic-out"></div>
+            </div>
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-alert-02"></i>SetWanted / IsWanted</div>
+                <select class="dsel" id="d-wanted-lvl" style="margin-bottom:4px">
+                    <option value="0">0 – Nincs körözés</option>
+                    <option value="1">1 – Enyhe</option>
+                    <option value="2">2 – Közepes</option>
+                    <option value="3">3 – Súlyos</option>
+                    <option value="4">4 – Veszélyes</option>
+                    <option value="5">5 – Terrorista</option>
+                </select>
+                <input class="dinp" id="d-wanted-reason" placeholder="Indok..." style="margin-bottom:4px"/>
+                <button class="dbtn bd" onclick="demoSetWanted()"><i class="hgi-stroke hgi-alert-02"></i>SetWanted</button>
+                <button class="dbtn ba" onclick="demoIsWanted()" style="margin-top:4px"><i class="hgi-stroke hgi-search-02"></i>IsWanted / GetWantedLevel</button>
+                <div class="dout" id="d-wanted-out"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="st">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql
+ensure fvg-database
+ensure fvg-playercore
+ensure fvg-notify
+ensure fvg-identity     # identity előbb kell
+ensure fvg-idcard       # ← itt
+ensure fvg-inventory    # inventory után is lehet (use callback)
+ensure fvg-admin
+ensure fvg-hud</code>
+        <div class="warn">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>Az <strong>fvg-idcard</strong>-nak az <strong>fvg-identity</strong> után kell indulnia, mivel a <code>GetPlayerCard</code> export az <code>fvg-identity:GetPlayerIdentity</code> exportot hívja. Az <strong>fvg-inventory</strong> use callback-jén keresztül a <code>id_card</code> item automatikusan megnyitja az igazolványt – ehhez az fvg-inventory-nak is el kell indulnia.</span>
+        </div>
+    </div>
+</section>
+
+<script>
+    const simLicenses = {};
+    let   simWanted   = { level: 0, reason: null };
+    const licColors   = { driving:'#22c55e', weapon:'#f59e0b', medical:'#ef4444', police:'#3b82f6', business:'#a855f7' };
+
+    function demoAddLic() {
+        const t  = document.getElementById('d-lic-type').value;
+        const el = document.getElementById('d-lic-out');
+        simLicenses[t] = { issued_at: new Date().toISOString().substring(0,10), suspended: false };
+        el.className = 'dout ok';
+        el.innerHTML = `→ AddLicense('<span style="color:${licColors[t]||'#38bdf8'}">${t}</span>') = <strong>true</strong>`;
+    }
+    function demoHasLic() {
+        const t  = document.getElementById('d-lic-type').value;
+        const el = document.getElementById('d-lic-out');
+        const has = !!simLicenses[t] && !simLicenses[t].suspended;
+        el.className = 'dout ' + (has ? 'ok' : 'err');
+        el.innerHTML = `→ HasLicense('<span style="color:${licColors[t]||'#38bdf8'}">${t}</span>') = <strong style="color:${has?'#22c55e':'#ef4444'}">${has}</strong>`;
+    }
+    function demoRemoveLic() {
+        const t  = document.getElementById('d-lic-type').value;
+        const el = document.getElementById('d-lic-out');
+        if (!simLicenses[t]) {
+            el.className='dout err'; el.innerHTML=`→ RemoveLicense() = <strong>false</strong> – nem létezik`; return;
+        }
+        delete simLicenses[t];
+        el.className='dout ok'; el.innerHTML=`→ RemoveLicense('<span style="color:#ef4444">${t}</span>') = <strong>true</strong>`;
+    }
+    function demoSetWanted() {
+        const lvl    = parseInt(document.getElementById('d-wanted-lvl').value);
+        const reason = document.getElementById('d-wanted-reason').value || null;
+        const el     = document.getElementById('d-wanted-out');
+        simWanted    = { level: lvl, reason };
+        const colors = ['#22c55e','#84cc16','#f59e0b','#f97316','#ef4444','#dc2626'];
+        const labels = ['Nincs','Enyhe','Közepes','Súlyos','Veszélyes','Terrorista'];
+        el.className = 'dout ok';
+        el.innerHTML = `→ SetWanted(src, <strong style="color:${colors[lvl]}">${lvl}</strong>) = true`
+            + (reason ? `<br>→ reason: '${reason}'` : '')
+            + `<br>→ IsWanted() = <strong style="color:${lvl>0?'#ef4444':'#22c55e'}">${lvl > 0}</strong> (<span style="color:${colors[lvl]}">${labels[lvl]}</span>)`;
+    }
+    function demoIsWanted() {
+        const el = document.getElementById('d-wanted-out');
+        const colors = ['#22c55e','#84cc16','#f59e0b','#f97316','#ef4444','#dc2626'];
+        const labels = ['Nincs','Enyhe','Közepes','Súlyos','Veszélyes','Terrorista'];
+        el.className = 'dout ' + (simWanted.level > 0 ? 'err' : 'ok');
+        el.innerHTML = `→ IsWanted() = <strong style="color:${simWanted.level>0?'#ef4444':'#22c55e'}">${simWanted.level > 0}</strong>`
+            + `<br>→ GetWantedLevel() = <strong style="color:${colors[simWanted.level]}">${simWanted.level}</strong> (${labels[simWanted.level]})`;
+    }
+</script>
+</body>
+</html>
