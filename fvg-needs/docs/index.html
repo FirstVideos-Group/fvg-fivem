@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-needs – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep: #0a0c12;
+            --fvg-bg-card: #161b24;
+            --fvg-bg-code: #0f172a;
+            --fvg-border:  #1e293b;
+            --fvg-text-p:  #f1f5f9;
+            --fvg-text-s:  #94a3b8;
+            --fvg-text-m:  #475569;
+            --fvg-accent:  #38bdf8;
+            --fvg-radius:  10px;
+            --fvg-font:    'Segoe UI', system-ui, sans-serif;
+            --clr-ok:   #22c55e;
+            --clr-warn: #f59e0b;
+            --clr-crit: #ef4444;
+            --clr-food:  #fb923c;
+            --clr-water: #38bdf8;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 120px; max-width: 1020px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; line-height: 1.7; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,0.12);
+            color: var(--fvg-accent); font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle; border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 44px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 14px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 6px; line-height: 1.7; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 14px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code); border: 1px solid var(--fvg-border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+            border-radius: 8px; background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2); font-size: 12px;
+            color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+
+        /* Demo panel */
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .demo-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s; font-family: var(--fvg-font);
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+        .btn-food   { background: rgba(251,146,60,0.15);  color: var(--clr-food);  border: 1px solid rgba(251,146,60,0.3); }
+        .btn-water  { background: rgba(56,189,248,0.15);  color: var(--clr-water); border: 1px solid rgba(56,189,248,0.3); }
+        .btn-ok     { background: rgba(34,197,94,0.15);   color: var(--clr-ok);   border: 1px solid rgba(34,197,94,0.3); }
+        .btn-warn   { background: rgba(245,158,11,0.15);  color: var(--clr-warn); border: 1px solid rgba(245,158,11,0.3); }
+        .btn-crit   { background: rgba(239,68,68,0.15);   color: var(--clr-crit); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-neutral{ background: rgba(148,163,184,0.1);  color: var(--fvg-text-s); border: 1px solid rgba(148,163,184,0.2); }
+
+        /* Élő needs panel */
+        #needs-panel {
+            position: fixed; bottom: 28px; right: 28px;
+            display: flex; flex-direction: column; gap: 7px;
+            z-index: 9999; pointer-events: none; width: 200px;
+        }
+        .need-card {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px 9px 12px;
+            background: rgba(18,21,30,0.95);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+            position: relative; overflow: hidden;
+            transition: all 0.25s;
+        }
+        .need-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            border-radius: 10px 0 0 10px;
+            background: var(--nc, #fb923c); transition: background 0.25s;
+        }
+        .nc-icon { font-size: 18px; color: var(--nc, #fb923c); flex-shrink: 0; transition: color 0.25s; }
+        .nc-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .nc-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; }
+        .nc-track { width: 100%; height: 5px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .nc-fill  { height: 100%; border-radius: 99px; background: var(--nc, #fb923c); transition: width 0.3s ease, background 0.25s; }
+        .nc-val   { font-size: 11px; font-weight: 700; color: #94a3b8; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+        @keyframes nc-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        .nc-fill.warn { background: var(--clr-warn) !important; }
+        .nc-fill.crit { background: var(--clr-crit) !important; animation: nc-pulse 1s ease-in-out infinite; }
+
+        #get-result { margin-top: 10px; font-size: 12px; color: var(--fvg-text-s); font-family: monospace; min-height: 18px; }
+
+        /* Szint táblázat */
+        .level-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 14px; }
+        .level-box {
+            padding: 10px 12px; border-radius: 8px; text-align: center;
+            font-size: 11px; font-weight: 600;
+        }
+        .l-ok   { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.2);  color: #22c55e; }
+        .l-warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #f59e0b; }
+        .l-crit { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2);  color: #ef4444; }
+        .l-dead { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.4);  color: #fca5a5; }
+        .level-box .lv-name { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+        .level-box .lv-range { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+        .level-box .lv-eff { font-size: 10px; opacity: 0.7; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-needs <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Éhség &amp; szomjúság rendszer – Export dokumentáció &amp; interaktív demo<br>
+    Adatbázis: <code style="font-size:12px;color:#7dd3fc">fvg_needs</code> táblát automatikusan regisztrálja az <strong>fvg-database</strong> migrációs rendszerébe.</p>
+</div>
+
+<!-- ══ Szintek ══ -->
+<section>
+    <div class="section-title">Szükséglet szintek</div>
+    <div class="card">
+        <div class="export-desc">Minden szükségletnek 4 szintje van. A küszöbök a <code>config.lua</code>-ban módosíthatók.</div>
+        <div class="level-grid">
+            <div class="level-box l-ok">
+                <div class="lv-name">Ok</div>
+                <div class="lv-range">100 → 31</div>
+                <div class="lv-eff">Nincs hatás</div>
+            </div>
+            <div class="level-box l-warn">
+                <div class="lv-name">Warn</div>
+                <div class="lv-range">30 → 11</div>
+                <div class="lv-eff">Értesítés<br>Képernyő eff.</div>
+            </div>
+            <div class="level-box l-crit">
+                <div class="lv-name">Crit</div>
+                <div class="lv-range">10 → 1</div>
+                <div class="lv-eff">Izzadás<br>Lassulás (éh.)</div>
+            </div>
+            <div class="level-box l-dead">
+                <div class="lv-name">Dead</div>
+                <div class="lv-range">0</div>
+                <div class="lv-eff">HP csökkenés</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ Kliens exportok ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-needs']:GetNeeds() → table</div>
+        <div class="export-sig">exports['fvg-needs']:GetNeed(name) → number</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Visszaadja az összes vagy egy meghatározott szükséglet aktuális értékét (0–100).
+        </div>
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoGet()"><i class="hgi-stroke hgi-information-circle"></i>GetNeeds()</button>
+        </div>
+        <div id="get-result"></div>
+        <div class="code-label">Lua példa – fvg-inventory evés után</div>
+        <code>local food = exports['fvg-needs']:GetNeed('food')
+print('Éhség: ' .. food .. '%')
+
+local all = exports['fvg-needs']:GetNeeds()
+-- all.food, all.water</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-needs']:SetNeed(name, value) → boolean</div>
+        <div class="export-sig">exports['fvg-needs']:ModifyNeed(name, amount) → boolean</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            <strong>SetNeed</strong>: pontos értéket állít be (0–100). <strong>ModifyNeed</strong>: relatív módosítás (negatív = csökkenés, pozitív = növelés). Mindkettő szinkronizálja a szervert és frissíti a HUD-ot.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">name</td>  <td class="pt">string</td> <td><code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">'food'</code> vagy <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">'water'</code></td></tr>
+                <tr><td class="pn">value / amount</td><td class="pt">number</td><td>SetNeed: 0–100 | ModifyNeed: pozitív vagy negatív szám</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-food"  onclick="demoModify('food',  +30)"><i class="hgi-stroke hgi-bread-01"></i>Evés (+30)</button>
+            <button class="demo-btn btn-water" onclick="demoModify('water', +30)"><i class="hgi-stroke hgi-water"></i>Ivás (+30)</button>
+            <button class="demo-btn btn-crit"  onclick="demoSet('food',  5)">     <i class="hgi-stroke hgi-bread-01"></i>Éhség → 5%</button>
+            <button class="demo-btn btn-crit"  onclick="demoSet('water', 5)">     <i class="hgi-stroke hgi-water"></i>Szomj → 5%</button>
+            <button class="demo-btn btn-ok"    onclick="demoSet('food',  100)">   <i class="hgi-stroke hgi-bread-01"></i>Éhség → 100%</button>
+            <button class="demo-btn btn-ok"    onclick="demoSet('water', 100)">   <i class="hgi-stroke hgi-water"></i>Szomj → 100%</button>
+        </div>
+        <div class="code-label">Lua példa – fvg-inventory étel/ital fogyasztás</div>
+        <code>-- Szendvics megevése
+exports['fvg-needs']:ModifyNeed('food', 35)
+
+-- Vizespalack elfogyasztása
+exports['fvg-needs']:ModifyNeed('water', 40)
+
+-- Admin: teljes feltöltés
+exports['fvg-needs']:SetNeed('food',  100)
+exports['fvg-needs']:SetNeed('water', 100)</code>
+    </div>
+</section>
+
+<!-- ══ Szerver exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+    <div class="card">
+        <div class="export-sig">exports['fvg-needs']:GetPlayerNeeds(source) → table | nil</div>
+        <div class="export-sig">exports['fvg-needs']:SetPlayerNeed(source, need, value) → boolean</div>
+        <div class="export-sig">exports['fvg-needs']:ModifyPlayerNeed(source, need, amount) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Szerver oldalról olvassa / módosítja egy játékos szükségleteit, és automatikusan szinkronizálja a klienssel. Használható admin scriptekből, vagy szerveroldali étel/ital eseményeknél.
+        </div>
+        <div class="code-label">Lua példa – szerver oldali admin parancs</div>
+        <code>-- Szerver oldali feltöltés (pl. fvg-admin)
+exports['fvg-needs']:SetPlayerNeed(targetSrc, 'food',  100)
+exports['fvg-needs']:SetPlayerNeed(targetSrc, 'water', 100)
+
+-- Lekérdezés
+local needs = exports['fvg-needs']:GetPlayerNeeds(src)
+if needs then
+    print('Éhség: ' .. needs.food .. '% | Szomjúság: ' .. needs.water .. '%')
+end</code>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Az <strong>fvg-playercore:server:PlayerLoaded</strong> eseményre reagálva automatikusan betölti az adatbázisból a játékos értékeit, és a kilépéskor elmenti. Külön hívás nem szükséges.</span>
+        </div>
+    </div>
+</section>
+
+<!-- Élő panel -->
+<div id="needs-panel">
+    <div class="need-card" id="nc-food" style="--nc: #fb923c">
+        <i class="nc-icon hgi-stroke hgi-bread-01"></i>
+        <div class="nc-body">
+            <span class="nc-label">Éhség</span>
+            <div class="nc-track"><div class="nc-fill" id="nf-food" style="width:100%"></div></div>
+        </div>
+        <span class="nc-val" id="nv-food">100%</span>
+    </div>
+    <div class="need-card" id="nc-water" style="--nc: #38bdf8">
+        <i class="nc-icon hgi-stroke hgi-water"></i>
+        <div class="nc-body">
+            <span class="nc-label">Szomjúság</span>
+            <div class="nc-track"><div class="nc-fill" id="nf-water" style="width:100%"></div></div>
+        </div>
+        <span class="nc-val" id="nv-water">100%</span>
+    </div>
+</div>
+
+<script>
+    const state = { food: 100, water: 100 };
+
+    function getLevel(v) {
+        if (v <= 0)  return 'dead';
+        if (v <= 10) return 'crit';
+        if (v <= 30) return 'warn';
+        return 'ok';
+    }
+    function getColor(need, level) {
+        if (level === 'ok')   return need === 'food' ? '#fb923c' : '#38bdf8';
+        if (level === 'warn') return '#f59e0b';
+        return '#ef4444';
+    }
+
+    function updatePanel() {
+        for (const need of ['food', 'water']) {
+            const val   = Math.max(0, Math.min(100, state[need]));
+            const level = getLevel(val);
+            const clr   = getColor(need, level);
+            document.getElementById('nc-' + need).style.setProperty('--nc', clr);
+            const fill = document.getElementById('nf-' + need);
+            fill.style.width = val + '%';
+            fill.className = 'nc-fill' + (level === 'crit' || level === 'dead' ? ' crit' : level === 'warn' ? ' warn' : '');
+            document.getElementById('nv-' + need).textContent = val + '%';
+        }
+    }
+
+    function demoModify(need, amt) {
+        state[need] = Math.max(0, Math.min(100, state[need] + amt));
+        updatePanel();
+    }
+    function demoSet(need, val) {
+        state[need] = val;
+        updatePanel();
+    }
+    function demoGet() {
+        const el = document.getElementById('get-result');
+        el.innerHTML = `→ GetNeeds() = { food: <span style="color:#fb923c">${state.food}</span>, water: <span style="color:#38bdf8">${state.water}</span> }`;
+    }
+
+    updatePanel();
+</script>
+</body>
+</html>
