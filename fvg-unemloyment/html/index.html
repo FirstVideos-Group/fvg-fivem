@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-unemployment</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ─────────────────────────────────────── -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <i class="hgi-stroke hgi-briefcase-02"></i>
+                <div>
+                    <div class="ph-title">Munkaügyi Hivatal</div>
+                    <div class="ph-sub">Los Santos Állami Foglalkoztatási Iroda</div>
+                </div>
+            </div>
+            <button class="close-btn" id="close-btn">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+
+        <!-- ── TAB SÁV ────────────────────────────────────── -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="benefit">
+                <i class="hgi-stroke hgi-money-bag-02"></i>Segély
+            </button>
+            <button class="tab" data-tab="jobs">
+                <i class="hgi-stroke hgi-briefcase-02"></i>Állásajánlatok
+            </button>
+            <button class="tab" data-tab="tasks">
+                <i class="hgi-stroke hgi-checkmark-circle-02"></i>Napi feladatok
+            </button>
+        </div>
+
+        <!-- ── BODY ───────────────────────────────────────── -->
+        <div class="panel-body">
+
+            <!-- ══ SEGÉLY TAB ══ -->
+            <div class="tab-content active" id="tab-benefit">
+
+                <!-- Státusz kártya -->
+                <div class="status-card" id="status-card">
+                    <div class="sc-icon" id="sc-icon">
+                        <i class="hgi-stroke hgi-user-circle"></i>
+                    </div>
+                    <div class="sc-info">
+                        <div class="sc-title" id="sc-title">Munkanélküli</div>
+                        <div class="sc-sub"   id="sc-sub">Jogosult munkanélküli segélyre</div>
+                    </div>
+                    <div class="sc-badge" id="sc-badge">AKTÍV</div>
+                </div>
+
+                <!-- Segély összefoglaló -->
+                <div class="benefit-summary">
+                    <div class="bs-item">
+                        <div class="bsi-label">Segély összege</div>
+                        <div class="bsi-val" id="benefit-amount">$0</div>
+                    </div>
+                    <div class="bs-divider"></div>
+                    <div class="bs-item">
+                        <div class="bsi-label">Igénylések</div>
+                        <div class="bsi-val" id="claims-used">0 / 0</div>
+                    </div>
+                    <div class="bs-divider"></div>
+                    <div class="bs-item">
+                        <div class="bsi-label">Következő igénylés</div>
+                        <div class="bsi-val" id="next-claim">–</div>
+                    </div>
+                </div>
+
+                <!-- Igénylés gomb -->
+                <button class="claim-btn" id="claim-btn">
+                    <i class="hgi-stroke hgi-money-receive-02"></i>
+                    Segély igénylése
+                </button>
+
+                <!-- Igénylés progress bar -->
+                <div class="claims-progress">
+                    <div class="cp-header">
+                        <span>Felhasznált igénylések</span>
+                        <span id="cp-count">0 / 8</span>
+                    </div>
+                    <div class="cp-track">
+                        <div class="cp-fill" id="cp-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="info-box">
+                    <i class="hgi-stroke hgi-information-circle"></i>
+                    <span>A segélyt csak munkanélküli státuszban igényelheted. Állásba lépés esetén a segélykeret nullázódik, de visszatéréskor újra jogosulttá válsz.</span>
+                </div>
+
+            </div>
+
+            <!-- ══ ÁLLÁSOK TAB ══ -->
+            <div class="tab-content" id="tab-jobs">
+                <div class="jobs-grid" id="jobs-grid">
+                    <!-- dinamikus -->
+                </div>
+            </div>
+
+            <!-- ══ NAPI FELADATOK TAB ══ -->
+            <div class="tab-content" id="tab-tasks">
+                <div class="tasks-header">
+                    <i class="hgi-stroke hgi-task-01"></i>
+                    <div>
+                        <div class="th-title">Napi aktivitás</div>
+                        <div class="th-sub">Teljesítsd a feladatokat extra jutalmakért</div>
+                    </div>
+                </div>
+                <div class="tasks-list" id="tasks-list">
+                    <!-- dinamikus -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── ÁLLÁS RÉSZLET MODAL ──────────────────────────────── -->
+    <div id="job-modal" class="modal hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <i class="hgi-stroke hgi-briefcase-02" id="jm-icon"></i>
+                <span id="jm-title">Állás részletei</span>
+                <button class="close-btn" onclick="UE.closeJobModal()">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="jm-body"></div>
+            <div class="modal-footer" id="jm-footer"></div>
+        </div>
+    </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
