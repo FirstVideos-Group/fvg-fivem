@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-seatbelt – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep:  #0a0c12;
+            --fvg-bg-card:  #161b24;
+            --fvg-bg-code:  #0f172a;
+            --fvg-border:   #1e293b;
+            --fvg-text-p:   #f1f5f9;
+            --fvg-text-s:   #94a3b8;
+            --fvg-text-m:   #475569;
+            --fvg-accent:   #38bdf8;
+            --fvg-radius:   10px;
+            --fvg-font:     'Segoe UI', system-ui, sans-serif;
+            --clr-on:  #22c55e;
+            --clr-off: #ef4444;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep); color: var(--fvg-text-p);
+            font-family: var(--fvg-font); min-height: 100vh;
+            padding: 48px 28px 100px; max-width: 960px; margin: 0 auto;
+        }
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; }
+        .badge {
+            display: inline-block;
+            background: rgba(56,189,248,0.12); color: var(--fvg-accent);
+            font-size: 11px; font-weight: 700; padding: 2px 10px;
+            border-radius: 20px; letter-spacing: 0.05em;
+            margin-left: 10px; vertical-align: middle;
+            border: 1px solid rgba(56,189,248,0.25);
+        }
+        section { margin-bottom: 40px; }
+        .section-title {
+            font-size: 11px; font-weight: 700; color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--fvg-bg-card); border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius); padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 8px; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .side-server { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 16px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code);
+            border: 1px solid var(--fvg-border); border-radius: 8px;
+            padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            background: rgba(56,189,248,0.07); border: 1px solid rgba(56,189,248,0.2);
+            font-size: 12px; color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+        .warn-bar {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+            font-size: 12px; color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: #f59e0b; }
+
+        /* Demo */
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .demo-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s;
+            font-family: var(--fvg-font);
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+        .btn-on  { background: rgba(34,197,94,0.15);  color: var(--clr-on);  border: 1px solid rgba(34,197,94,0.3); }
+        .btn-off { background: rgba(239,68,68,0.15);  color: var(--clr-off); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-neutral { background: rgba(148,163,184,0.1); color: var(--fvg-text-s); border: 1px solid rgba(148,163,184,0.2); }
+
+        /* Élő állapotjelző */
+        #belt-indicator {
+            position: fixed; bottom: 28px; right: 28px;
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 18px;
+            background: rgba(18,21,30,0.95);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #belt-indicator::before {
+            content: '';
+            position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            border-radius: 10px 0 0 10px;
+            background: var(--ind-clr, #22c55e);
+            transition: background 0.25s;
+        }
+        .ind-icon { font-size: 20px; color: var(--ind-clr, #22c55e); transition: color 0.25s; }
+        .ind-body { display: flex; flex-direction: column; gap: 2px; }
+        .ind-label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; }
+        .ind-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 99px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            border: 1px solid transparent;
+            transition: all 0.25s;
+        }
+        .badge-on  { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
+        .badge-off { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.3); }
+
+        #state-result { margin-top: 10px; font-size: 13px; color: var(--fvg-text-s); min-height: 20px; font-family: monospace; }
+        #getstate-result { margin-top: 10px; font-size: 13px; color: var(--fvg-text-s); min-height: 20px; font-family: monospace; }
+
+        /* Flow ábra */
+        .flow {
+            display: flex; flex-direction: column; gap: 0;
+            margin-top: 16px;
+        }
+        .flow-row {
+            display: flex; align-items: stretch; gap: 0;
+        }
+        .flow-box {
+            flex: 1; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; color: var(--fvg-text-s);
+            background: rgba(255,255,255,0.03); border: 1px solid var(--fvg-border);
+            text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .flow-box.green  { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.2);  color: #22c55e; }
+        .flow-box.red    { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2);  color: #ef4444; }
+        .flow-box.yellow { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); color: #f59e0b; }
+        .flow-box.blue   { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2); color: #3b82f6; }
+        .flow-arrow { width: 24px; display: flex; align-items: center; justify-content: center; color: var(--fvg-text-m); font-size: 16px; flex-shrink: 0; }
+        .flow-down  { height: 20px; display: flex; align-items: center; justify-content: center; color: var(--fvg-text-m); }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-seatbelt <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Biztonsági öv rendszer – Export dokumentáció &amp; interaktív demo</p>
+</div>
+
+<!-- ══ Kliens exportok ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <!-- IsBelted -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-seatbelt']:IsBelted() → boolean</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Visszaadja, hogy a helyi játékosnak be van-e csatolva a biztonsági öve.
+            Az <strong>fvg-vehiclehud</strong> és más scriptek ezzel szinkronizálhatják saját állapotukat.
+        </div>
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoIsBelted()">
+                <i class="hgi-stroke hgi-seat-belt"></i>IsBelted() lekérdezés
+            </button>
+        </div>
+        <div id="state-result"></div>
+        <div class="code-label">Lua példa</div>
+        <code>-- Ellenőrzés más scriptből (pl. fvg-vehicledamage)
+local belted = exports['fvg-seatbelt']:IsBelted()
+if belted then
+    -- játékos védve van
+end</code>
+    </div>
+
+    <!-- SetBelted -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-seatbelt']:SetBelted(state)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Programozottan állítja be a biztonsági öv állapotát. Lejátssza a hangot és frissíti
+            az <strong>fvg-vehiclehud</strong> modulját. Használható pl. jármű spawnolásnál
+            vagy mentett állapot visszaállításakor.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">state</td><td class="pt">boolean</td><td><code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px">true</code> = becsatol, <code style="display:inline;color:#7dd3fc;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px">false</code> = kienged</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-on"  onclick="demoSetBelted(true)"> <i class="hgi-stroke hgi-seat-belt"></i>SetBelted(true)</button>
+            <button class="demo-btn btn-off" onclick="demoSetBelted(false)"><i class="hgi-stroke hgi-seat-belt"></i>SetBelted(false)</button>
+        </div>
+        <div class="code-label">Lua példa</div>
+        <code>-- Automatikus becsatolás jármű spawnnál
+exports['fvg-seatbelt']:SetBelted(true)
+
+-- Kényszeres kiengedés (pl. jármű megsemmisüléskor)
+exports['fvg-seatbelt']:SetBelted(false)</code>
+    </div>
+
+    <!-- GetBeltState -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-seatbelt']:GetBeltState() → table</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Részletes állapotobjektumot ad vissza, tartalmazza az öv állapotát, hogy a játékos
+            járműben van-e és az aktuális sebességet.
+        </div>
+
+        <table class="param-table">
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">belted</td>    <td class="pt">boolean</td> <td>Be van-e csatolva az öv</td></tr>
+                <tr><td class="pn">inVehicle</td> <td class="pt">boolean</td> <td>Járműben van-e a játékos</td></tr>
+                <tr><td class="pn">speed</td>     <td class="pt">number</td>  <td>Aktuális sebesség km/h-ban</td></tr>
+            </tbody>
+        </table>
+
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoGetBeltState()">
+                <i class="hgi-stroke hgi-information-circle"></i>GetBeltState() lekérdezés
+            </button>
+        </div>
+        <div id="getstate-result"></div>
+        <div class="code-label">Lua példa</div>
+        <code>local state = exports['fvg-seatbelt']:GetBeltState()
+-- state.belted    = true/false
+-- state.inVehicle = true/false
+-- state.speed     = 87.4  (km/h)</code>
+    </div>
+</section>
+
+<!-- ══ Szerver exportok ══ -->
+<section>
+    <div class="section-title">Szerver exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-seatbelt']:GetPlayerBeltState(playerId) → boolean</div>
+        <span class="export-side side-server">Server</span>
+        <div class="export-desc">
+            Szerver oldalról lekérdezi egy játékos biztonsági öv állapotát.
+            Használható statisztikákhoz, admin rendszerekhez vagy egyéb szerver oldali logikához.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">playerId</td><td class="pt">number</td><td>A játékos szerver ID-ja</td></tr>
+            </tbody>
+        </table>
+        <div class="code-label">Lua példa – szerver script</div>
+        <code>-- fvg-admin vagy egyéb szerver script
+local isBelted = exports['fvg-seatbelt']:GetPlayerBeltState(source)
+if not isBelted then
+    -- figyelmeztetés, bírság stb.
+end</code>
+    </div>
+</section>
+
+<!-- ══ Integráció ══ -->
+<section>
+    <div class="section-title">Scriptközi integráció</div>
+    <div class="card">
+        <div class="export-desc">
+            Az <strong>fvg-seatbelt</strong> automatikusan kommunikál a többi fvg- scripttel, ha azok telepítve vannak és az integráció a <code>config.lua</code>-ban engedélyezett.
+        </div>
+
+        <div class="flow">
+            <div class="flow-row">
+                <div class="flow-box blue"><i class="hgi-stroke hgi-seat-belt"></i> Játékos megnyomja B-t</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box yellow"><i class="hgi-stroke hgi-information-circle"></i> ToggleBelt() lefut</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box green"><i class="hgi-stroke hgi-checkmark-circle-02"></i> fvg-vehiclehud frissül</div>
+                <div class="flow-arrow">+</div>
+                <div class="flow-box green"><i class="hgi-stroke hgi-notification-02"></i> fvg-notify értesítés</div>
+                <div class="flow-arrow">+</div>
+                <div class="flow-box green"><i class="hgi-stroke hgi-server-04"></i> Szerver szinkron</div>
+            </div>
+            <div class="flow-down">↓</div>
+            <div class="flow-row">
+                <div class="flow-box red"><i class="hgi-stroke hgi-car-03"></i> Ütközés esetén: kiesés ellenőrzés</div>
+            </div>
+        </div>
+
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Ha az <strong>fvg-vehiclehud</strong> nincs telepítve, a <code>Config.VehicleHudIntegration = false</code> beállítással kikapcsolható az integráció. Ugyanígy az <strong>fvg-notify</strong> is.</span>
+        </div>
+
+        <div class="code-label">Konfigurálható integrációk (config.lua)</div>
+        <code>Config.VehicleHudIntegration = true  -- fvg-vehiclehud öv modul frissítése
+Config.NotifyIntegration     = true  -- fvg-notify értesítések</code>
+    </div>
+
+    <div class="card">
+        <div class="export-sig">Kiesés logika áttekintése</div>
+        <div class="export-desc">A rendszer két feltétel esetén vizsgálja a kiesés lehetőségét.</div>
+        <table class="param-table">
+            <thead><tr><th>Feltétel</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">speedCrash</td><td>A jármű sebessége egy frame alatt <code>CrashSpeedDropRatio</code> alá esik (alapért. 65%) és az előző sebesség > <code>EjectMinSpeed</code> km/h</td></tr>
+                <tr><td class="pn">bodyCrash</td> <td>A karosszéria egészsége <code>MinBodyHealthDrop</code>-nál többet csökkent egy frame alatt</td></tr>
+            </tbody>
+        </table>
+        <div class="warn-bar">
+            <i class="hgi-stroke hgi-alert-02"></i>
+            <span>A kiesés esélyalapú – a <code>EjectChanceScale</code> és a pillanatnyi sebesség határozza meg, hogy megtörténik-e. Ez realisztikusabb viselkedést eredményez, mint a determinisztikus rendszerek.</span>
+        </div>
+    </div>
+</section>
+
+<!-- Élő indikátor -->
+<div id="belt-indicator" style="--ind-clr: #ef4444">
+    <i class="ind-icon hgi-stroke hgi-seat-belt"></i>
+    <div class="ind-body">
+        <span class="ind-label">Bizt. öv</span>
+        <span class="ind-badge badge-off" id="ind-badge">Nincs</span>
+    </div>
+</div>
+
+<script>
+    let beltState = false;
+
+    function updateIndicator() {
+        const ind   = document.getElementById('belt-indicator');
+        const badge = document.getElementById('ind-badge');
+        const icon  = ind.querySelector('.ind-icon');
+        const clr   = beltState ? '#22c55e' : '#ef4444';
+        ind.style.setProperty('--ind-clr', clr);
+        badge.className = 'ind-badge ' + (beltState ? 'badge-on' : 'badge-off');
+        badge.textContent = beltState ? 'Becsatolva' : 'Nincs';
+    }
+
+    function demoSetBelted(state) {
+        beltState = state;
+        updateIndicator();
+    }
+
+    function demoIsBelted() {
+        const el = document.getElementById('state-result');
+        el.innerHTML = `→ IsBelted() = <span style="color:${beltState ? '#22c55e' : '#ef4444'}">${beltState}</span>`;
+    }
+
+    function demoGetBeltState() {
+        const el = document.getElementById('getstate-result');
+        el.innerHTML = `→ GetBeltState() = { belted: <span style="color:${beltState?'#22c55e':'#ef4444'}">${beltState}</span>, inVehicle: <span style="color:#3b82f6">true</span>, speed: <span style="color:#f59e0b">87.4</span> }`;
+    }
+
+    updateIndicator();
+</script>
+</body>
+</html>
