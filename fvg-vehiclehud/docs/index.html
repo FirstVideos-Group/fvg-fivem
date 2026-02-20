@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-vehiclehud – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --fvg-bg-deep:    #0a0c12;
+            --fvg-bg-card:    #161b24;
+            --fvg-bg-code:    #0f172a;
+            --fvg-border:     #1e293b;
+            --fvg-text-p:     #f1f5f9;
+            --fvg-text-s:     #94a3b8;
+            --fvg-text-m:     #475569;
+            --fvg-accent:     #38bdf8;
+            --fvg-radius:     10px;
+            --fvg-font:       'Segoe UI', system-ui, sans-serif;
+            --clr-engine:     #22c55e;
+            --clr-engine-off: #ef4444;
+            --clr-speed:      #f1f5f9;
+            --clr-rpm:        #3b82f6;
+            --clr-rpm-red:    #ef4444;
+            --clr-lights:     #fbbf24;
+            --clr-lights-high:#60a5fa;
+            --clr-sbon:       #22c55e;
+            --clr-sboff:      #ef4444;
+            --clr-ehok:       #22c55e;
+            --clr-ehwarn:     #f59e0b;
+            --clr-ehcrit:     #ef4444;
+            --clr-fuel:       #06b6d4;
+            --clr-fuel-low:   #ef4444;
+            --clr-siren:      #a855f7;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--fvg-bg-deep);
+            color: var(--fvg-text-p);
+            font-family: var(--fvg-font);
+            min-height: 100vh;
+            padding: 48px 28px 100px;
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        /* ── Fejléc ── */
+        .page-header { margin-bottom: 48px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; }
+        .page-header p  { color: var(--fvg-text-m); font-size: 14px; margin-top: 6px; }
+        .badge {
+            display: inline-block;
+            background: rgba(56,189,248,0.12); color: var(--fvg-accent);
+            font-size: 11px; font-weight: 700;
+            padding: 2px 10px; border-radius: 20px;
+            letter-spacing: 0.05em; margin-left: 10px; vertical-align: middle;
+            border: 1px solid rgba(56,189,248,0.25);
+        }
+
+        /* ── Szekció ── */
+        section { margin-bottom: 40px; }
+        .section-title {
+            font-size: 11px; font-weight: 700;
+            color: var(--fvg-text-m);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--fvg-border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+
+        /* ── Kártya ── */
+        .card {
+            background: var(--fvg-bg-card);
+            border: 1px solid var(--fvg-border);
+            border-radius: var(--fvg-radius);
+            padding: 22px 24px; margin-bottom: 14px;
+        }
+        .export-sig { font-family: monospace; font-size: 15px; font-weight: 700; color: var(--fvg-accent); margin-bottom: 8px; }
+        .export-side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+        }
+        .side-client { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+        .export-desc { font-size: 13px; color: var(--fvg-text-s); line-height: 1.65; margin-bottom: 16px; }
+
+        /* ── Paraméter tábla ── */
+        .param-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .param-table th { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--fvg-border); }
+        .param-table td { font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; color: var(--fvg-text-s); }
+        .param-table tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        ic  { font-family: monospace; color: #7dd3fc; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; font-style: normal; }
+
+        /* ── Kód ── */
+        .code-label { font-size: 10px; font-weight: 700; color: var(--fvg-text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
+        code {
+            display: block; background: var(--fvg-bg-code);
+            border: 1px solid var(--fvg-border); border-radius: 8px;
+            padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+
+        /* ── Info sáv ── */
+        .info-bar {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2);
+            font-size: 12px; color: #93c5fd; line-height: 1.6;
+            margin-top: 14px;
+        }
+        .info-bar i { font-size: 16px; flex-shrink: 0; margin-top: 1px; color: var(--fvg-accent); }
+
+        /* ── Demo gombok ── */
+        .demo-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .demo-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s;
+            font-family: var(--fvg-font);
+        }
+        .demo-btn:hover  { opacity: 0.8; }
+        .demo-btn:active { transform: scale(0.97); }
+
+        .btn-engine  { background: rgba(34,197,94,0.15);  color: var(--clr-engine);  border: 1px solid rgba(34,197,94,0.3); }
+        .btn-engoff  { background: rgba(239,68,68,0.15);  color: var(--clr-engine-off); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-speed   { background: rgba(241,245,249,0.1); color: var(--clr-speed);   border: 1px solid rgba(241,245,249,0.2); }
+        .btn-rpm     { background: rgba(59,130,246,0.15); color: var(--clr-rpm);     border: 1px solid rgba(59,130,246,0.3); }
+        .btn-rpm-red { background: rgba(239,68,68,0.15);  color: var(--clr-rpm-red); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-lights  { background: rgba(251,191,36,0.15); color: var(--clr-lights);  border: 1px solid rgba(251,191,36,0.3); }
+        .btn-sb-on   { background: rgba(34,197,94,0.15);  color: var(--clr-sbon);    border: 1px solid rgba(34,197,94,0.3); }
+        .btn-sb-off  { background: rgba(239,68,68,0.15);  color: var(--clr-sboff);   border: 1px solid rgba(239,68,68,0.3); }
+        .btn-eh-ok   { background: rgba(34,197,94,0.15);  color: var(--clr-ehok);    border: 1px solid rgba(34,197,94,0.3); }
+        .btn-eh-warn { background: rgba(245,158,11,0.15); color: var(--clr-ehwarn);  border: 1px solid rgba(245,158,11,0.3); }
+        .btn-eh-crit { background: rgba(239,68,68,0.15);  color: var(--clr-ehcrit);  border: 1px solid rgba(239,68,68,0.3); }
+        .btn-fuel    { background: rgba(6,182,212,0.15);  color: var(--clr-fuel);    border: 1px solid rgba(6,182,212,0.3); }
+        .btn-fuel-low{ background: rgba(239,68,68,0.15);  color: var(--clr-fuel-low);border: 1px solid rgba(239,68,68,0.3); }
+        .btn-siren   { background: rgba(168,85,247,0.15); color: var(--clr-siren);   border: 1px solid rgba(168,85,247,0.3); }
+        .btn-neutral { background: rgba(148,163,184,0.1); color: var(--fvg-text-s);  border: 1px solid rgba(148,163,184,0.2); }
+
+        /* ── Toggle pill ── */
+        .toggle-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .toggle-pill {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 14px; border-radius: 99px;
+            border: 1px solid var(--fvg-border);
+            background: rgba(255,255,255,0.03);
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            color: var(--fvg-text-s);
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .toggle-pill.active { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.3); color: var(--fvg-accent); }
+        .toggle-pill i { font-size: 15px; }
+
+        /* ── Élő HUD demo ── */
+        #live-hud {
+            position: fixed; bottom: 28px; left: 28px;
+            display: flex; flex-direction: column; gap: 6px;
+            align-items: flex-start; z-index: 9999;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #live-hud.hud-hidden { opacity: 0; }
+        #live-hud.hud-visible { opacity: 1; }
+
+        /* Modulkártya (demo – azonos token rendszer) */
+        .lm {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 14px 8px 12px; min-width: 200px;
+            border-radius: 10px;
+            background: rgba(18,21,30,0.92);
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+            position: relative; overflow: hidden;
+            transition: opacity 0.3s ease, max-height 0.35s ease,
+                        padding 0.35s ease, margin 0.35s ease, border-width 0.35s ease;
+            max-height: 70px; pointer-events: none;
+        }
+        .lm::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; border-radius: 10px 0 0 10px;
+            background: var(--mc, #64748b);
+        }
+        .lm.hidden { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin: 0; border-width: 0; }
+        .li  { font-size: 18px; color: var(--mc, #64748b); flex-shrink: 0; }
+        .lb  { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .ll  { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; }
+        .ltr { width: 100%; height: 5px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+        .lf  { height: 100%; border-radius: 99px; background: var(--mc, #64748b); transition: width 0.2s ease; }
+        .lf.warn { background: #f59e0b !important; }
+        .lf.crit { background: #ef4444 !important; animation: pulse 1s ease-in-out infinite; }
+        .lf.low  { animation: pulse 1.2s ease-in-out infinite; }
+        .lf.red  { background: #ef4444 !important; animation: pulse 0.6s ease-in-out infinite; }
+        .lv  { font-size: 11px; font-weight: 700; color: #94a3b8; min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+        .lv.speed { font-size: 20px; font-weight: 800; color: #f1f5f9; min-width: 52px; }
+        .lv.gear  { font-size: 22px; font-weight: 900; color: #f1f5f9; min-width: 28px; }
+        .lv.badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 99px; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; border: 1px solid transparent;
+        }
+        .bon  { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.3) !important; }
+        .boff { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.3) !important; }
+        .bsiren { background: rgba(168,85,247,0.15); color: #a855f7; border-color: rgba(168,85,247,0.3) !important; animation: pulse 0.8s ease-in-out infinite; }
+        .ldots { display: flex; gap: 6px; align-items: center; }
+        .ldot  { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: background 0.2s; }
+        .ldot.alow  { background: #fbbf24; }
+        .ldot.ahigh { background: #60a5fa; }
+        .ldot.aind  { background: #f97316; animation: blink 0.6s step-end infinite; }
+        .su  { font-size: 9px; font-weight: 600; color: #475569; display: block; text-align: right; margin-top: 1px; text-transform: uppercase; }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+        @keyframes blink  { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+        /* state result */
+        #state-result { margin-top: 10px; font-size: 13px; color: var(--fvg-text-s); min-height: 20px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>fvg-vehiclehud <span class="badge">v1.0.0</span></h1>
+    <p>FirstVideos Group · Moduláris Jármű HUD rendszer – Export dokumentáció &amp; interaktív demo</p>
+</div>
+
+<!-- ══ 1. SetModuleValue ══ -->
+<section>
+    <div class="section-title">Kliens exportok</div>
+
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehiclehud']:SetModuleValue(id, data)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Frissíti egy jármű HUD modul adatait és láthatóságát. Minden modul saját <strong>data</strong> objektumot vár – a mezők modulonként eltérők. Külső scriptek (<code>fvg-fuel</code>, <code>fvg-seatbelt</code>, <code>fvg-engine</code> stb.) ezt az exportot hívják az értékeik átadásához.
+        </div>
+
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>   <td class="pt">string</td> <td>Modul azonosítója</td></tr>
+                <tr><td class="pn">data</td> <td class="pt">table</td>  <td>Modulspecifikus adatobjektum (ld. lent)</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Modul data mezők -->
+        <div class="code-label">data mezők modulonként</div>
+        <code>-- engine
+{ running = true/false, visible = true }
+
+-- speed
+{ value = 87, unit = 'kmh', visible = true }
+
+-- rpm
+{ value = 0.72,  -- 0.0–1.0
+  redline = false, visible = true }
+
+-- gear
+{ gear = 3, label = '3', maxGear = 6, visible = true }
+
+-- lights
+{ lights = true, highbeam = false,
+  indicator = 0,  -- 0=ki 1=bal 2=jobb 3=vész
+  visible = true }
+
+-- seatbelt
+{ fastened = true, visible = true }
+
+-- enginehealth
+{ value = 85,  -- 0–100
+  status = 'ok',  -- 'ok' | 'warn' | 'crit'
+  visible = true }
+
+-- fuel
+{ value = 42, low = false, visible = true }
+
+-- siren
+{ active = true, visible = true }</code>
+
+        <div class="demo-row">
+            <button class="demo-btn btn-engine"  onclick="demo('engine',  {running:true,  visible:true})"> <i class="hgi-stroke hgi-car-03"></i>Motor: Jár</button>
+            <button class="demo-btn btn-engoff"  onclick="demo('engine',  {running:false, visible:true})"> <i class="hgi-stroke hgi-car-03"></i>Motor: Leáll</button>
+            <button class="demo-btn btn-speed"   onclick="demo('speed',   {value:87,  unit:'kmh', visible:true})"><i class="hgi-stroke hgi-speedometer-02"></i>87 km/h</button>
+            <button class="demo-btn btn-speed"   onclick="demo('speed',   {value:142, unit:'kmh', visible:true})"><i class="hgi-stroke hgi-speedometer-02"></i>142 km/h</button>
+            <button class="demo-btn btn-speed"   onclick="demo('speed',   {value:0,   unit:'kmh', visible:false})"><i class="hgi-stroke hgi-speedometer-02"></i>Elrejtve</button>
+            <button class="demo-btn btn-rpm"     onclick="demo('rpm',     {value:0.55, redline:false, visible:true})"><i class="hgi-stroke hgi-dashboard-speed"></i>RPM 55%</button>
+            <button class="demo-btn btn-rpm-red" onclick="demo('rpm',     {value:0.92, redline:true,  visible:true})"><i class="hgi-stroke hgi-dashboard-speed"></i>RPM Redline</button>
+            <button class="demo-btn btn-neutral" onclick="demo('gear',    {gear:1, label:'1', visible:true})"> <i class="hgi-stroke hgi-steering"></i>1. fokozat</button>
+            <button class="demo-btn btn-neutral" onclick="demo('gear',    {gear:0, label:'R', visible:true})"> <i class="hgi-stroke hgi-steering"></i>Hátramenet</button>
+            <button class="demo-btn btn-lights"  onclick="demo('lights',  {lights:true,  highbeam:false, indicator:0, visible:true})"><i class="hgi-stroke hgi-sun-03"></i>Tompított</button>
+            <button class="demo-btn btn-lights"  onclick="demo('lights',  {lights:true,  highbeam:true,  indicator:0, visible:true})"><i class="hgi-stroke hgi-sun-03"></i>Teli fény</button>
+            <button class="demo-btn btn-lights"  onclick="demo('lights',  {lights:false, highbeam:false, indicator:1, visible:true})"><i class="hgi-stroke hgi-sun-03"></i>Bal index</button>
+            <button class="demo-btn btn-lights"  onclick="demo('lights',  {lights:false, highbeam:false, indicator:3, visible:true})"><i class="hgi-stroke hgi-sun-03"></i>Vészvillogó</button>
+            <button class="demo-btn btn-sb-on"   onclick="demo('seatbelt',{fastened:true,  visible:true})"><i class="hgi-stroke hgi-seat-belt"></i>Öv: Be</button>
+            <button class="demo-btn btn-sb-off"  onclick="demo('seatbelt',{fastened:false, visible:true})"><i class="hgi-stroke hgi-seat-belt"></i>Öv: Ki</button>
+            <button class="demo-btn btn-eh-ok"   onclick="demo('enginehealth',{value:90, status:'ok',   visible:true})"><i class="hgi-stroke hgi-wrench-02"></i>Motor: OK</button>
+            <button class="demo-btn btn-eh-warn" onclick="demo('enginehealth',{value:48, status:'warn', visible:true})"><i class="hgi-stroke hgi-wrench-02"></i>Motor: Warn</button>
+            <button class="demo-btn btn-eh-crit" onclick="demo('enginehealth',{value:15, status:'crit', visible:true})"><i class="hgi-stroke hgi-wrench-02"></i>Motor: Kritikus</button>
+            <button class="demo-btn btn-fuel"    onclick="demo('fuel',    {value:65, low:false, visible:true})"><i class="hgi-stroke hgi-fuel-station"></i>Üzemanyag 65%</button>
+            <button class="demo-btn btn-fuel-low"onclick="demo('fuel',    {value:8,  low:true,  visible:true})"><i class="hgi-stroke hgi-fuel-station"></i>Üzemanyag alacsony!</button>
+            <button class="demo-btn btn-siren"   onclick="demo('siren',   {active:true,  visible:true})"> <i class="hgi-stroke hgi-siren"></i>Sziréna: Be</button>
+            <button class="demo-btn btn-neutral" onclick="demo('siren',   {active:false, visible:false})"><i class="hgi-stroke hgi-siren"></i>Sziréna: Ki</button>
+        </div>
+
+        <div class="code-label">Lua példák – külső scriptek</div>
+        <code>-- fvg-fuel client.lua
+exports['fvg-vehiclehud']:SetModuleValue('fuel', {
+    value = currentFuel, low = currentFuel <= 15, visible = true
+})
+
+-- fvg-seatbelt client.lua
+exports['fvg-vehiclehud']:SetModuleValue('seatbelt', {
+    fastened = isBelted, visible = true
+})
+
+-- fvg-emergency client.lua
+exports['fvg-vehiclehud']:SetModuleValue('siren', {
+    active = sirenOn, visible = sirenOn
+})</code>
+    </div>
+
+    <!-- ══ ToggleModule ══ -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehiclehud']:ToggleModule(id, state)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Be- vagy kikapcsol egy jármű HUD modult a játékos képernyőjén. Az <strong>fvg-hudmenu</strong> ezt hívja a játékos preferenciáinak kezeléséhez.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>    <td class="pt">string</td>  <td>Modul azonosítója</td></tr>
+                <tr><td class="pn">state</td> <td class="pt">boolean</td> <td><ic>true</ic> = bekapcsol, <ic>false</ic> = kikapcsol</td></tr>
+            </tbody>
+        </table>
+        <div class="toggle-grid" id="toggle-grid"></div>
+        <div class="code-label">Lua példa – fvg-hudmenu</div>
+        <code>local isOn = exports['fvg-vehiclehud']:GetModuleState('fuel')
+exports['fvg-vehiclehud']:ToggleModule('fuel', not isOn)</code>
+    </div>
+
+    <!-- ══ GetModuleState ══ -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehiclehud']:GetModuleState(id) → boolean</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Visszaadja, hogy az adott jármű HUD modul engedélyezett-e a játékosnál.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td> <td class="pt">string</td> <td>Modul azonosítója</td></tr>
+            </tbody>
+        </table>
+        <div class="demo-row">
+            <button class="demo-btn btn-neutral" onclick="demoGetState('engine')">       <i class="hgi-stroke hgi-car-03"></i>Motor</button>
+            <button class="demo-btn btn-neutral" onclick="demoGetState('speed')">        <i class="hgi-stroke hgi-speedometer-02"></i>Sebesség</button>
+            <button class="demo-btn btn-neutral" onclick="demoGetState('fuel')">         <i class="hgi-stroke hgi-fuel-station"></i>Üzemanyag</button>
+            <button class="demo-btn btn-neutral" onclick="demoGetState('seatbelt')">     <i class="hgi-stroke hgi-seat-belt"></i>Bizt. öv</button>
+            <button class="demo-btn btn-neutral" onclick="demoGetState('siren')">        <i class="hgi-stroke hgi-siren"></i>Sziréna</button>
+        </div>
+        <div id="state-result"></div>
+        <div class="code-label">Lua példa</div>
+        <code>local active = exports['fvg-vehiclehud']:GetModuleState('rpm')
+-- active = true / false</code>
+    </div>
+
+    <!-- ══ RegisterModule ══ -->
+    <div class="card">
+        <div class="export-sig">exports['fvg-vehiclehud']:RegisterModule(id, tickFn)</div>
+        <span class="export-side side-client">Client</span>
+        <div class="export-desc">
+            Új modult regisztrál a jármű HUD rendszerbe. A tick callback minden <code>Config.TickRate</code> ms-ben egyszer fut, és megkapja az aktuális ped és jármű handlert.
+        </div>
+        <table class="param-table">
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>     <td class="pt">string</td>   <td>Egyedi modul azonosító</td></tr>
+                <tr><td class="pn">tickFn</td> <td class="pt">function</td> <td><ic>function(ped, vehicle)</ic> – mindkét handle megérkezik</td></tr>
+            </tbody>
+        </table>
+        <div class="info-bar">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A modult fel kell venni a <code>config.lua</code> <code>Config.Modules</code> táblájába. A vizuális megjelenéshez add hozzá az ikont és típust a <code>html/script.js</code> <code>MODULE_DEFS</code> objektumába.</span>
+        </div>
+        <div class="code-label">Lua példa – fvg-vehicledamage saját tire modul</div>
+        <code>-- 1. Config.Modules-ba: tires = { enabled = true, order = 10 }
+-- 2. MODULE_DEFS-be: tires: { label: 'Gumik', icon: 'hgi-stroke hgi-tire', type: 'bar' }
+-- 3. Regisztrálás:
+
+exports['fvg-vehiclehud']:RegisterModule('tires', function(ped, vehicle)
+    local avgHealth = 0
+    for i = 0, 3 do
+        avgHealth = avgHealth + GetVehicleWheelHealth(vehicle, i)
+    end
+    avgHealth = math.floor((avgHealth / 4) / 10)  -- 0–100
+    exports['fvg-vehiclehud']:SetModuleValue('tires', {
+        value   = avgHealth,
+        visible = true
+    })
+end)</code>
+    </div>
+</section>
+
+<!-- Élő HUD demo -->
+<div id="live-hud" class="hud-visible"></div>
+
+<script>
+    const MODS = {
+        engine:       { label: 'Motor',         icon: 'hgi-stroke hgi-car-03',          type: 'status', mc: '#22c55e' },
+        speed:        { label: 'Sebesség',       icon: 'hgi-stroke hgi-speedometer-02', type: 'speed',  mc: '#f1f5f9' },
+        rpm:          { label: 'Fordulat',       icon: 'hgi-stroke hgi-dashboard-speed',type: 'bar',    mc: '#3b82f6' },
+        gear:         { label: 'Fokozat',        icon: 'hgi-stroke hgi-steering',       type: 'gear',   mc: '#64748b' },
+        lights:       { label: 'Lámpák',         icon: 'hgi-stroke hgi-sun-03',         type: 'lights', mc: '#fbbf24' },
+        seatbelt:     { label: 'Bizt. öv',       icon: 'hgi-stroke hgi-seat-belt',      type: 'status', mc: '#22c55e' },
+        enginehealth: { label: 'Motor állapot',  icon: 'hgi-stroke hgi-wrench-02',      type: 'bar',    mc: '#22c55e' },
+        fuel:         { label: 'Üzemanyag',      icon: 'hgi-stroke hgi-fuel-station',   type: 'bar',    mc: '#06b6d4' },
+        siren:        { label: 'Sziréna',        icon: 'hgi-stroke hgi-siren',          type: 'status', mc: '#a855f7' },
+    };
+
+    const modEnabled = {};
+    Object.keys(MODS).forEach(k => modEnabled[k] = true);
+
+    const hudRoot = document.getElementById('live-hud');
+    const els = {};
+
+    function buildHUD() {
+        Object.entries(MODS).forEach(([id, d]) => {
+            const el = document.createElement('div');
+            el.id = 'lm-' + id;
+            el.className = 'lm';
+            el.style.setProperty('--mc', d.mc);
+            el.innerHTML = buildHTML(id, d);
+            hudRoot.appendChild(el);
+            els[id] = el;
+        });
+        // Kezdeti értékek
+        demo('engine',       {running: true,  visible: true});
+        demo('speed',        {value: 0,    unit: 'kmh', visible: false});
+        demo('rpm',          {value: 0,    redline: false, visible: false});
+        demo('gear',         {gear: 1, label: '1', visible: true});
+        demo('lights',       {lights: false, highbeam: false, indicator: 0, visible: true});
+        demo('seatbelt',     {fastened: false, visible: true});
+        demo('enginehealth', {value: 100, status: 'ok',   visible: true});
+        demo('fuel',         {value: 80,  low: false, visible: true});
+        demo('siren',        {active: false, visible: false});
+    }
+
+    function buildHTML(id, d) {
+        const ic = `<i class="li ${d.icon}"></i>`;
+        switch (d.type) {
+            case 'speed':
+                return `${ic}<div class="lb"><span class="ll">${d.label}</span></div>
+                <span class="lv speed" id="lv-${id}">0<span class="su" id="lu-${id}">km/h</span></span>`;
+            case 'gear':
+                return `${ic}<div class="lb"><span class="ll">${d.label}</span></div>
+                <span class="lv gear" id="lv-${id}">1</span>`;
+            case 'bar':
+                return `${ic}<div class="lb"><span class="ll">${d.label}</span>
+                <div class="ltr"><div class="lf" id="lf-${id}" style="width:100%"></div></div></div>
+                <span class="lv" id="lv-${id}">100%</span>`;
+            case 'lights':
+                return `${ic}<div class="lb"><span class="ll">${d.label}</span>
+                <div class="ldots">
+                    <div class="ldot" id="ld-low-${id}"></div>
+                    <div class="ldot" id="ld-high-${id}"></div>
+                    <div class="ldot" id="ld-indl-${id}"></div>
+                    <div class="ldot" id="ld-indr-${id}"></div>
+                </div></div>
+                <span class="lv" id="lv-${id}">–</span>`;
+            default: // status
+                return `${ic}<div class="lb"><span class="ll">${d.label}</span></div>
+                <span class="lv badge boff" id="lv-${id}">–</span>`;
+        }
+    }
+
+    function demo(id, data) {
+        const el = els[id]; if (!el) return;
+        const d = MODS[id];
+        switch (d.type) {
+            case 'status': {
+                const v = document.getElementById('lv-' + id);
+                if (id === 'engine') {
+                    el.style.setProperty('--mc', data.running ? '#22c55e' : '#ef4444');
+                    if (v) { v.className = 'lv badge ' + (data.running ? 'bon' : 'boff'); v.textContent = data.running ? 'Jár' : 'Leállva'; }
+                } else if (id === 'seatbelt') {
+                    el.style.setProperty('--mc', data.fastened ? '#22c55e' : '#ef4444');
+                    if (v) { v.className = 'lv badge ' + (data.fastened ? 'bon' : 'boff'); v.textContent = data.fastened ? 'Becsatolva' : 'Nincs'; }
+                } else if (id === 'siren') {
+                    if (v) { v.className = 'lv badge ' + (data.active ? 'bsiren' : 'boff'); v.textContent = data.active ? 'Aktív' : 'Ki'; }
+                }
+                break;
+            }
+            case 'speed': {
+                const v = document.getElementById('lv-' + id);
+                const u = document.getElementById('lu-' + id);
+                if (v) v.childNodes[0].textContent = data.value ?? 0;
+                if (u) u.textContent = data.unit === 'mph' ? 'mph' : 'km/h';
+                break;
+            }
+            case 'gear': {
+                const v = document.getElementById('lv-' + id);
+                if (v) v.textContent = data.label ?? data.gear ?? '1';
+                break;
+            }
+            case 'bar': {
+                const f = document.getElementById('lf-' + id);
+                const v = document.getElementById('lv-' + id);
+                const pct = data.value ?? 100;
+                if (f) {
+                    f.style.width = pct + '%';
+                    if (id === 'rpm') {
+                        f.className = 'lf' + (data.redline ? ' red' : '');
+                        el.style.setProperty('--mc', data.redline ? '#ef4444' : '#3b82f6');
+                    } else if (id === 'enginehealth') {
+                        f.className = 'lf ' + (data.status === 'crit' ? 'crit' : data.status === 'warn' ? 'warn' : '');
+                        el.style.setProperty('--mc', data.status === 'crit' ? '#ef4444' : data.status === 'warn' ? '#f59e0b' : '#22c55e');
+                    } else if (id === 'fuel') {
+                        f.className = 'lf' + (data.low ? ' low' : '');
+                        el.style.setProperty('--mc', data.low ? '#ef4444' : '#06b6d4');
+                    }
+                }
+                if (v) v.textContent = pct + '%';
+                break;
+            }
+            case 'lights': {
+                const low  = document.getElementById('ld-low-'  + id);
+                const high = document.getElementById('ld-high-' + id);
+                const indl = document.getElementById('ld-indl-' + id);
+                const indr = document.getElementById('ld-indr-' + id);
+                const v    = document.getElementById('lv-' + id);
+                if (low)  low.className  = 'ldot' + (data.lights   ? ' alow'  : '');
+                if (high) high.className = 'ldot' + (data.highbeam ? ' ahigh' : '');
+                if (indl) indl.className = 'ldot' + ((data.indicator===1||data.indicator===3) ? ' aind' : '');
+                if (indr) indr.className = 'ldot' + ((data.indicator===2||data.indicator===3) ? ' aind' : '');
+                const lbl = [];
+                if (data.lights)              lbl.push('Tompított');
+                if (data.highbeam)            lbl.push('Teli');
+                if (data.indicator===1)       lbl.push('← Bal');
+                if (data.indicator===2)       lbl.push('Jobb →');
+                if (data.indicator===3)       lbl.push('Vész');
+                if (v) v.textContent = lbl.length ? lbl.join(' · ') : '–';
+                break;
+            }
+        }
+        // Láthatóság
+        if (!modEnabled[id]) { el.classList.add('hidden'); return; }
+        el.classList.toggle('hidden', !(data.visible ?? true));
+    }
+
+    // Toggle grid
+    function buildToggleGrid() {
+        const grid = document.getElementById('toggle-grid');
+        Object.entries(MODS).forEach(([id, d]) => {
+            const pill = document.createElement('div');
+            pill.className = 'toggle-pill active';
+            pill.innerHTML = `<i class="${d.icon}"></i>${d.label}`;
+            pill.addEventListener('click', () => {
+                modEnabled[id] = !modEnabled[id];
+                pill.classList.toggle('active', modEnabled[id]);
+                const el = els[id];
+                if (el) el.classList.toggle('hidden', !modEnabled[id]);
+            });
+            grid.appendChild(pill);
+        });
+    }
+
+    function demoGetState(id) {
+        const res = document.getElementById('state-result');
+        const state = modEnabled[id];
+        res.innerHTML = `→ GetModuleState(<span style="color:#a78bfa">'${id}'</span>) = <span style="color:${state?'#22c55e':'#ef4444'}">${state}</span>`;
+    }
+
+    buildHUD();
+    buildToggleGrid();
+</script>
+</body>
+</html>

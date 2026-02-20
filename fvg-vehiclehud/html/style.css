@@ -1,0 +1,272 @@
+/* ═══════════════════════════════════════════════════
+   fvg-vehiclehud :: stíluslap
+   ─ Ugyanazokat a CSS tokeneket használja mint az
+     fvg-hud, biztosítva az egységes dizájnrendszert.
+   ═══════════════════════════════════════════════════ */
+
+:root {
+    /* fvg design tokenek – egységes az összes fvg- scriptben */
+    --fvg-bg-deep:      rgba(10, 12, 18, 0.88);
+    --fvg-bg-card:      rgba(18, 21, 30, 0.82);
+    --fvg-border:       rgba(255, 255, 255, 0.07);
+    --fvg-border-hover: rgba(255, 255, 255, 0.13);
+    --fvg-shadow:       0 8px 32px rgba(0, 0, 0, 0.55);
+    --fvg-radius:       10px;
+    --fvg-font:         'Segoe UI', system-ui, sans-serif;
+    --fvg-transition:   0.25s ease;
+
+    --fvg-text-primary:   #f1f5f9;
+    --fvg-text-secondary: #94a3b8;
+    --fvg-text-muted:     #475569;
+
+    /* Jármű HUD modul színek */
+    --clr-engine:       #22c55e;
+    --clr-engine-off:   #ef4444;
+    --clr-speed:        #f1f5f9;
+    --clr-rpm:          #3b82f6;
+    --clr-rpm-red:      #ef4444;
+    --clr-gear:         #f8fafc;
+    --clr-lights:       #fbbf24;
+    --clr-lights-high:  #60a5fa;
+    --clr-seatbelt-on:  #22c55e;
+    --clr-seatbelt-off: #ef4444;
+    --clr-enghealth-ok:   #22c55e;
+    --clr-enghealth-warn: #f59e0b;
+    --clr-enghealth-crit: #ef4444;
+    --clr-fuel:         #06b6d4;
+    --clr-fuel-low:     #ef4444;
+    --clr-siren:        #a855f7;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: var(--fvg-font);
+    pointer-events: none;
+}
+
+/* ── Gyökér konténer ────────────────────────────── */
+#fvg-vhud-root {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+/* Pozíciók */
+.pos-bottom-left  { bottom: 28px; left:  28px; align-items: flex-start; }
+.pos-bottom-right { bottom: 28px; right: 28px; align-items: flex-end; }
+.pos-top-left     { top:    28px; left:  28px; align-items: flex-start; }
+.pos-top-right    { top:    28px; right: 28px; align-items: flex-end; }
+
+/* Teljes HUD el/megjelenítés */
+.fvg-vhud-hidden { opacity: 0; pointer-events: none; }
+.fvg-vhud-visible { opacity: 1; }
+
+/* ══════════════════════════════════════════════════
+   EGYSÉGES MODUL KÁRTYA
+   Ugyanolyan rendszer mint az fvg-hud-ban,
+   így minden fvg- UI elem konzisztens marad.
+   ══════════════════════════════════════════════════ */
+.fvg-hud-module {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 12px;
+    min-width: 160px;
+    border-radius: var(--fvg-radius);
+    background: var(--fvg-bg-card);
+    border: 1px solid var(--fvg-border);
+    box-shadow: var(--fvg-shadow);
+    position: relative;
+    overflow: hidden;
+    opacity: 1;
+    transition:
+        opacity var(--fvg-transition),
+        transform var(--fvg-transition),
+        max-height 0.35s ease,
+        margin 0.35s ease,
+        padding 0.35s ease,
+        border-width 0.35s ease;
+    max-height: 70px;
+}
+
+.fvg-hud-module::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: var(--fvg-radius) 0 0 var(--fvg-radius);
+    background: var(--module-clr, #64748b);
+    transition: background var(--fvg-transition);
+}
+
+.fvg-hud-module.hidden {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+    border-width: 0;
+    pointer-events: none;
+}
+
+/* ── Ikon ─────────────────────────────────────── */
+.fvg-module-icon {
+    font-size: 18px;
+    color: var(--module-clr, #64748b);
+    flex-shrink: 0;
+    transition: color var(--fvg-transition);
+    line-height: 1;
+}
+
+/* ── Szöveg + sáv csoport ─────────────────────── */
+.fvg-module-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.fvg-module-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fvg-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+
+/* ── Haladásjelző sáv ─────────────────────────── */
+.fvg-module-bar-track {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.fvg-module-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--module-clr, #64748b);
+    transition: width 0.2s ease, background var(--fvg-transition);
+    width: 100%;
+}
+
+.fvg-module-bar-fill.warn { background: var(--clr-enghealth-warn) !important; }
+.fvg-module-bar-fill.crit { background: var(--clr-enghealth-crit) !important; animation: fvg-pulse 1s ease-in-out infinite; }
+.fvg-module-bar-fill.low  { animation: fvg-pulse 1.2s ease-in-out infinite; }
+.fvg-module-bar-fill.redline { background: var(--clr-rpm-red) !important; animation: fvg-pulse 0.6s ease-in-out infinite; }
+
+/* ── Érték ────────────────────────────────────── */
+.fvg-module-value {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fvg-text-secondary);
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: right;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Sebesség – nagyobb szám ──────────────────── */
+.fvg-module-value.speed-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--fvg-text-primary);
+    min-width: 52px;
+}
+.fvg-module-value .speed-unit {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--fvg-text-muted);
+    display: block;
+    text-align: right;
+    margin-top: 1px;
+    text-transform: uppercase;
+}
+
+/* ── Fokozat – nagy, prominens ────────────────── */
+.fvg-module-value.gear-val {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--fvg-text-primary);
+    min-width: 28px;
+    letter-spacing: -0.02em;
+}
+
+/* ── Státusz badge (motor, öv, sziréna) ───────── */
+.fvg-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.badge-on  { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
+.badge-off { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.badge-warn{ background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+.badge-siren { background: rgba(168,85,247,0.15); color: #a855f7; border-color: rgba(168,85,247,0.3); animation: fvg-pulse 0.8s ease-in-out infinite; }
+
+/* ── Lámpa indikátorok ────────────────────────── */
+.lights-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.light-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.2s;
+}
+.light-dot.active-low  { background: var(--clr-lights); }
+.light-dot.active-high { background: var(--clr-lights-high); }
+.light-dot.active-ind  { background: #f97316; animation: fvg-blink 0.6s step-end infinite; }
+
+/* ── Modul specifikus accent színek ───────────── */
+.fvg-mod-engine      { --module-clr: var(--clr-engine); }
+.fvg-mod-speed       { --module-clr: var(--clr-speed); }
+.fvg-mod-rpm         { --module-clr: var(--clr-rpm); }
+.fvg-mod-gear        { --module-clr: #64748b; }
+.fvg-mod-lights      { --module-clr: var(--clr-lights); }
+.fvg-mod-seatbelt    { --module-clr: var(--clr-seatbelt-on); }
+.fvg-mod-enginehealth{ --module-clr: var(--clr-enghealth-ok); }
+.fvg-mod-fuel        { --module-clr: var(--clr-fuel); }
+.fvg-mod-siren       { --module-clr: var(--clr-siren); }
+
+/* ── Animációk ───────────────────────────────── */
+@keyframes fvg-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
+}
+@keyframes fvg-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100%{ opacity: 0; }
+}
+@keyframes fvg-slide-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fvg-slide-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.enter-left  { animation: fvg-slide-in-left  0.3s ease forwards; }
+.enter-right { animation: fvg-slide-in-right 0.3s ease forwards; }
