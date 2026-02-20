@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-dispatch – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root{--bg:#0a0c12;--card:#161b24;--code:#0f172a;--border:#1e293b;--tp:#f1f5f9;--ts:#94a3b8;--tm:#475569;--ac:#38bdf8;--font:'Segoe UI',system-ui,sans-serif}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--tp);font-family:var(--font);padding:48px 28px 120px;max-width:1020px;margin:0 auto}
+        h1{font-size:28px;font-weight:800;margin-bottom:6px}
+        .sub{color:var(--tm);font-size:14px;line-height:1.7;margin-bottom:48px}
+        .badge{display:inline-block;background:rgba(56,189,248,.12);color:var(--ac);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.05em;margin-left:10px;border:1px solid rgba(56,189,248,.25)}
+        section{margin-bottom:44px}
+        .st{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px}
+        .sig{font-family:monospace;font-size:13px;font-weight:700;color:var(--ac);margin-bottom:6px;line-height:1.9}
+        .side{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+        .ss{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .sc{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .desc{font-size:13px;color:var(--ts);line-height:1.65;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;margin-bottom:14px}
+        th{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+        td{font-size:12px;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--ts);vertical-align:top}
+        tr:last-child td{border-bottom:none}
+        .pn{font-family:monospace;color:#a78bfa}.pt{font-family:monospace;color:#f59e0b}.pv{font-family:monospace;color:#7dd3fc}
+        .cl{font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;margin-top:14px}
+        code{display:block;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:12px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace;white-space:pre;overflow-x:auto;line-height:1.7}
+        .info{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:8px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);font-size:12px;color:#93c5fd;line-height:1.6;margin-top:14px}
+        .info i{font-size:16px;flex-shrink:0;color:var(--ac)}
+        .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+        .dc{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px}
+        .dct{font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+        .dct i{font-size:14px;color:var(--ac)}
+        .dbtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:var(--font);width:100%}
+        .dbtn:hover{opacity:.8}
+        .ba{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+        .bs{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+        .bd{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
+        .bw{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+        .dout{font-family:monospace;font-size:11px;color:var(--tm);min-height:16px}
+        .dout.ok{color:#22c55e}.dout.err{color:#ef4444}
+        .dsel,.dinp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--tp);font-size:12px;outline:none;font-family:var(--font);width:100%}
+    </style>
+</head>
+<body>
+
+<h1>fvg-dispatch <span class="badge">v1.0.0</span></h1>
+<p class="sub">FirstVideos Group · Központi riasztórendszer. Fogad eseményeket más scriptektől és képes azokat típus/prioritás/egység alapján kezelni.<br>
+Automatikusan figyeli: <strong>fvg-idcard körözés</strong>, <strong>fvg-inventory pánikgomb</strong> és egyéb scriptek <code>fvg-dispatch:server:Alert</code> eseménye.</p>
+
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-dispatch']:CreateAlert(data) → alertId | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Létrehoz egy új riasztást és azonnal broadcastolja az arra jogosult játékosoknak (job alapján). Visszaad egy egyedi azonosítót (<code>ALT-00001</code> formátumban).</div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">type</td>      <td class="pt">string</td>  <td><code>police</code>, <code>ems</code>, <code>fire</code>, <code>traffic</code>, <code>all</code></td></tr>
+                <tr><td class="pn">priority</td>  <td class="pt">number</td>  <td>1–4 (1=alacsony, 4=kritikus)</td></tr>
+                <tr><td class="pn">title</td>     <td class="pt">string</td>  <td>Rövid megnevezés</td></tr>
+                <tr><td class="pn">message</td>   <td class="pt">string?</td> <td>Részletes leírás</td></tr>
+                <tr><td class="pn">coords</td>    <td class="pt">table</td>   <td><code>{ x, y, z }</code> – helyszín</td></tr>
+                <tr><td class="pn">callerSrc</td> <td class="pt">number?</td> <td>Bejelentő szerver ID (identity lekéréshez)</td></tr>
+                <tr><td class="pn">template</td>  <td class="pt">string?</td> <td>Config.Templates kulcs – pl. <code>'wanted'</code></td></tr>
+                <tr><td class="pn">icon</td>      <td class="pt">string?</td> <td>HugeIcons CSS osztály (felülírja a type ikonját)</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa</div>
+        <code>-- Egyszerű riasztás más scriptből
+local alertId = exports['fvg-dispatch']:CreateAlert({
+    type     = 'police',
+    priority = 3,
+    title    = 'Banki rablás',
+    message  = 'Fegyveres személyek a Maze Bank főépületénél',
+    coords   = { x = 150.2, y = -1040.5, z = 29.3 },
+})
+print('Riasztás létrehozva:', alertId)
+
+-- Sablon használatával
+exports['fvg-dispatch']:CreateAlert({
+    type     = 'ems',
+    template = 'medical',
+    message  = 'Eszméletlen személy a parkon',
+    coords   = { x = -290.1, y = -870.3, z = 31.1 },
+    callerSrc= src,
+})</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-dispatch']:CloseAlert(alertId, closedBy?) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Lezárja a riasztást, eltávolítja a listából és értesíti az összes érintett klienst. A blip a kliens oldalon is törlődik.</div>
+        <div class="cl">Lua példa – letartóztatás után</div>
+        <code>AddEventHandler('fvg-police:server:ArrestPlayer', function(officerSrc, suspectSrc, alertId)
+    if alertId then
+        exports['fvg-dispatch']:CloseAlert(alertId, GetPlayerName(officerSrc))
+    end
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-dispatch']:AttachUnit(alertId, source) → boolean</div>
+        <div class="sig">exports['fvg-dispatch']:DetachUnit(alertId, source) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Egység csatolása/lecsatolása riasztáshoz. Az egység neve és munkája az <strong>fvg-identity</strong> alapján töltődik ki. Azonos játékos kétszer nem csatolható.</div>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-dispatch']:GetActiveAlerts(source) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">Visszaadja a forrás játékos számára látható (job alapján szűrt) aktív riasztásokat prioritás szerint csökkenő sorrendben.</div>
+    </div>
+</section>
+
+<section>
+    <div class="st">Esemény API – más scripteknek</div>
+    <div class="card">
+        <div class="desc">A legegyszerűbb integráció: a <code>fvg-dispatch:server:Alert</code> szerver esemény közvetlen hívásával bármely script küldhet riasztást anélkül, hogy az exportot kellene hívnia.</div>
+        <div class="cl">Lua példa – fvg-robbery</div>
+        <code>-- Bankrablás triggere
+TriggerEvent('fvg-dispatch:server:Alert', {
+    type     = 'police',
+    priority = 4,
+    template = 'robbery',
+    message  = 'Rablás folyamatban – ' .. bankName,
+    coords   = bankCoords,
+})</code>
+        <div class="info">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Ez az esemény a szerver oldalon hívódik. Kliens scriptekből <code>TriggerServerEvent('fvg-dispatch:server:CreateAlert', data)</code> hívással lehet riasztást küldeni – ebben az esetben a koordinátát automatikusan a kliens helyzete adja.</span>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="st">Szerver esemény lista</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Esemény</th><th>Paraméterek</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">fvg-dispatch:server:AlertCreated</td><td class="pt">alertId, alertData</td><td>Riasztás létrehozásakor</td></tr>
+                <tr><td class="pn">fvg-dispatch:server:AlertClosed</td> <td class="pt">alertId</td>           <td>Riasztás lezárásakor</td></tr>
+                <tr><td class="pn">fvg-dispatch:server:UnitAttached</td><td class="pt">alertId, src</td>      <td>Egység csatolásakor</td></tr>
+                <tr><td class="pn">fvg-dispatch:server:UnitDetached</td><td class="pt">alertId, src</td>      <td>Egység lecsatolásakor</td></tr>
+                <tr><td class="pn">fvg-dispatch:client:AlertReceived</td><td class="pt">alertData</td>        <td>Kliens: új riasztás érkezésekor</td></tr>
+                <tr><td class="pn">fvg-dispatch:client:CardUpdated</td> <td class="pt">localAlerts</td>       <td>Kliens: cache frissülésekor</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-alert-02"></i>CreateAlert szimuláció</div>
+                <select class="dsel" id="d-type">
+                    <option value="police">police – Rendőrség</option>
+                    <option value="ems">ems – Mentők</option>
+                    <option value="fire">fire – Tűzoltók</option>
+                    <option value="all">all – Általános</option>
+                </select>
+                <select class="dsel" id="d-prio">
+                    <option value="1">1 – Alacsony</option>
+                    <option value="2" selected>2 – Közepes</option>
+                    <option value="3">3 – Magas</option>
+                    <option value="4">4 – Kritikus</option>
+                </select>
+                <input class="dinp" id="d-title" placeholder="Cím..." value="Teszt riasztás"/>
+                <button class="dbtn bd" onclick="demoCreate()"><i class="hgi-stroke hgi-add-circle"></i>CreateAlert</button>
+                <div class="dout" id="d-create-out"></div>
+            </div>
+
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-checkmark-circle-02"></i>CloseAlert / AttachUnit</div>
+                <input class="dinp" id="d-alert-id" placeholder="Alert ID (pl. ALT-00001)"/>
+                <button class="dbtn bs" onclick="demoAttach()"><i class="hgi-stroke hgi-user-add-01"></i>AttachUnit</button>
+                <button class="dbtn bd" onclick="demoClose()" style="margin-top:2px"><i class="hgi-stroke hgi-cancel-01"></i>CloseAlert</button>
+                <button class="dbtn ba" onclick="demoGetAlerts()" style="margin-top:2px"><i class="hgi-stroke hgi-list-view"></i>GetActiveAlerts</button>
+                <div class="dout" id="d-manage-out"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="st">Ajánlott indítási sorrend (server.cfg)</div>
+    <div class="card">
+        <code>ensure oxmysql
+ensure fvg-database
+ensure fvg-playercore
+ensure fvg-notify
+ensure fvg-identity
+ensure fvg-idcard       # körözés figyelő miatt előbb kell
+ensure fvg-inventory
+ensure fvg-dispatch     # ← itt
+ensure fvg-admin
+ensure fvg-hud</code>
+    </div>
+</section>
+
+<script>
+    let simAlerts = {};
+    let alertCounter = 0;
+    const typeColors = { police:'#3b82f6', ems:'#ef4444', fire:'#f97316', all:'#38bdf8' };
+    const prioColors = { 1:'#22c55e', 2:'#f59e0b', 3:'#f97316', 4:'#ef4444' };
+    const prioLabels = { 1:'Alacsony', 2:'Közepes', 3:'Magas', 4:'Kritikus' };
+
+    function genId() {
+        alertCounter++;
+        return 'ALT-' + String(alertCounter).padStart(5, '0');
+    }
+
+    function demoCreate() {
+        const type  = document.getElementById('d-type').value;
+        const prio  = parseInt(document.getElementById('d-prio').value);
+        const title = document.getElementById('d-title').value || 'Teszt';
+        const id    = genId();
+        simAlerts[id] = { id, type, priority: prio, title, units: [], closed: false };
+        const el = document.getElementById('d-create-out');
+        el.className = 'dout ok';
+        el.innerHTML = `→ CreateAlert() = '<strong style="color:${typeColors[type]}">${id}</strong>' | prio: <span style="color:${prioColors[prio]}">${prioLabels[prio]}</span>`;
+    }
+
+    function demoAttach() {
+        const id = document.getElementById('d-alert-id').value.trim();
+        const el = document.getElementById('d-manage-out');
+        if (!simAlerts[id] || simAlerts[id].closed) {
+            el.className='dout err'; el.innerHTML=`→ AttachUnit() = <strong>false</strong> – riasztás nem létezik`; return;
+        }
+        simAlerts[id].units.push({ name: 'Demo Egység', job: 'police' });
+        el.className='dout ok'; el.innerHTML=`→ AttachUnit('<strong>${id}</strong>') = <strong>true</strong> | egységek: ${simAlerts[id].units.length}`;
+    }
+
+    function demoClose() {
+        const id = document.getElementById('d-alert-id').value.trim();
+        const el = document.getElementById('d-manage-out');
+        if (!simAlerts[id]) {
+            el.className='dout err'; el.innerHTML=`→ CloseAlert() = <strong>false</strong>`; return;
+        }
+        simAlerts[id].closed = true;
+        el.className='dout ok'; el.innerHTML=`→ CloseAlert('<strong>${id}</strong>') = <strong>true</strong>`;
+    }
+
+    function demoGetAlerts() {
+        const el = document.getElementById('d-manage-out');
+        const active = Object.values(simAlerts).filter(a => !a.closed);
+        if (!active.length) { el.className='dout err'; el.textContent='→ GetActiveAlerts() = [] (nincs aktív)'; return; }
+        el.className = 'dout ok';
+        el.innerHTML = active.map(a =>
+            `→ <strong style="color:${typeColors[a.type]}">${a.id}</strong> | ${a.title} | prio:<span style="color:${prioColors[a.priority]}">${a.priority}</span>`
+        ).join('<br>');
+    }
+</script>
+</body>
+</html>

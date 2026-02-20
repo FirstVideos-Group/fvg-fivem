@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-dispatch</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- ── FEJLÉC ─────────────────────────────────────── -->
+        <div class="dp-header">
+            <div class="dp-header-left">
+                <i class="hgi-stroke hgi-radio-02"></i>
+                <div>
+                    <div class="dp-title">Dispatch Központ</div>
+                    <div class="dp-sub">
+                        <span class="live-dot"></span>
+                        <span id="active-count">0</span> aktív riasztás
+                    </div>
+                </div>
+            </div>
+            <div class="dp-header-right">
+                <button class="new-alert-btn" id="new-alert-btn">
+                    <i class="hgi-stroke hgi-add-circle"></i>Új riasztás
+                </button>
+                <button class="close-btn" id="close-btn">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── SZŰRŐ SÁV ──────────────────────────────────── -->
+        <div class="filter-bar">
+            <div class="filter-types" id="filter-types">
+                <button class="ftype-btn active" data-type="all">
+                    <i class="hgi-stroke hgi-grid-view"></i>Összes
+                </button>
+            </div>
+            <div class="filter-right">
+                <div class="search-box">
+                    <i class="hgi-stroke hgi-search-02"></i>
+                    <input type="text" id="search-input" placeholder="Keresés..."/>
+                </div>
+                <select class="prio-filter" id="prio-filter">
+                    <option value="all">Minden prioritás</option>
+                    <option value="4">Kritikus</option>
+                    <option value="3">Magas</option>
+                    <option value="2">Közepes</option>
+                    <option value="1">Alacsony</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ── RIASZTÁS LISTA ──────────────────────────────── -->
+        <div class="dp-body">
+            <div class="alerts-list" id="alerts-list">
+                <div class="empty-state" id="empty-state">
+                    <i class="hgi-stroke hgi-checkmark-circle-02"></i>
+                    <div>Nincs aktív riasztás</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── ÚJ RIASZTÁS MODAL ──────────────────────────────── -->
+    <div id="new-alert-modal" class="modal hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <i class="hgi-stroke hgi-alert-02"></i>
+                <span>Új riasztás létrehozása</span>
+                <button class="close-btn" onclick="Dispatch.closeModal()">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Típus</label>
+                        <select class="form-select" id="na-type">
+                            <!-- dinamikus -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prioritás</label>
+                        <select class="form-select" id="na-priority">
+                            <option value="1">1 – Alacsony</option>
+                            <option value="2" selected>2 – Közepes</option>
+                            <option value="3">3 – Magas</option>
+                            <option value="4">4 – Kritikus</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Sablon (opcionális)</label>
+                    <select class="form-select" id="na-template">
+                        <option value="">– Nincs sablon –</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cím</label>
+                    <input type="text" class="form-input" id="na-title" placeholder="Riasztás rövid megnevezése..."/>
+                </div>
+                <div class="form-group">
+                    <label>Leírás</label>
+                    <textarea class="form-input" id="na-message" rows="3" placeholder="Részletek, személyleírás, helyszín leírása..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel" onclick="Dispatch.closeModal()">Mégse</button>
+                <button class="modal-submit" id="na-submit">
+                    <i class="hgi-stroke hgi-radio-02"></i>Riasztás küldése
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIASZTÁS RÉSZLET MODAL ─────────────────────────── -->
+    <div id="detail-modal" class="modal hidden">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <i class="hgi-stroke hgi-information-circle" id="dm-icon"></i>
+                <span id="dm-title">Riasztás részletei</span>
+                <button class="close-btn" onclick="Dispatch.closeDetail()">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="dm-body">
+                <!-- dinamikus -->
+            </div>
+            <div class="modal-footer" id="dm-footer">
+                <!-- dinamikus -->
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
