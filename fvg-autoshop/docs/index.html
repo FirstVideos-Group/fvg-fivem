@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-autoshop – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --bg:#0a0c12; --card:#161b24; --code:#0f172a; --border:#1e293b;
+            --tp:#f1f5f9; --ts:#94a3b8; --tm:#475569; --ac:#38bdf8;
+            --success:#22c55e; --warning:#f59e0b; --danger:#ef4444; --purple:#a855f7;
+            --font:'Segoe UI',system-ui,sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--tp); font-family: var(--font);
+            padding: 48px 28px 120px; max-width: 1020px; margin: 0 auto;
+        }
+        h1  { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+        .sub{ color: var(--tm); font-size: 14px; line-height: 1.7; margin-bottom: 48px; }
+        .badge {
+            display: inline-block; background: rgba(56,189,248,.12); color: var(--ac);
+            font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;
+            letter-spacing: .05em; margin-left: 10px; border: 1px solid rgba(56,189,248,.25);
+        }
+        section { margin-bottom: 44px; }
+        .st {
+            font-size: 11px; font-weight: 700; color: var(--tm); text-transform: uppercase;
+            letter-spacing: .1em; border-bottom: 1px solid var(--border);
+            padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 22px 24px; margin-bottom: 14px;
+        }
+        .sig {
+            font-family: monospace; font-size: 13px; font-weight: 700;
+            color: var(--ac); margin-bottom: 6px; line-height: 1.9;
+        }
+        .side {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 10px;
+        }
+        .ss { background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+        .sc { background: rgba(34,197,94,.12);  color: #22c55e; border: 1px solid rgba(34,197,94,.25); }
+        .desc {
+            font-size: 13px; color: var(--ts); line-height: 1.65; margin-bottom: 14px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        th {
+            font-size: 10px; font-weight: 700; color: var(--tm); text-transform: uppercase;
+            letter-spacing: .08em; text-align: left; padding: 6px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            font-size: 12px; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.04);
+            color: var(--ts); vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        .pn { font-family: monospace; color: #a78bfa; }
+        .pt { font-family: monospace; color: #f59e0b; }
+        .pv { font-family: monospace; color: #7dd3fc; }
+        .cl {
+            font-size: 10px; font-weight: 700; color: var(--tm);
+            text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; margin-top: 14px;
+        }
+        code {
+            display: block; background: var(--code); border: 1px solid var(--border);
+            border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #7dd3fc;
+            font-family: 'Cascadia Code','Fira Code', monospace;
+            white-space: pre; overflow-x: auto; line-height: 1.7;
+        }
+        .info {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            background: rgba(56,189,248,.07); border: 1px solid rgba(56,189,248,.2);
+            font-size: 12px; color: #93c5fd; line-height: 1.6; margin-top: 14px;
+        }
+        .info i { font-size: 16px; flex-shrink: 0; color: var(--ac); }
+        .warn {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 8px;
+            background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.2);
+            font-size: 12px; color: #fcd34d; line-height: 1.6; margin-top: 14px;
+        }
+        .warn i { font-size: 16px; flex-shrink: 0; color: var(--warning); }
+
+        /* Demo grid */
+        .dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+        .dgrid3{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 14px; }
+        .dc {
+            background: var(--code); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .dct {
+            font-size: 11px; font-weight: 700; color: var(--tm);
+            text-transform: uppercase; letter-spacing: .08em;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .dct i { font-size: 14px; color: var(--ac); }
+        .dbtn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 8px 14px; border-radius: 8px; border: none;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: opacity .15s; font-family: var(--font); width: 100%;
+        }
+        .dbtn:hover { opacity: .8; }
+        .ba { background: rgba(56,189,248,.15);  color: #38bdf8; border: 1px solid rgba(56,189,248,.25); }
+        .bs { background: rgba(34,197,94,.15);   color: #22c55e; border: 1px solid rgba(34,197,94,.25); }
+        .bd { background: rgba(239,68,68,.15);   color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+        .bw { background: rgba(245,158,11,.15);  color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
+        .bp { background: rgba(168,85,247,.15);  color: #a855f7; border: 1px solid rgba(168,85,247,.25); }
+        .dout {
+            font-family: monospace; font-size: 11px; color: var(--tm);
+            min-height: 16px; line-height: 1.7; word-break: break-all;
+        }
+        .dout.ok   { color: #22c55e; }
+        .dout.err  { color: #ef4444; }
+        .dout.warn { color: #f59e0b; }
+        .dsel, .dinp {
+            background: rgba(255,255,255,.04); border: 1px solid var(--border);
+            border-radius: 7px; padding: 7px 10px; color: var(--tp);
+            font-size: 12px; outline: none; font-family: var(--font); width: 100%;
+        }
+
+        /* Esemény tábla */
+        .evt-row td:first-child { color: #a78bfa; font-family: monospace; }
+        .evt-row td:nth-child(2){ color: #7dd3fc; font-family: monospace; font-size: 11px; }
+
+        /* Flow diagram */
+        .flow {
+            display: flex; flex-direction: column; gap: 0;
+            background: var(--code); border: 1px solid var(--border);
+            border-radius: 10px; overflow: hidden; margin-top: 14px;
+        }
+        .flow-step {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 16px; border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .flow-step:last-child { border-bottom: none; }
+        .flow-num {
+            width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 900; color: var(--ac);
+        }
+        .flow-label { flex: 1; color: var(--ts); }
+        .flow-label strong { color: var(--tp); }
+        .flow-badge {
+            font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: .06em;
+        }
+        .fb-s { background: rgba(239,68,68,.12); color: #ef4444; }
+        .fb-c { background: rgba(56,189,248,.12); color: #38bdf8; }
+        .fb-d { background: rgba(34,197,94,.12);  color: #22c55e; }
+    </style>
+</head>
+<body>
+
+<h1>fvg-autoshop <span class="badge">v1.0.0</span></h1>
+<p class="sub">
+    FirstVideos Group · Autókereskedés rendszer — tesztvezetés, részletfizetés, járműnyilvántartás.<br>
+    DB táblák:
+    <code style="display:inline;font-size:12px;color:#7dd3fc">fvg_vehicles · fvg_vehicle_instalments</code><br>
+    Integrációk:
+    <strong>fvg-banking</strong> (fizetés) ·
+    <strong>fvg-playercore</strong> (készpénz, játékos adatok) ·
+    <strong>fvg-idcard</strong> (licensz ellenőrzés) ·
+    <strong>fvg-notify</strong> (értesítések) ·
+    <strong>fvg-database</strong> (DB műveletek)
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Szerver exportok</div>
+
+    <!-- GetOwnedVehicles -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:GetOwnedVehicles(source) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a megadott játékos összes aktív (nem eladott) járművét.
+            Tartalmazza a jármű alapadatait, a rendszámot, kategóriát, vételárat, státuszt,
+            valamint ha van aktív részletfizetés, annak adatait is (<code>inst_status</code>, <code>monthly_amount</code> stb.).
+        </div>
+        <table>
+            <thead><tr><th>Visszatérési mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>            <td class="pt">number</td> <td>DB belső azonosító</td></tr>
+                <tr><td class="pn">model</td>         <td class="pt">string</td> <td>Jármű model neve (pl. <code>adder</code>)</td></tr>
+                <tr><td class="pn">label</td>         <td class="pt">string</td> <td>Megjelenített jármű neve</td></tr>
+                <tr><td class="pn">plate</td>         <td class="pt">string</td> <td>Rendszám (egyedi)</td></tr>
+                <tr><td class="pn">category</td>      <td class="pt">string</td> <td>Kategória (pl. <code>super</code>)</td></tr>
+                <tr><td class="pn">price</td>         <td class="pt">number</td> <td>Vételár</td></tr>
+                <tr><td class="pn">status</td>        <td class="pt">string</td> <td><code>garaged</code> / <code>out</code> / <code>impound</code></td></tr>
+                <tr><td class="pn">inst_status</td>   <td class="pt">string?</td><td><code>active</code> ha van részletfizetés, egyébként nil</td></tr>
+                <tr><td class="pn">monthly_amount</td><td class="pt">number?</td><td>Havi törlesztő összege (ha van részlet)</td></tr>
+                <tr><td class="pn">months_paid</td>   <td class="pt">number?</td><td>Eddig kifizetett hónapok száma</td></tr>
+                <tr><td class="pn">months_total</td>  <td class="pt">number?</td><td>Összes hónap száma</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa</div>
+        <code>-- Más script (pl. fvg-garage) lekéri a játékos járműveit
+local vehicles = exports['fvg-autoshop']:GetOwnedVehicles(source)
+for _, veh in ipairs(vehicles) do
+    print(veh.label .. ' – ' .. veh.plate .. ' [' .. veh.status .. ']')
+    if veh.inst_status == 'active' then
+        print('  Aktív részlet: ' .. veh.monthly_amount .. ' $/hó')
+    end
+end</code>
+    </div>
+
+    <!-- GetVehicleByPlate -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:GetVehicleByPlate(plate) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Rendszám alapján visszakeresi a járművet az adatbázisból.
+            Tartalmazza a tulajdonos nevét is (<code>firstname</code>, <code>lastname</code>).
+            Hasznos rendőrségi ellenőrzéseknél, impound rendszereknél.
+        </div>
+        <div class="cl">Lua példa – rendőrségi lekérdezés</div>
+        <code>-- fvg-police: rendszám ellenőrzés
+RegisterNetEvent('fvg-police:server:CheckPlate', function(plate)
+    local src = source
+    local veh = exports['fvg-autoshop']:GetVehicleByPlate(plate)
+    if veh then
+        local owner = veh.firstname .. ' ' .. veh.lastname
+        TriggerClientEvent('fvg-police:client:PlateResult', src, {
+            found  = true,
+            plate  = veh.plate,
+            model  = veh.label,
+            owner  = owner,
+            status = veh.status,
+        })
+    else
+        TriggerClientEvent('fvg-police:client:PlateResult', src, { found = false })
+    end
+end)</code>
+    </div>
+
+    <!-- IsVehicleOwned -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:IsVehicleOwned(plate) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Megadja, hogy egy adott rendszámú jármű regisztrált-e a rendszerben (és nincs eladva).
+            Gyors igaz/hamis ellenőrzésre tervezve — nem kér le extra adatokat.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-impound: ellenőrzi, hogy foglalható-e a jármű
+local plate = GetVehicleNumberPlateText(vehicle)
+if exports['fvg-autoshop']:IsVehicleOwned(plate) then
+    -- regisztrált jármű, értesítsük a tulajdonost
+else
+    -- ismeretlen rendszám, azonnali bontó
+end</code>
+    </div>
+
+    <!-- BuyVehicle -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:BuyVehicle(source, model, dealershipId, paymentMethod, instalmentOption?) → boolean, table|string</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Teljes vásárlási logikát futtat le: licensz-ellenőrzés, ár-számítás (kedvezménnyel),
+            fizetés levonás (<code>bank</code> / <code>cash</code>), DB mentés, cache frissítés,
+            esemény triggerelés. Részletfizetésnél automatikusan létrehozza a törlesztési tervet.
+        </div>
+        <table>
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td>          <td class="pt">number</td>  <td>Játékos szerver ID</td></tr>
+                <tr><td class="pn">model</td>            <td class="pt">string</td>  <td>Jármű model neve</td></tr>
+                <tr><td class="pn">dealershipId</td>     <td class="pt">string</td>  <td>Kereskedő ID (pl. <code>'pdm'</code>)</td></tr>
+                <tr><td class="pn">paymentMethod</td>    <td class="pt">string</td>  <td><code>'cash'</code> vagy <code>'bank'</code></td></tr>
+                <tr><td class="pn">instalmentOption</td> <td class="pt">number?</td> <td>1–3 (Config.InstalmentOptions index), nil = teljes fizetés</td></tr>
+            </tbody>
+        </table>
+        <table>
+            <thead><tr><th>Visszatérés (sikeres)</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">plate</td>        <td class="pt">string</td> <td>Generált rendszám</td></tr>
+                <tr><td class="pn">vehId</td>        <td class="pt">number</td> <td>DB sor azonosítója</td></tr>
+                <tr><td class="pn">monthly</td>      <td class="pt">number?</td><td>Havi törlesztő (csak részletnél)</td></tr>
+                <tr><td class="pn">months</td>       <td class="pt">number?</td><td>Hónapok száma (csak részletnél)</td></tr>
+                <tr><td class="pn">downPayment</td>  <td class="pt">number?</td><td>Foglalón összege (csak részletnél)</td></tr>
+            </tbody>
+        </table>
+        <table>
+            <thead><tr><th>Hiba kód</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">insufficient_funds</td>  <td>Nincs elég egyenleg</td></tr>
+                <tr><td class="pn">invalid_vehicle</td>      <td>Ismeretlen model</td></tr>
+                <tr><td class="pn">invalid_dealer</td>       <td>Ismeretlen kereskedő ID</td></tr>
+                <tr><td class="pn">not_available_here</td>   <td>A jármű nem kapható ebben a szalonban</td></tr>
+                <tr><td class="pn">invalid_instalment</td>   <td>Rossz részletfizetési opció index</td></tr>
+                <tr><td class="pn">player_not_found</td>     <td>Játékos nem töltött be</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – külső script vásárlást indít (pl. jutalom)</div>
+        <code>-- Játékos egy küldetés jutalmaként kap egy járművet
+AddEventHandler('fvg-missions:server:RewardVehicle', function(src, model)
+    local ok, result = exports['fvg-autoshop']:BuyVehicle(
+        src,
+        model,
+        'pdm',     -- kereskedő neve (csak logoláshoz)
+        'bank',    -- fizetési mód
+        nil        -- teljes fizetés (de az ár 0 lenne, mivel a pénzt előre adtuk)
+    )
+    if ok then
+        print('[Jutalom] Rendszám kiosztva: ' .. result.plate)
+    end
+end)</code>
+    </div>
+
+    <!-- SellVehicle -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:SellVehicle(source, plate) → boolean, number|string</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Eladja a játékos járművét a visszaváltási áron (<code>Config.SellBackPercent</code> × vételár).
+            Az összeget automatikusan a bankszámlára jóváírja (<code>fvg-banking</code>).
+            Aktív részlettel rendelkező jármű nem adható el.
+        </div>
+        <table>
+            <thead><tr><th>Hiba kód</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">not_found</td>              <td>A jármű nem létezik</td></tr>
+                <tr><td class="pn">not_owned</td>              <td>Nem a játékos járműve</td></tr>
+                <tr><td class="pn">vehicle_in_use</td>         <td>A jármű épp ki van véve (<code>status = 'out'</code>)</td></tr>
+                <tr><td class="pn">has_active_instalment</td>  <td>Aktív részletfizetés blokkol</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa</div>
+        <code>-- Admin parancs: erőltetett eladás (pl. impound törlés után)
+RegisterCommand('forcesell', function(src, args)
+    local plate = args[1]
+    if not plate then return end
+    local ok, result = exports['fvg-autoshop']:SellVehicle(src, plate)
+    if ok then
+        print('Eladva: ' .. plate .. ' | Visszakapott: $' .. result)
+    else
+        print('Hiba: ' .. result)
+    end
+end, true)</code>
+    </div>
+
+    <!-- GetInstalments -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:GetInstalments(source) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a játékos összes aktív részletfizetési tervét az érintett jármű adataival együtt.
+            A visszaadott tömbben minden sor tartalmaz egy <code>next_due</code> dátumot,
+            amellyel automatikus emlékeztető rendszer építhető.
+        </div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">vehicle_id</td>     <td class="pt">number</td> <td>Érintett jármű DB ID-ja</td></tr>
+                <tr><td class="pn">label</td>          <td class="pt">string</td> <td>Jármű neve</td></tr>
+                <tr><td class="pn">plate</td>          <td class="pt">string</td> <td>Rendszám</td></tr>
+                <tr><td class="pn">total_amount</td>   <td class="pt">number</td> <td>Teljes visszafizetendő összeg</td></tr>
+                <tr><td class="pn">paid_amount</td>    <td class="pt">number</td> <td>Eddig kifizetett összeg</td></tr>
+                <tr><td class="pn">monthly_amount</td> <td class="pt">number</td> <td>Havi törlesztő</td></tr>
+                <tr><td class="pn">months_total</td>   <td class="pt">number</td> <td>Összes hónap</td></tr>
+                <tr><td class="pn">months_paid</td>    <td class="pt">number</td> <td>Kifizetett hónapok</td></tr>
+                <tr><td class="pn">interest_rate</td>  <td class="pt">number</td> <td>Kamatláb (pl. 0.05 = 5%)</td></tr>
+                <tr><td class="pn">next_due</td>       <td class="pt">string</td> <td>Következő esedékes dátum (YYYY-MM-DD)</td></tr>
+                <tr><td class="pn">status</td>         <td class="pt">string</td> <td><code>active</code> / <code>paid</code> / <code>defaulted</code></td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – automatikus emlékeztető</div>
+        <code>-- Bejelentkezéskor emlékeztető, ha holnap esedékes a részlet
+AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
+    Wait(3000)
+    local instalments = exports['fvg-autoshop']:GetInstalments(src)
+    for _, inst in ipairs(instalments) do
+        -- next_due formátum: YYYY-MM-DD
+        local today    = os.date('%Y-%m-%d')
+        local tomorrow = os.date('%Y-%m-%d', os.time() + 86400)
+        if inst.next_due == today or inst.next_due == tomorrow then
+            TriggerClientEvent('fvg-notify:client:Notify', src, {
+                type    = 'warning',
+                title   = '💳 Részlet esedékes',
+                message = inst.label .. ' – ' .. inst.monthly_amount .. '$ esedékes: ' .. inst.next_due,
+                duration= 8000,
+            })
+        end
+    end
+end)</code>
+    </div>
+
+    <!-- PayInstalment -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:PayInstalment(source, vehicleId, paymentMethod) → boolean, table|string</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Befizet egy havi törlesztőrészletet a megadott jármű aktív részletfizetési tervére.
+            Ha az utolsó hónapot fizeti be, a státusz automatikusan <code>'paid'</code>-re vált.
+            Az esemény <code>fvg-autoshop:server:InstalmentPaid</code>-et triggerel.
+        </div>
+        <table>
+            <thead><tr><th>Visszatérés (sikeres)</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">monthsPaid</td><td class="pt">number</td>  <td>Eddig kifizetett hónapok (a mostani után)</td></tr>
+                <tr><td class="pn">total</td>     <td class="pt">number</td>  <td>Összes hónap</td></tr>
+                <tr><td class="pn">done</td>      <td class="pt">boolean</td> <td>true ha teljesen kifizetve</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – automatikus havi levonás (cron-szerű)</div>
+        <code>-- Automatikus részlet levonás minden hónapban (külső scheduler-rel)
+AddEventHandler('fvg-scheduler:server:MonthlyTick', function()
+    local players = exports['fvg-playercore']:GetOnlinePlayers()
+    for _, src in ipairs(players) do
+        local instalments = exports['fvg-autoshop']:GetInstalments(src)
+        for _, inst in ipairs(instalments) do
+            if inst.next_due <= os.date('%Y-%m-%d') then
+                local ok, result = exports['fvg-autoshop']:PayInstalment(src, inst.vehicle_id, 'bank')
+                if not ok and result == 'insufficient_funds' then
+                    -- Értesítés + esetleg defaulted státusz
+                    TriggerClientEvent('fvg-notify:client:Notify', src, {
+                        type='error', title='❌ Részlet nem fizethető',
+                        message='Nincs elég bankegyenleg a törlesztőhöz!'
+                    })
+                end
+            end
+        end
+    end
+end)</code>
+    </div>
+
+    <!-- GetAllDealerships -->
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:GetAllDealerships() → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a <code>Config.Dealerships</code> tábla összes kereskedőjét.
+            Hasznos dinamikus blip-generáláshoz más scripteknél, vagy kereskedő listázáshoz.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-map: dinamikusan tölti be a kereskedők blipjeit
+local dealers = exports['fvg-autoshop']:GetAllDealerships()
+for _, d in ipairs(dealers) do
+    exports['fvg-map']:AddPOI({
+        label  = d.label,
+        coords = d.coords,
+        icon   = 'car',
+        color  = '#38bdf8',
+    })
+end</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Kliens exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:OpenDealership(dealershipId) → void</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Programatikusan megnyit egy kereskedői panelt a megadott kereskedő ID alapján.
+            Ugyanolyan ellenőrzések futnak le, mintha a játékos odament volna (licensz, stb.).
+            Hasznos NPC párbeszédből vagy egyéb UI-ból való megnyitáshoz.
+        </div>
+        <div class="cl">Lua példa – NPC párbeszéd alapú megnyitás</div>
+        <code>-- fvg-dialogue: NPC „Mutasd az autókat" opció kiválasztásakor
+RegisterNetEvent('fvg-dialogue:client:OpenDealer', function(dealerId)
+    if not exports['fvg-autoshop']:IsTestDriving() then
+        exports['fvg-autoshop']:OpenDealership(dealerId)
+    end
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:GetLocalOwnedVehicles() → table[]</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Visszaadja a kliens-oldali cache-ben tárolt saját járművek listáját —
+            ugyanaz az adat, amit a panel legutóbbi megnyitásakor a szerver küldött.
+            Nem indít szerver kérést, azonnali eredményt ad.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-garage: kliens oldalon ellenőrzi, hogy van-e saját jármű
+local vehicles = exports['fvg-autoshop']:GetLocalOwnedVehicles()
+if #vehicles == 0 then
+    exports['fvg-notify']:Notify({
+        type='info', message='Nincs saját járműved. Látogass el egy kereskedőbe!'
+    })
+    return
+end</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-autoshop']:IsTestDriving() → boolean</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Visszaadja, hogy a játékos jelenleg tesztvezetést végez-e.
+            Más scriptek (pl. <code>fvg-police</code>, <code>fvg-garage</code>) használhatják
+            arra, hogy tesztvezetés közben bizonyos funkciókat letiltsanak.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- Megakadályozza, hogy tesztvezetés közben lehessen garázst nyitni
+RegisterCommand('garage', function()
+    if exports['fvg-autoshop']:IsTestDriving() then
+        exports['fvg-notify']:Notify({
+            type='warning', message='Tesztvezetés közben a garázs nem érhető el.'
+        })
+        return
+    end
+    -- garázs megnyitása...
+end, false)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Szerver esemény lista</div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Esemény neve</th>
+                    <th>Paraméterek</th>
+                    <th>Mikor triggerel</th>
+                </tr>
+            </thead>
+            <tbody class="evt-row">
+                <tr class="evt-row">
+                    <td>fvg-autoshop:server:VehiclePurchased</td>
+                    <td>src, model, plate, price, method</td>
+                    <td>Sikeres vásárlás után (teljes és részlet egyaránt)</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-autoshop:server:VehicleSold</td>
+                    <td>src, plate, sellPrice</td>
+                    <td>Jármű visszaváltásakor</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-autoshop:server:InstalmentPaid</td>
+                    <td>src, vehicleId, monthsPaid, totalMonths, done</td>
+                    <td>Részlet törlesztésekor (minden alkalommal)</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-autoshop:server:TestDriveCompleted</td>
+                    <td>src, model, returned</td>
+                    <td>Tesztvezetés befejeztével (<code>returned</code>: true = manuális, false = lejárt)</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – statisztikák logolása</div>
+        <code>-- Minden vásárlást Discord webhook-ra küldünk
+AddEventHandler('fvg-autoshop:server:VehiclePurchased', function(src, model, plate, price, method)
+    local player = exports['fvg-playercore']:GetPlayer(src)
+    if not player then return end
+
+    local msg = string.format(
+        '**Új vásárlás** | Játékos: %s %s | Jármű: %s | Rendszám: %s | Ár: $%d | Fizetés: %s',
+        player.firstname, player.lastname, model, plate, price, method
+    )
+    exports['fvg-discord']:SendWebhook('vehicle_sales', msg)
+end)
+
+-- Részlet kifizetés értesítés
+AddEventHandler('fvg-autoshop:server:InstalmentPaid', function(src, vehId, paid, total, done)
+    if done then
+        -- Játékos teljesen kifizette a részletet
+        exports['fvg-discord']:SendWebhook('instalments',
+            'Részletfizetés teljesítve! Játékos: ' .. src .. ' | Jármű ID: ' .. vehId)
+    end
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Vásárlási folyamat (flow)</div>
+    <div class="card">
+        <div class="desc">Egy vásárlási esemény lépéseinek sorrendje szerver oldalon:</div>
+        <div class="flow">
+            <div class="flow-step">
+                <div class="flow-num">1</div>
+                <div class="flow-label"><strong>Kliens:</strong> NUI <code>buyVehicle</code> callback → <code>fvg-autoshop:server:BuyVehicle</code> event</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">2</div>
+                <div class="flow-label"><strong>Szerver:</strong> Jármű & kereskedő validálás, licensz ellenőrzés (<code>fvg-idcard</code>)</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">3</div>
+                <div class="flow-label"><strong>Szerver:</strong> Ár számítás + kedvezmény alkalmazása</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">4a</div>
+                <div class="flow-label"><strong>Teljes fizetés:</strong> <code>fvg-banking:RemoveBalance</code> vagy <code>fvg-playercore:RemoveCash</code></div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">4b</div>
+                <div class="flow-label"><strong>Részlet:</strong> Foglalón levonás + <code>fvg_vehicle_instalments</code> rekord létrehozás</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">5</div>
+                <div class="flow-label"><strong>Szerver:</strong> Rendszám generálás (<code>GenPlate</code>) + <code>fvg_vehicles</code> DB mentés</div>
+                <span class="flow-badge fb-d">DB</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">6</div>
+                <div class="flow-label"><strong>Szerver:</strong> Cache frissítés + <code>VehiclePurchased</code> esemény + kliens értesítés</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">7</div>
+                <div class="flow-label"><strong>Kliens:</strong> <code>PurchaseSuccess</code> → panel bezárás + garázs értesítés</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+
+            <!-- GetOwnedVehicles demo -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-garage"></i>GetOwnedVehicles / IsVehicleOwned</div>
+                <input class="dinp" id="d-src"   type="number" placeholder="source (pl. 1)" value="1"/>
+                <input class="dinp" id="d-plate" type="text"   placeholder="Rendszám (pl. AB-123-CD)" value="AB-123-CD"/>
+                <button class="dbtn ba" onclick="demoGetVehicles()">
+                    <i class="hgi-stroke hgi-garage"></i>GetOwnedVehicles
+                </button>
+                <button class="dbtn bs" onclick="demoIsOwned()">
+                    <i class="hgi-stroke hgi-search-02"></i>IsVehicleOwned
+                </button>
+                <div class="dout" id="d-veh-out">—</div>
+            </div>
+
+            <!-- GetInstalments demo -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-credit-card"></i>GetInstalments / PayInstalment</div>
+                <input class="dinp" id="d-inst-src"   type="number" placeholder="source (pl. 1)" value="1"/>
+                <input class="dinp" id="d-inst-vehid" type="number" placeholder="vehicle_id (pl. 3)" value="3"/>
+                <select class="dsel" id="d-inst-pay">
+                    <option value="cash">Készpénz</option>
+                    <option value="bank" selected>Bank</option>
+                </select>
+                <button class="dbtn bp" onclick="demoGetInstalments()">
+                    <i class="hgi-stroke hgi-credit-card"></i>GetInstalments
+                </button>
+                <button class="dbtn bs" onclick="demoPayInstalment()">
+                    <i class="hgi-stroke hgi-checkmark-02"></i>PayInstalment
+                </button>
+                <div class="dout" id="d-inst-out">—</div>
+            </div>
+        </div>
+
+        <div class="dgrid" style="margin-top:12px">
+
+            <!-- BuyVehicle demo -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-car-01"></i>BuyVehicle</div>
+                <select class="dsel" id="d-buy-model">
+                    <option value="adder">adder – Adder ($1,000,000)</option>
+                    <option value="zentorno">zentorno – Zentorno ($725,000)</option>
+                    <option value="jester">jester – Jester Classic ($125,000)</option>
+                    <option value="blista" selected>blista – Blista ($16,000)</option>
+                    <option value="bati801">bati801 – Bati 801 ($15,000)</option>
+                </select>
+                <select class="dsel" id="d-buy-dealer">
+                    <option value="pdm">pdm – Premium Deluxe Motorsport</option>
+                    <option value="luxury">luxury – Luxury Autos</option>
+                    <option value="bikes">bikes – Motorkereskedés</option>
+                    <option value="used" selected>used – Használtautó Piac</option>
+                </select>
+                <select class="dsel" id="d-buy-pay">
+                    <option value="cash">Készpénz</option>
+                    <option value="bank" selected>Bank</option>
+                </select>
+                <select class="dsel" id="d-buy-inst">
+                    <option value="">Teljes fizetés</option>
+                    <option value="1">3 hónap – 0% kamat</option>
+                    <option value="2">6 hónap – 5% kamat</option>
+                    <option value="3">12 hónap – 10% kamat</option>
+                </select>
+                <button class="dbtn bs" onclick="demoBuyVehicle()">
+                    <i class="hgi-stroke hgi-shopping-cart-02"></i>BuyVehicle
+                </button>
+                <div class="dout" id="d-buy-out">—</div>
+            </div>
+
+            <!-- SellVehicle + GetAllDealerships demo -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-money-send-02"></i>SellVehicle / GetAllDealerships</div>
+                <input class="dinp" id="d-sell-plate" type="text" placeholder="Rendszám eladáshoz" value="AB-123-CD"/>
+                <button class="dbtn bw" onclick="demoSellVehicle()">
+                    <i class="hgi-stroke hgi-money-send-02"></i>SellVehicle
+                </button>
+                <button class="dbtn ba" onclick="demoGetDealerships()">
+                    <i class="hgi-stroke hgi-map-01"></i>GetAllDealerships
+                </button>
+                <button class="dbtn bd" onclick="demoGetPlate()">
+                    <i class="hgi-stroke hgi-search-02"></i>GetVehicleByPlate
+                </button>
+                <div class="dout" id="d-sell-out">—</div>
+            </div>
+        </div>
+
+        <div class="info" style="margin-top:14px">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>
+                Ez egy interaktív szimuláció — valódi FiveM szerver nélkül is bemutatja az exportok
+                visszatérési értékeit és a lehetséges hibakódokat. Éles környezetben a Lua exportokat
+                kell használni a fenti példák szerint.
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Kompatibilitás más fvg scriptekkel</div>
+    <div class="card">
+        <table>
+            <thead><tr><th>Script</th><th>Kapcsolat típusa</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="pn">fvg-banking</td>
+                    <td class="pt">Aktív integráció</td>
+                    <td>Fizetéseknél <code>RemoveBalance</code>, eladásnál <code>AddBalance</code>, tranzakciónaplóhoz <code>CreateTransaction</code></td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-playercore</td>
+                    <td class="pt">Aktív integráció</td>
+                    <td>Készpénz levonáshoz <code>RemoveCash</code>, játékos adatok lekéréséhez <code>GetPlayer</code>, betöltési eseményekhez</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-idcard</td>
+                    <td class="pt">Aktív integráció</td>
+                    <td>Kereskedőbe lépésnél <code>HasLicense</code> ellenőrzés (pl. <code>driving</code>, <code>motorcycle</code>)</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-notify</td>
+                    <td class="pt">Aktív integráció</td>
+                    <td>Minden visszajelzés (<code>fvg-notify:client:Notify</code> event) ezen keresztül megy</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-database</td>
+                    <td class="pt">Aktív integráció</td>
+                    <td>Migráció, Query, Insert, Execute műveletek mind ezen exporton keresztül</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-garage</td>
+                    <td class="pt">Export fogyasztó</td>
+                    <td>A garázs <code>GetOwnedVehicles</code>-t használ a járművek listázásához</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-police</td>
+                    <td class="pt">Export fogyasztó</td>
+                    <td>Rendőrök <code>GetVehicleByPlate</code> és <code>IsVehicleOwned</code> exportokat használnak</td>
+                </tr>
+                <tr>
+                    <td class="pn">fvg-shops</td>
+                    <td class="pt">Független</td>
+                    <td>Nincs közvetlen kapcsolat, de mindkét script <code>fvg-banking</code>-ot használ</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+    // ── Szimulált adatok ──────────────────────────────────────
+    const mockVehicles = [
+        { id:1, model:'blista', label:'Blista', plate:'AB-123-CD', category:'compact', price:16000, status:'garaged', inst_status:null },
+        { id:2, model:'adder',  label:'Adder',  plate:'XY-999-ZZ', category:'super',   price:1000000, status:'garaged', inst_status:'active', monthly_amount:18000, months_paid:2, months_total:12 },
+    ];
+    const mockInstalments = [
+        { vehicle_id:2, label:'Adder', plate:'XY-999-ZZ', total_amount:990000, paid_amount:36000, monthly_amount:18000, months_total:12, months_paid:2, interest_rate:0.10, next_due:'2026-03-21', status:'active' }
+    ];
+    const mockDealerships = [
+        { id:'pdm',    label:'Premium Deluxe Motorsport', type:'car' },
+        { id:'luxury', label:'Luxury Autos',              type:'car' },
+        { id:'bikes',  label:'Motorkereskedés',           type:'motorcycle' },
+        { id:'used',   label:'Használtautó Piac',         type:'car' },
+    ];
+    const mockPrices = { adder:1000000, zentorno:725000, jester:125000, blista:16000, bati801:15000 };
+
+    const fmt = (n) => '$' + Number(n).toLocaleString('hu-HU');
+
+    function setOut(id, msg, cls = '') {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = 'dout ' + cls;
+    }
+
+    function demoGetVehicles() {
+        const src = document.getElementById('d-src').value;
+        const result = mockVehicles.map(v =>
+            `${v.label} | ${v.plate} | ${v.status}${v.inst_status === 'active' ? ' [részlet aktív]' : ''}`
+        ).join('\n');
+        setOut('d-veh-out', `GetOwnedVehicles(${src}) →\n${result}`, 'ok');
+    }
+
+    function demoIsOwned() {
+        const plate = document.getElementById('d-plate').value.toUpperCase();
+        const found = mockVehicles.some(v => v.plate === plate);
+        setOut('d-veh-out',
+            `IsVehicleOwned("${plate}") → ${found}`,
+            found ? 'ok' : 'warn'
+        );
+    }
+
+    function demoGetInstalments() {
+        const src = document.getElementById('d-inst-src').value;
+        if (!mockInstalments.length) {
+            setOut('d-inst-out', `GetInstalments(${src}) → [] (üres)`, 'warn'); return;
+        }
+        const i = mockInstalments[0];
+        setOut('d-inst-out',
+            `GetInstalments(${src}) →\n${i.label} | ${i.plate}\n` +
+            `Fizetve: ${i.months_paid}/${i.months_total} hó | Havi: ${fmt(i.monthly_amount)}\n` +
+            `Maradék: ${fmt(i.total_amount - i.paid_amount)} | Esedékes: ${i.next_due}`,
+            'ok'
+        );
+    }
+
+    function demoPayInstalment() {
+        const src   = document.getElementById('d-inst-src').value;
+        const vehId = document.getElementById('d-inst-vehid').value;
+        const pay   = document.getElementById('d-inst-pay').value;
+        const inst  = mockInstalments.find(i => String(i.vehicle_id) === String(vehId));
+        if (!inst) {
+            setOut('d-inst-out', `PayInstalment(${src}, ${vehId}) → false, "not_found"`, 'err'); return;
+        }
+        const newPaid = inst.months_paid + 1;
+        const done    = newPaid >= inst.months_total;
+        setOut('d-inst-out',
+            `PayInstalment(${src}, ${vehId}, "${pay}") →\ntrue, { monthsPaid:${newPaid}, total:${inst.months_total}, done:${done} }\nLevonva: ${fmt(inst.monthly_amount)} (${pay})`,
+            'ok'
+        );
+    }
+
+    function demoBuyVehicle() {
+        const model  = document.getElementById('d-buy-model').value;
+        const dealer = document.getElementById('d-buy-dealer').value;
+        const pay    = document.getElementById('d-buy-pay').value;
+        const inst   = document.getElementById('d-buy-inst').value;
+
+        const prices = { pdm:1.0, luxury:1.0, bikes:1.0, used:0.85 };
+        const basePrice = mockPrices[model] || 0;
+        const price     = Math.floor(basePrice * (prices[dealer] || 1));
+        const plate     = generatePlate();
+
+        if (inst) {
+            const rates   = [0, 0.0, 0.05, 0.10];
+            const months  = [0, 3, 6, 12];
+            const idx     = parseInt(inst);
+            const dp      = Math.floor(price * 0.20);
+            const rem     = price - dp;
+            const total   = Math.floor(rem * (1 + rates[idx]));
+            const monthly = Math.ceil(total / months[idx]);
+            setOut('d-buy-out',
+                `BuyVehicle(src, "${model}", "${dealer}", "${pay}", ${inst}) →\ntrue, {\n  plate: "${plate}",\n  vehId: ${Math.floor(Math.random()*900)+100},\n  downPayment: ${fmt(dp)},\n  monthly: ${fmt(monthly)},\n  months: ${months[idx]}\n}`,
+                'ok'
+            );
+        } else {
+            setOut('d-buy-out',
+                `BuyVehicle(src, "${model}", "${dealer}", "${pay}", nil) →\ntrue, {\n  plate: "${plate}",\n  vehId: ${Math.floor(Math.random()*900)+100}\n}\nLevonva: ${fmt(price)} (${pay})`,
+                'ok'
+            );
+        }
+    }
+
+    function demoSellVehicle() {
+        const plate = document.getElementById('d-sell-plate').value.toUpperCase();
+        const found = mockVehicles.find(v => v.plate === plate);
+        if (!found) {
+            setOut('d-sell-out', `SellVehicle(src, "${plate}") → false, "not_found"`, 'err'); return;
+        }
+        if (found.inst_status === 'active') {
+            setOut('d-sell-out', `SellVehicle(src, "${plate}") → false, "has_active_instalment"`, 'err'); return;
+        }
+        const sellPrice = Math.floor(found.price * 0.65);
+        setOut('d-sell-out',
+            `SellVehicle(src, "${plate}") →\ntrue, ${fmt(sellPrice)}\nJóváírva: bankszámlára`,
+            'ok'
+        );
+    }
+
+    function demoGetDealerships() {
+        const result = mockDealerships.map(d => `${d.id}: ${d.label} (${d.type})`).join('\n');
+        setOut('d-sell-out', `GetAllDealerships() →\n${result}`, 'ok');
+    }
+
+    function demoGetPlate() {
+        const plate = document.getElementById('d-sell-plate').value.toUpperCase();
+        const found = mockVehicles.find(v => v.plate === plate);
+        if (!found) {
+            setOut('d-sell-out', `GetVehicleByPlate("${plate}") → nil`, 'warn'); return;
+        }
+        setOut('d-sell-out',
+            `GetVehicleByPlate("${plate}") →\n{ model:"${found.model}", label:"${found.label}",\n  plate:"${found.plate}", status:"${found.status}",\n  firstname:"Teszt", lastname:"Játékos" }`,
+            'ok'
+        );
+    }
+
+    function generatePlate() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const r = () => chars[Math.floor(Math.random() * chars.length)];
+        const n = () => Math.floor(Math.random() * 10);
+        return `${r()}${r()}-${n()}${n()}${n()}-${r()}${r()}`;
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-autoshop</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ── TESZTVEZETÉS HUD ────────────────────────────────────── -->
+<div id="testdrive-hud" class="hidden">
+    <div class="td-icon"><i class="hgi-stroke hgi-steering-wheel"></i></div>
+    <div class="td-info">
+        <div class="td-label">Tesztvezetés</div>
+        <div class="td-timer" id="td-timer">3:00</div>
+    </div>
+    <button class="td-end-btn" onclick="Autoshop.endTestDrive()">
+        <i class="hgi-stroke hgi-stop-circle"></i>Visszatérés
+    </button>
+</div>
+
+<!-- ── PANEL ──────────────────────────────────────────────── -->
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- FEJLÉC -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <div class="ph-icon"><i class="hgi-stroke hgi-car-01"></i></div>
+                <div>
+                    <div class="ph-title" id="ph-title">Autókereskedés</div>
+                    <div class="ph-sub"  id="ph-sub">Válassz járművet</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="balance-chips">
+                    <div class="chip cash-chip">
+                        <i class="hgi-stroke hgi-money-bag-02"></i>
+                        <span id="chip-cash">$0</span>
+                    </div>
+                    <div class="chip bank-chip">
+                        <i class="hgi-stroke hgi-bank"></i>
+                        <span id="chip-bank">$0</span>
+                    </div>
+                </div>
+                <button class="close-btn" id="close-btn">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB SÁV -->
+        <div class="tab-bar">
+            <button class="tab active" data-tab="browse">
+                <i class="hgi-stroke hgi-car-01"></i>Járművek
+            </button>
+            <button class="tab" data-tab="owned">
+                <i class="hgi-stroke hgi-garage"></i>Saját járművek
+            </button>
+            <button class="tab" data-tab="instalments">
+                <i class="hgi-stroke hgi-credit-card"></i>Részletek
+            </button>
+        </div>
+
+        <!-- PANEL BODY -->
+        <div class="panel-body">
+
+            <!-- ══ JÁRMŰVEK ══ -->
+            <div class="tab-content active" id="tab-browse">
+
+                <!-- Szűrők -->
+                <div class="browse-toolbar">
+                    <div class="cat-scroller" id="cat-scroller">
+                        <!-- dinamikus -->
+                    </div>
+                    <div class="sort-wrap">
+                        <select class="form-select sm" id="sort-select">
+                            <option value="price_asc">Ár ↑</option>
+                            <option value="price_desc">Ár ↓</option>
+                            <option value="speed">Sebesség</option>
+                            <option value="name">Név</option>
+                        </select>
+                        <div class="search-sm">
+                            <i class="hgi-stroke hgi-search-02"></i>
+                            <input type="text" id="veh-search" placeholder="Keresés..."/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jármű lista -->
+                <div class="vehicle-list" id="vehicle-list"></div>
+            </div>
+
+            <!-- ══ SAJÁT JÁRMŰVEK ══ -->
+            <div class="tab-content" id="tab-owned">
+                <div class="owned-list" id="owned-list"></div>
+            </div>
+
+            <!-- ══ RÉSZLETEK ══ -->
+            <div class="tab-content" id="tab-instalments">
+                <div class="inst-list" id="inst-list"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── VÁSÁRLÁS MODAL ──────────────────────────────────────── -->
+<div id="buy-modal" class="modal hidden">
+    <div class="modal-box wide">
+        <div class="modal-header">
+            <i class="hgi-stroke hgi-car-01"></i>
+            <span id="bm-title">Vásárlás</span>
+        </div>
+        <div class="modal-body" id="bm-body"></div>
+        <div class="modal-footer">
+            <button class="modal-cancel-btn" onclick="Autoshop.closeModal()">
+                <i class="hgi-stroke hgi-cancel-01"></i>Mégse
+            </button>
+            <button class="modal-ok-btn" id="bm-confirm">
+                <i class="hgi-stroke hgi-checkmark-02"></i>Vásárlás megerősítése
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
