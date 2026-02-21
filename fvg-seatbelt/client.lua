@@ -9,8 +9,9 @@ local lastSpeed        = 0.0
 local lastBodyHealth   = 1000.0
 local crashCooldown    = false
 local vehicleVelocity  = vector3(0, 0, 0)
+local exitNotifyCooldown = false   -- értesítés spam védelme
 
--- ── Segédfüggvény: tiltott-e a jármű osztálya ──────────────
+-- ── Segédfüggvény: tiltott-e a jármű osztálya ────────────────────
 local function IsClassDisabled(vehicle)
     local class = GetVehicleClass(vehicle)
     for _, v in ipairs(Config.DisabledClasses) do
@@ -19,7 +20,7 @@ local function IsClassDisabled(vehicle)
     return false
 end
 
--- ── Hang lejátszása ─────────────────────────────────────────
+-- ── Hang lejátszása ─────────────────────────────────────────────────
 local function PlayBeltSound(on)
     PlaySoundFrontend(-1,
         on and Config.SoundBuckle or Config.SoundUnbuckle,
@@ -28,7 +29,7 @@ local function PlayBeltSound(on)
     )
 end
 
--- ── Notify küldése ──────────────────────────────────────────
+-- ── Notify küldése ────────────────────────────────────────────────────
 local function Notify(msgKey, ntype)
     local msg = Config.Locale[msgKey] or msgKey
     if Config.NotifyIntegration then
@@ -39,7 +40,7 @@ local function Notify(msgKey, ntype)
     end
 end
 
--- ── VehicleHUD frissítése ───────────────────────────────────
+-- ── VehicleHUD frissítése ───────────────────────────────────────────
 local function UpdateHUD(state)
     if Config.VehicleHudIntegration then
         exports['fvg-vehiclehud']:SetModuleValue('seatbelt', {
@@ -49,17 +50,15 @@ local function UpdateHUD(state)
     end
 end
 
--- ── Kiesés végrehajtása ─────────────────────────────────────
+-- ── Kiesés végrehajtása ─────────────────────────────────────────────
 local function EjectPlayer(vehicle)
     local ped    = PlayerPedId()
     local coords = GetOffsetFromEntityInWorldCoords(vehicle, 0.0, 1.2, 0.5)
 
-    -- Kivesszük a járműből
     SetPedToRagdoll(ped, 8000, 8000, 0, false, false, false)
     SetEntityCoords(ped, coords.x, coords.y, coords.z, false, false, false, false)
     Citizen.Wait(50)
 
-    -- Jármű sebességével arányos impulzus
     local vel = vehicleVelocity
     SetEntityVelocity(ped,
         vel.x * (3.5 * Config.EjectDamageScale),
@@ -67,7 +66,6 @@ local function EjectPlayer(vehicle)
         math.abs(vel.z) + 2.5
     )
 
-    -- Sebzés kiszámítása sebesség alapján
     local ejectSpeed = math.floor(lastSpeed * Config.EjectDamageScale)
     local currentHp  = GetEntityHealth(ped)
     local newHp      = currentHp - ejectSpeed
@@ -81,17 +79,16 @@ local function EjectPlayer(vehicle)
     TriggerServerEvent('fvg-seatbelt:server:LogEject', GetPlayerServerId(PlayerId()), math.floor(lastSpeed))
 end
 
--- ── Kiesés esély számítása ──────────────────────────────────
+-- ── Kiesés esély számítása ──────────────────────────────────────────
 local function ShouldEject(speed, bodyDrop)
     if speed < Config.EjectMinSpeed then return false end
-    -- Minél nagyobb a sebesség és a body drop, annál nagyobb az esély
     local chance = math.min(100, (speed * Config.EjectChanceScale) + (bodyDrop * 0.5))
     return math.random(100) <= chance
 end
 
--- ── Öv kapcsolása ───────────────────────────────────────────
+-- ── Öv kapcsolása ─────────────────────────────────────────────────────────
 local function ToggleBelt()
-    local ped     = PlayerPedId()
+    local ped = PlayerPedId()
     if not IsPedInAnyVehicle(ped, false) then
         Notify('not_in_veh', 'error')
         return
@@ -110,7 +107,7 @@ local function ToggleBelt()
     TriggerServerEvent('fvg-seatbelt:server:SyncBelt', isBelted)
 end
 
--- ── Exportok ────────────────────────────────────────────────
+-- ── Exportok ───────────────────────────────────────────────────────────
 exports('IsBelted', function()
     return isBelted
 end)
@@ -132,29 +129,69 @@ exports('GetBeltState', function()
     }
 end)
 
--- ── Billentyű regisztráció ──────────────────────────────────
+-- ── Billentyű regisztráció ──────────────────────────────────────────────
 RegisterCommand('fvg_togglebelt', function()
     ToggleBelt()
 end, false)
 
 RegisterKeyMapping('fvg_togglebelt', Config.KeyLabel, 'keyboard', Config.Key)
 
--- ── Mások öv változásának kezelése (szinkron) ───────────────
+-- ── Mások öv változásának kezelése (szinkron) ──────────────────────────
 RegisterNetEvent('fvg-seatbelt:client:SyncBelt', function(serverId, state)
-    -- Más játékos öv szinkronizálása (pl. animáció, jövőbeli kiterjesztéshez)
+    -- Más játékos öv szinkronizálása (pl. animáció, jövőbeli kiterjeszteshez)
 end)
 
--- ── Főtick: kiesés detektálása ──────────────────────────────
+-- ── Kiszallás blokk thread ──────────────────────────────────────────────
+Citizen.CreateThread(function()
+    while true do
+        -- Ha öv be van csatolva és a játékos járműben van
+        if isBelted and inVehicle and Config.PreventExitWhenBelted then
+            local ped     = PlayerPedId()
+            local vehicle = GetVehiclePedIsIn(ped, false)
+
+            -- Kiszallási task detektálása: 2 = GET_OUT_OF_VEHICLE task id
+            if GetIsTaskActive(ped, 2) then
+                -- Task megszakítása + visszahelyezés ülőhelyre
+                ClearPedTasks(ped)
+                TaskEnterVehicle(ped, vehicle, 2000, GetPedInVehicleSeat(vehicle, -1) ~= ped
+                    and GetPedInVehicleSeat(vehicle, 0) == ped and 0 or -1, 2.0, 1, 0)
+                -- Seat meghatározás: megkeressük melyik ülőhelyen van
+                local seat = -1
+                for s = -1, 5 do
+                    if GetPedInVehicleSeat(vehicle, s) == ped then
+                        seat = s
+                        break
+                    end
+end
+                SetPedIntoVehicle(ped, vehicle, seat)
+
+                -- Értesítés spam-védö cooldown-nal
+                if not exitNotifyCooldown then
+                    exitNotifyCooldown = true
+                    Notify('cant_exit', 'warning')
+                    Citizen.SetTimeout(3000, function()
+                        exitNotifyCooldown = false
+                    end)
+                end
+            end
+            Citizen.Wait(0)
+        else
+            Citizen.Wait(300)
+        end
+    end
+end)
+
+-- ── Főtick: kiesés detektálása ─────────────────────────────────────────
 Citizen.CreateThread(function()
     while true do
         local ped     = PlayerPedId()
         local vehicle = GetVehiclePedIsIn(ped, false)
         local inVeh   = DoesEntityExist(vehicle) and vehicle ~= 0
 
-        -- ── Jármű be/ki esemény ────────────────────────────
+        -- ── Jármű be/ki esemény ───────────────────────────────────
         if inVeh and not inVehicle then
-            inVehicle   = true
-            lastVehicle = vehicle
+            inVehicle      = true
+            lastVehicle    = vehicle
             lastBodyHealth = GetVehicleBodyHealth(vehicle)
             lastSpeed      = 0.0
             UpdateHUD(isBelted)
@@ -168,26 +205,24 @@ Citizen.CreateThread(function()
             crashCooldown  = false
         end
 
-        -- ── Ütközés + kiesés logika ────────────────────────
+        -- ── Ütközés + kiesés logika ─────────────────────────────────
         if inVeh and not crashCooldown then
-            local currentSpeed      = GetEntitySpeed(vehicle) * 3.6   -- km/h
+            local currentSpeed      = GetEntitySpeed(vehicle) * 3.6
             local currentBodyHealth = GetVehicleBodyHealth(vehicle)
             local bodyDrop          = lastBodyHealth - currentBodyHealth
 
             vehicleVelocity = GetEntityVelocity(vehicle)
 
-            -- Ütközés detektálás: sebesség zuhanás VAGY body health esés
-            local speedCrash  = lastSpeed > Config.EjectMinSpeed
-                             and currentSpeed < lastSpeed * Config.CrashSpeedDropRatio
-            local bodyCrash   = bodyDrop > Config.MinBodyHealthDrop
-                             and lastSpeed > Config.EjectMinSpeed
+            local speedCrash = lastSpeed > Config.EjectMinSpeed
+                            and currentSpeed < lastSpeed * Config.CrashSpeedDropRatio
+            local bodyCrash  = bodyDrop > Config.MinBodyHealthDrop
+                            and lastSpeed > Config.EjectMinSpeed
 
             if (speedCrash or bodyCrash) and not IsClassDisabled(vehicle) then
                 if not isBelted then
                     if ShouldEject(lastSpeed, bodyDrop) then
                         crashCooldown = true
                         EjectPlayer(vehicle)
-                        -- Cooldown reset
                         Citizen.SetTimeout(3000, function()
                             crashCooldown  = false
                             lastBodyHealth = 1000.0
@@ -195,9 +230,7 @@ Citizen.CreateThread(function()
                         end)
                     end
                 else
-                    -- Öv visel: kis sebzés nagyon nagy sebességnél
                     if lastSpeed > 120 and math.random(100) <= 15 then
-                        local ped    = PlayerPedId()
                         local curHp  = GetEntityHealth(ped)
                         local damage = math.floor(lastSpeed * 0.1)
                         if curHp - damage > 100 then
@@ -216,7 +249,7 @@ Citizen.CreateThread(function()
     end
 end)
 
--- ── Öv kiengedése ha kiszállás közben meghal ────────────────
+-- ── Cleanup ──────────────────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         isBelted = false

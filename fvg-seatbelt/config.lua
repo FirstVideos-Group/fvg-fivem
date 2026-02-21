@@ -4,16 +4,13 @@ Config = {}
 Config.Key         = 'B'
 Config.KeyLabel    = 'Biztonsági öv kapcsolása'
 
--- Sebesség küszöb (km/h), ami felett a kiesés aktiválódik
+-- Sebesség küs zöb (km/h), ami felett a kiesés aktiválódik
 Config.EjectMinSpeed = 30.0
 
--- Esélyalapú kiesés súlyozása (0–100):
--- Minél magasabb a sebesség, annál nagyobb a kiesés esélye.
--- Ez a szorzó meghatározza, mennyire "agresszív" a kiesés.
+-- Esélyalapú kiesés súlyozása (0–100)
 Config.EjectChanceScale = 1.5
 
--- Sebesség csökkenés küszöb (%)  ami alatt ütközés detektálható
--- Pl. 0.65 = ha a sebesség 65%-ra esik egy frameen belül -> ütközés
+-- Sebesség csökkenés küs zöb (%) ami alatt ütközés detektálható
 Config.CrashSpeedDropRatio = 0.65
 
 -- Minimális body health változás ami ütközésnek számít
@@ -28,8 +25,10 @@ Config.SoundUnbuckle = 'seatbelt_off'
 Config.SoundDict     = 'HUD_FRONTEND_DEFAULT_SOUNDSET'
 
 -- Tiltott jármű osztályok (motor, kerékpár, csónak stb.)
--- 8 = motor, 13 = kerékpár, 14 = csónak
 Config.DisabledClasses = { 8, 13, 14 }
+
+-- Ha true: bekapcsolt övnél a játékos NEM tud kiszállni a járműből
+Config.PreventExitWhenBelted = true
 
 -- fvg-vehiclehud integráció
 Config.VehicleHudIntegration = true
@@ -39,8 +38,9 @@ Config.NotifyIntegration = true
 
 -- Értesítések szövege
 Config.Locale = {
-    belted     = 'Biztonsági öv becsatolva.',
-    unbelted   = 'Biztonsági öv kiengedve.',
-    not_in_veh = 'Nem vagy járműben.',
-    cant_use   = 'Ebben a járműben nem használható biztonsági öv.',
+    belted          = 'Biztonsági öv becsatolva.',
+    unbelted        = 'Biztonsági öv kiengedve.',
+    not_in_veh      = 'Nem vagy járműben.',
+    cant_use        = 'Ebben a járműben nem használható biztonsági öv.',
+    cant_exit       = 'Először engedd ki a biztonsági övet!',
 }
