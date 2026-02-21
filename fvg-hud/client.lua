@@ -4,13 +4,14 @@
 
 local _modules       = {}
 local _moduleIndex   = {}
-local _hudReady      = false   -- NUI betöltött-e már
-local _isRunning     = false   -- fő tick thread fut-e már
+-- FIX: _hudReady globálisan elérhető (modulok is olvashatják _G['_hudReady'])
+_hudReady            = false
+local _isRunning     = false
 
 DisplayHud(false)
 DisplayRadar(true)
 
--- ── Modul regisztrátor ─────────────────────────────────────────
+-- ── Modul regisztrátor ───────────────────────────────────────────────
 function RegisterModule(id, tickFn)
     if _moduleIndex[id] then return end
 
@@ -32,20 +33,23 @@ end
 
 exports('RegisterModule', RegisterModule)
 
--- ── Érték frissítő (csak cached értéket ment, NUI-t NEM küld) ─────
--- A tényleges NUI küldés a tick végén, batch SendNUIMessage-ként
+-- ── Érték frissítő ───────────────────────────────────────────────────
 local pendingUpdates = {}
 
 exports('SetModuleValue', function(id, value, visible)
     local m = _moduleIndex[id]
     if not m or not m.enabled then return end
-    -- csak elmentjük, a tick-ciklus végén SendHudBatch() küldi el
     m.value   = value
-    m.visible = visible
+    -- visible a value tábla inside is jöhet (value.visible)
+    if type(value) == 'table' and value.visible ~= nil then
+        m.visible = value.visible
+    elseif visible ~= nil then
+        m.visible = visible
+    end
     pendingUpdates[id] = true
 end)
 
--- ── Modul be-/kikapcsolás ──────────────────────────────────────
+-- ── Modul be-/kikapcsolás ───────────────────────────────────────────
 exports('ToggleModule', function(id, state)
     local m = _moduleIndex[id]
     if not m then return end
@@ -60,7 +64,7 @@ exports('GetModuleState', function(id)
     return m and m.enabled or false
 end)
 
--- ── Batch NUI küldés (1 üzenetben minden pending érték) ─────────
+-- ── Batch NUI küldés ──────────────────────────────────────────────────
 local function SendHudBatch()
     if not _hudReady then return end
     local updates = {}
@@ -75,12 +79,10 @@ local function SendHudBatch()
     SendNUIMessage({ action = 'batchUpdate', updates = updates })
 end
 
--- ── NUI struktúra inicializálása (csak egyszer) ─────────────────
+-- ── NUI struktúra inicializálása ──────────────────────────────────────
 local function InitNUI()
-    -- 1. init üzenet (pozíció)
     SendNUIMessage({ action = 'init', position = Config.Position })
     Citizen.Wait(100)
-    -- 2. modulok regisztrálása – értéket NEM küldünk, csak struktúrát
     for _, m in ipairs(_modules) do
         SendNUIMessage({
             action   = 'registerModule',
@@ -89,11 +91,15 @@ local function InitNUI()
             position = Config.Position,
         })
     end
-    -- 3. NUI-t ready-nek jelölünk, tick majd küld valós értékeket
     _hudReady = true
+
+    -- FIX: kényszerítsünk egy első batch flush-t, hogy a már tárolt
+    -- pending értékek azonnal megjelenjenek
+    Citizen.Wait(50)
+    SendHudBatch()
 end
 
--- ── Fő tick (modulok futtatása + batch flush) ───────────────────
+-- ── Fő tick ──────────────────────────────────────────────────────────────
 local function StartHudTick()
     if _isRunning then return end
     _isRunning = true
@@ -109,7 +115,6 @@ local function StartHudTick()
                         m.tick(ped)
                     end
                 end
-                -- Egy tick = egy batch NUI üzenet (nem N darab)
                 SendHudBatch()
             end
             ::continue::
@@ -117,10 +122,8 @@ local function StartHudTick()
     end)
 end
 
--- ── NUI visszajelzés: NUI újraindult (pl. F8 refresh, resource restart)
+-- ── NUI visszajelzés: NUI újraindult ──────────────────────────────────
 RegisterNUICallback('hudReady', function(data, cb)
-    -- NUI-t nem jelöljük ready-nek amíg az InitNUI le nem futott
-    -- Megjegyzés: ezt a tickből NEM hívjuk, így nincs loop
     _hudReady = false
     Citizen.CreateThread(function()
         InitNUI()
@@ -128,7 +131,7 @@ RegisterNUICallback('hudReady', function(data, cb)
     cb('ok')
 end)
 
--- ── Első betöltés ──────────────────────────────────────────────
+-- ── Első betöltés ──────────────────────────────────────────────────────────
 Citizen.CreateThread(function()
     while not NetworkIsPlayerActive(PlayerId()) do
         Citizen.Wait(500)
@@ -138,7 +141,7 @@ Citizen.CreateThread(function()
     StartHudTick()
 end)
 
--- ── PlayerLoaded (playercore restart után is inicializál) ────────
+-- ── PlayerLoaded ──────────────────────────────────────────────────────────
 AddEventHandler('fvg-playercore:client:PlayerLoaded', function()
     Citizen.CreateThread(function()
         _hudReady = false
@@ -148,7 +151,7 @@ AddEventHandler('fvg-playercore:client:PlayerLoaded', function()
     end)
 end)
 
--- ── Resource restart ──────────────────────────────────────────
+-- ── Resource restart ────────────────────────────────────────────────────────
 AddEventHandler('onClientResourceStart', function(res)
     if res ~= GetCurrentResourceName() then return end
     _isRunning = false
@@ -164,7 +167,7 @@ AddEventHandler('onClientResourceStart', function(res)
     end)
 end)
 
--- ── Cleanup ───────────────────────────────────────────────────
+-- ── Cleanup ──────────────────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     _isRunning     = false
