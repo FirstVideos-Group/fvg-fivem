@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-neverwanted – Dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <style>
+        :root {
+            --bg:      #0f1117;
+            --surface: #181c27;
+            --border:  rgba(255,255,255,0.08);
+            --accent:  #facc15;
+            --blue:    #60a5fa;
+            --text:    #e2e8f0;
+            --muted:   rgba(255,255,255,0.45);
+            --radius:  12px;
+            --mono:    'JetBrains Mono', 'Fira Code', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; }
+        .container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+
+        h1 { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+        h1 span { color: var(--accent); }
+        .tagline { color: var(--muted); margin-bottom: 40px; font-size: 0.95rem; }
+
+        h2 { font-size: 1.15rem; font-weight: 700; margin: 40px 0 14px;
+             padding-bottom: 8px; border-bottom: 1px solid var(--border);
+             display: flex; align-items: center; gap: 8px; }
+        h2 i { color: var(--accent); font-size: 1.1rem; }
+
+        p { color: rgba(255,255,255,0.72); margin-bottom: 12px; }
+
+        code {
+            background: rgba(255,255,255,0.07);
+            padding: 2px 7px; border-radius: 5px;
+            font-family: var(--mono); font-size: 0.82em; color: #93c5fd;
+        }
+        pre {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 20px 24px;
+            overflow-x: auto; margin: 14px 0 24px;
+        }
+        pre code { background: none; padding: 0; color: #e2e8f0; font-size: 0.84rem; line-height: 1.8; }
+
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px;
+                 font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
+                 vertical-align: middle; margin-left: 8px; }
+        .badge-client { background: rgba(96,165,250,0.18);  color: #93c5fd; border: 1px solid rgba(96,165,250,0.3); }
+        .badge-server { background: rgba(239,68,68,0.18);   color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-event  { background: rgba(167,139,250,0.18); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
+        .badge-config { background: rgba(250,204,21,0.15);  color: #fde047; border: 1px solid rgba(250,204,21,0.25); }
+
+        table { width: 100%; border-collapse: collapse; margin: 14px 0 24px; }
+        th { text-align: left; padding: 10px 14px; background: var(--surface);
+             color: var(--muted); font-size: 0.78rem; letter-spacing: 0.5px;
+             text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 14px; border-bottom: 1px solid var(--border);
+             color: rgba(255,255,255,0.75); font-size: 0.88rem; }
+        tr:last-child td { border-bottom: none; }
+
+        .demo-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 24px; margin: 16px 0 24px;
+        }
+        .demo-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .demo-output {
+            background: #0a0c12; border: 1px solid var(--border);
+            border-radius: 8px; padding: 14px 18px;
+            font-family: var(--mono); font-size: 0.82rem;
+            color: #4ade80; min-height: 44px;
+        }
+
+        button {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border);
+            background: rgba(255,255,255,0.07); color: var(--text);
+            font-size: 0.88rem; cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+        button:hover { background: rgba(255,255,255,0.13); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button i { font-size: 16px; color: var(--accent); }
+
+        /* Wanted csillag vizualizáció */
+        .star-row { display: flex; gap: 8px; align-items: center; margin: 16px 0 8px; }
+        .star {
+            font-size: 24px; color: rgba(255,255,255,0.15);
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        .star.active {
+            color: #facc15;
+            text-shadow: 0 0 12px rgba(250, 204, 21, 0.7);
+        }
+        .wanted-label {
+            font-size: 0.8rem; color: var(--muted); margin-top: 4px;
+        }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        }
+        .status-pill.active   { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+        .status-pill.inactive { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1><span>fvg</span>-neverwanted</h1>
+    <p class="tagline">Wanted szint blokkolás – az NPC pedek és járókelők megmaradnak az utcákon</p>
+
+    <!-- ── Hogyan működik ── -->
+    <h2><i class="hgi-stroke hgi-information-circle"></i> Hogyan működik</h2>
+    <p>
+        A script három rétegen blokkol: <strong>wanted szint törlés</strong> (minden frame),
+        <strong>dispatch tiltás</strong> (15 típus – rendőr, SWAT, helikopter stb.),
+        valamint <strong>cop chase tiltás</strong> (<code>SetPoliceIgnorePlayer</code>).
+        Járókelők és utcai NPC-k továbbra is megjelennek és normálisan viselkednek.
+    </p>
+
+    <!-- ── Konfiguráció ── -->
+    <h2><i class="hgi-stroke hgi-settings-01"></i> Konfiguráció <span class="badge badge-config">config.lua</span></h2>
+    <table>
+        <tr><th>Kulcs</th><th>Alapérték</th><th>Leírás</th></tr>
+        <tr><td><code>Enabled</code></td><td><code>true</code></td><td>Blokkolás be/ki</td></tr>
+        <tr><td><code>TickRate</code></td><td><code>0</code></td><td>Ellenőrzési intervallum ms-ben (0 = minden frame)</td></tr>
+        <tr><td><code>MaxWantedLevel</code></td><td><code>0</code></td><td>Max engedélyezett csillag (0–5)</td></tr>
+        <tr><td><code>DisableDispatch</code></td><td><code>true</code></td><td>Mind a 15 dispatch szolgálat tiltása</td></tr>
+        <tr><td><code>DisableCopChase</code></td><td><code>true</code></td><td>Rendőrök ne üldözzék a játékost</td></tr>
+        <tr><td><code>DisablePedReaction</code></td><td><code>false</code></td><td>Járókelők is figyelmen kívül hagyjanak</td></tr>
+        <tr><td><code>Whitelist</code></td><td><code>{}</code></td><td>Ezek a játékosok kaphatnak wanted-et (license/steam)</td></tr>
+    </table>
+
+    <!-- ── Kliens exportok ── -->
+    <h2><i class="hgi-stroke hgi-code"></i> Kliens exportok <span class="badge badge-client">CLIENT</span></h2>
+    <table>
+        <tr><th>Export</th><th>Paraméter</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr>
+            <td><code>IsEnabled()</code></td>
+            <td>–</td>
+            <td><code>boolean</code></td>
+            <td>Aktív-e jelenleg a blokkolás</td>
+        </tr>
+        <tr>
+            <td><code>SetEnabled(state)</code></td>
+            <td><code>state: boolean</code></td>
+            <td>–</td>
+            <td>Blokkolás be- vagy kikapcsolása</td>
+        </tr>
+        <tr>
+            <td><code>SetMaxWantedLevel(level)</code></td>
+            <td><code>level: number (0–5)</code></td>
+            <td>–</td>
+            <td>Max engedélyezett wanted szint módosítása futás közben</td>
+        </tr>
+    </table>
+
+    <!-- ── Példa kódok ── -->
+    <h2><i class="hgi-stroke hgi-code-circle"></i> Példa – más scriptből</h2>
+    <pre><code>-- Ideiglenesen kikapcsol (pl. mission script, rendőr esemény)
+exports['fvg-neverwanted']:SetEnabled(false)
+
+-- Visszakapcsol
+exports['fvg-neverwanted']:SetEnabled(true)
+
+-- Max 2 csillag engedélyezése (pl. PvP zóna)
+exports['fvg-neverwanted']:SetMaxWantedLevel(2)
+
+-- Teljes blokkolás visszaállítás
+exports['fvg-neverwanted']:SetMaxWantedLevel(0)
+
+-- Ellenőrzés más scriptből
+if exports['fvg-neverwanted']:IsEnabled() then
+    -- blokkolt állapotban fut
+end</code></pre>
+
+    <!-- ── Interaktív demo ── -->
+    <h2><i class="hgi-stroke hgi-test-tube"></i> Interaktív demo</h2>
+    <div class="demo-box">
+        <p style="margin-bottom:14px;">Szimulálja a wanted rendszer viselkedését – valódi FiveM esemény nélkül:</p>
+
+        <div class="star-row" id="star-row">
+            <span class="star" id="star-1">&#9733;</span>
+            <span class="star" id="star-2">&#9733;</span>
+            <span class="star" id="star-3">&#9733;</span>
+            <span class="star" id="star-4">&#9733;</span>
+            <span class="star" id="star-5">&#9733;</span>
+            <span id="status-pill" class="status-pill active" style="margin-left:12px;">
+                <span class="status-dot"></span> Blokkolás AKTÍV
+            </span>
+        </div>
+        <p class="wanted-label" id="wanted-label">Jelenlegi wanted: 0 csillag</p>
+
+        <div class="demo-controls" style="margin-top:18px;">
+            <button onclick="demoSimulateWanted()"><i class="hgi-stroke hgi-police"></i> Wanted szimulálás (+1)</button>
+            <button onclick="demoToggle()"><i class="hgi-stroke hgi-toggle-on"></i> <span id="toggle-label">Kikapcsol</span></button>
+            <button onclick="demoSetMax(2)"><i class="hgi-stroke hgi-star"></i> Max 2 csillag</button>
+            <button onclick="demoSetMax(0)"><i class="hgi-stroke hgi-cancel-circle"></i> Teljes tiltás</button>
+            <button onclick="demoReset()"><i class="hgi-stroke hgi-refresh"></i> Reset</button>
+        </div>
+
+        <div class="demo-output" id="demo-output">Nyomj egy gombot a szimulációhoz...</div>
+    </div>
+
+    <!-- ── Dispatch típusok ── -->
+    <h2><i class="hgi-stroke hgi-truck"></i> Tiltott dispatch típusok</h2>
+    <table>
+        <tr><th>ID</th><th>Típus</th><th>Leírás</th></tr>
+        <tr><td><code>0</code></td><td>Police Automobile</td><td>Rendőrautók</td></tr>
+        <tr><td><code>1</code></td><td>Police Helicopter</td><td>Rendőrhelikopter</td></tr>
+        <tr><td><code>2</code></td><td>SWAT Automobile</td><td>SWAT jármű</td></tr>
+        <tr><td><code>3</code></td><td>SWAT Helicopter</td><td>SWAT helikopter</td></tr>
+        <tr><td><code>4</code></td><td>Biker Backup</td><td>Motoros egység</td></tr>
+        <tr><td><code>5</code></td><td>Army Vehicle</td><td>Katonai jármű</td></tr>
+        <tr><td><code>6–14</code></td><td>Egyéb</td><td>Mentő, tűzoltó, hátizsákos stb.</td></tr>
+    </table>
+
+</div>
+
+<script>
+    let blockEnabled = true;
+    let maxWanted    = 0;
+    let currentWanted = 0;
+
+    function updateStars() {
+        for (let i = 1; i <= 5; i++) {
+            const star = document.getElementById('star-' + i);
+            star.classList.toggle('active', i <= currentWanted);
+        }
+        document.getElementById('wanted-label').textContent =
+            'Jelenlegi wanted: ' + currentWanted + ' csillag';
+    }
+
+    function updateStatus() {
+        const pill = document.getElementById('status-pill');
+        const label = document.getElementById('toggle-label');
+        if (blockEnabled) {
+            pill.className = 'status-pill active';
+            pill.innerHTML = '<span class="status-dot"></span> Blokkolás AKTÍV';
+            label.textContent = 'Kikapcsol';
+        } else {
+            pill.className = 'status-pill inactive';
+            pill.innerHTML = '<span class="status-dot"></span> Blokkolás KIKAPCSOLVA';
+            label.textContent = 'Bekapcsol';
+        }
+    }
+
+    function demoSimulateWanted() {
+        const raw = currentWanted + 1;
+        const out = document.getElementById('demo-output');
+
+        if (!blockEnabled) {
+            currentWanted = Math.min(raw, 5);
+            updateStars();
+            out.textContent = '⚠ Blokkolás kikapcsolva – wanted szint: ' + currentWanted + ' csillag';
+            return;
+        }
+
+        if (raw > maxWanted) {
+            // Blokkoló beavatkozik
+            currentWanted = maxWanted;
+            updateStars();
+            out.textContent = '✓ Wanted blokkolás: ' + raw + ' csillag → visszaállítva ' + maxWanted + ' csillagra (MaxWantedLevel=' + maxWanted + ')';
+        } else {
+            currentWanted = raw;
+            updateStars();
+            out.textContent = '★ Wanted szint: ' + currentWanted + ' csillag (engedélyezett – MaxWantedLevel=' + maxWanted + ')';
+        }
+    }
+
+    function demoToggle() {
+        blockEnabled = !blockEnabled;
+        updateStatus();
+        const out = document.getElementById('demo-output');
+        if (blockEnabled) {
+            currentWanted = Math.min(currentWanted, maxWanted);
+            updateStars();
+            out.textContent = '▶ exports["fvg-neverwanted"]:SetEnabled(true) – Blokkolás visszakapcsolva.';
+        } else {
+            out.textContent = '■ exports["fvg-neverwanted"]:SetEnabled(false) – Blokkolás kikapcsolás (pl. mission esemény).';
+        }
+    }
+
+    function demoSetMax(level) {
+        maxWanted = level;
+        if (blockEnabled && currentWanted > maxWanted) {
+            currentWanted = maxWanted;
+            updateStars();
+        }
+        document.getElementById('demo-output').textContent =
+            '★ exports["fvg-neverwanted"]:SetMaxWantedLevel(' + level + ') – Max wanted: ' + level + ' csillag.';
+    }
+
+    function demoReset() {
+        blockEnabled  = true;
+        maxWanted     = 0;
+        currentWanted = 0;
+        updateStars();
+        updateStatus();
+        document.getElementById('demo-output').textContent = '↺ Reset – alapállapot visszaállítva.';
+    }
+
+    updateStars();
+    updateStatus();
+</script>
+</body>
+</html>
