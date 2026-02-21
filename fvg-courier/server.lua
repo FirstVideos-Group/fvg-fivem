@@ -54,9 +54,6 @@ local function Notify(src, msg, ntype, title)
     })
 end
 
--- FIX: GetPlayerData(src, 'job') használata GetPlayer helyett
--- GetPlayer rekurzív loop-ot okozhat bizonyos FiveM event kontextusokban.
--- GetPlayerData csak egy mezőt olvas a cache-ből, biztonságos.
 local function HasJob(src)
     local ok, job = pcall(function()
         return exports['fvg-playercore']:GetPlayerData(src, 'job')
@@ -65,7 +62,6 @@ local function HasJob(src)
     return job == Config.RequiredJob
 end
 
--- Teljes player objektum bizőnságos lekérése (EnsureStats-hoz)
 local function SafeGetPlayer(src)
     local ok, player = pcall(function()
         return exports['fvg-playercore']:GetPlayer(src)
@@ -107,7 +103,6 @@ local function PickRandomSpots(n)
     return result
 end
 
--- Lokális leaderboard lekérő – nem hív exportot, nincs rekurzió
 local function FetchLeaderboard(limit)
     limit = math.min(tonumber(limit) or 10, 50)
     local rows = exports['fvg-database']:Query(
@@ -122,13 +117,10 @@ local function FetchLeaderboard(limit)
     return rows or {}
 end
 
--- Ha playerStats[src] nil (pl. resource restart), DB-ből tölti be
 local function EnsureStats(src)
     if playerStats[src] then return playerStats[src] end
-
     local player = SafeGetPlayer(src)
     if not player then return nil end
-
     local row = exports['fvg-database']:QuerySingle(
         'SELECT * FROM `fvg_courier_stats` WHERE `player_id` = ?',
         { player.id }
@@ -221,6 +213,69 @@ local function AddXP(src, amount)
     end
 end
 
+-- ── Kör indítás – lokális függvény, NEM hív TriggerEvent-et ───────────
+-- FIX: a korábbi AddEventHandler + RegisterNetEvent páros egymást hívta
+-- TriggerEvent-en át, ami végtelen thread rekurziót okozott.
+-- Megoldás: a logika itt van, mindenki ezt hívja közvetlenül.
+local function DoStartRun(src)
+    if not HasJob(src) then return end
+    if activeRuns[src] then
+        Notify(src, 'Már van aktív köröd!', 'warning')
+        return
+    end
+
+    local stats = EnsureStats(src)
+    if not stats then
+        Notify(src, 'Nem sikerült betölteni az adataidat. Próbáld újra.', 'error')
+        return
+    end
+
+    local spots   = PickRandomSpots(Config.PackagesPerRun)
+    local runId   = GenRunId()
+    local lvlData = GetLevelData(stats.xp)
+
+    local dbId = exports['fvg-database']:Insert(
+        'INSERT INTO `fvg_courier_deliveries` (`player_id`,`run_id`,`spots_total`) VALUES (?,?,?)',
+        { stats.player_id, runId, #spots }
+    )
+
+    activeRuns[src] = {
+        runId       = runId,
+        dbId        = dbId,
+        spots       = spots,
+        currentIdx  = 1,
+        totalReward = 0,
+        isPerfect   = true,
+        rewardMult  = lvlData.rewardMult,
+        startedAt   = os.time(),
+    }
+
+    if Config.UseInventoryPackages then
+        for i = 1, #spots do
+            exports['fvg-inventory']:AddItem(src, Config.PackageItem, 1)
+        end
+    end
+
+    TriggerClientEvent('fvg-courier:client:RunStarted', src, {
+        runId       = runId,
+        spots       = spots,
+        currentIdx  = 1,
+        timeLimit   = Config.DeliveryTimeLimit,
+        totalReward = 0,
+    })
+
+    if Config.UseDispatch then
+        TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, {
+            type     = 'all',
+            priority = 1,
+            title    = 'Futár kör indult',
+            message  = GetPlayerName(src) .. ' kézbesítési kört kezdett (' .. #spots .. ' csomag)',
+        })
+    end
+
+    Notify(src, 'Kör indítva! ' .. #spots .. ' csomag vár kézbesítésre.', 'success', '📦 Futár kör')
+end
+
 -- ══════════════════════════════════════════════════════════
 --  EXPORTOK
 -- ══════════════════════════════════════════════════════════
@@ -237,8 +292,9 @@ exports('GetLeaderboard', function(limit)
     return FetchLeaderboard(limit)
 end)
 
+-- FIX: DoStartRun direkt hívás, nem TriggerEvent – nincs rekurzió
 exports('ForceStartDelivery', function(src)
-    TriggerEvent('fvg-courier:server:StartRun', tonumber(src))
+    DoStartRun(tonumber(src))
 end)
 
 exports('CancelDelivery', function(src)
@@ -287,67 +343,9 @@ RegisterNetEvent('fvg-courier:server:RequestPanel', function()
     })
 end)
 
-AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
-    local src = srcOverride or source
-    if not HasJob(src) then return end
-    if activeRuns[src] then
-        Notify(src, 'Már van aktív köröd!', 'warning'); return
-    end
-
-    local stats = EnsureStats(src)
-    if not stats then
-        Notify(src, 'Nem sikerült betölteni az adataidat. Próbáld újra.', 'error')
-        return
-    end
-
-    local spots   = PickRandomSpots(Config.PackagesPerRun)
-    local runId   = GenRunId()
-    local lvlData = GetLevelData(stats.xp)
-
-    local dbId = exports['fvg-database']:Insert(
-        'INSERT INTO `fvg_courier_deliveries` (`player_id`,`run_id`,`spots_total`) VALUES (?,?,?)',
-        { stats.player_id, runId, #spots }
-    )
-
-    activeRuns[src] = {
-        runId      = runId,
-        dbId       = dbId,
-        spots      = spots,
-        currentIdx = 1,
-        totalReward= 0,
-        isPerfect  = true,
-        rewardMult = lvlData.rewardMult,
-        startedAt  = os.time(),
-    }
-
-    if Config.UseInventoryPackages then
-        for i = 1, #spots do
-            exports['fvg-inventory']:AddItem(src, Config.PackageItem, 1)
-        end
-    end
-
-    TriggerClientEvent('fvg-courier:client:RunStarted', src, {
-        runId      = runId,
-        spots      = spots,
-        currentIdx = 1,
-        timeLimit  = Config.DeliveryTimeLimit,
-        totalReward= 0,
-    })
-
-    if Config.UseDispatch then
-        TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, {
-            type     = 'all',
-            priority = 1,
-            title    = 'Futár kör indult',
-            message  = GetPlayerName(src) .. ' kézbesítési kört kezdett (' .. #spots .. ' csomag)',
-        })
-    end
-
-    Notify(src, 'Kör indítva! ' .. #spots .. ' csomag vár kézbesítésre.', 'success', '📦 Futár kör')
-end)
-
+-- FIX: mind a kettő DoStartRun-t hív közvetlenül, nem egymást
 RegisterNetEvent('fvg-courier:server:StartRun', function()
-    TriggerEvent('fvg-courier:server:StartRun', source)
+    DoStartRun(source)
 end)
 
 RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, deliveryTime)
@@ -392,12 +390,12 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
     if hasNext then
         run.currentIdx = nextIdx
         TriggerClientEvent('fvg-courier:client:PackageDelivered', src, {
-            spotIdx    = spotIdx,
-            reward     = reward,
-            bonuses    = bonuses,
-            nextIdx    = nextIdx,
-            nextSpot   = run.spots[nextIdx],
-            totalReward= run.totalReward,
+            spotIdx     = spotIdx,
+            reward      = reward,
+            bonuses     = bonuses,
+            nextIdx     = nextIdx,
+            nextSpot    = run.spots[nextIdx],
+            totalReward = run.totalReward,
         })
     else
         local totalReward = run.totalReward
@@ -438,6 +436,8 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
             levelData   = GetLevelData(stats.xp),
         })
 
+        -- FIX: szerver-oldali esemény megtartva (más resourceok hallgathatják),
+        -- de a courier maga NEM hallgatja AddEventHandler-rel – nincs rekurzió
         TriggerEvent('fvg-courier:server:RunCompleted', src, totalReward, run.isPerfect)
         activeRuns[src] = nil
     end
@@ -474,6 +474,7 @@ RegisterNetEvent('fvg-courier:server:RunTimeout', function()
 
     activeRuns[src] = nil
     Notify(src, 'Kör lejárt! Részleges jutalom: $' .. run.totalReward, 'error', '⏱️ Időtúllépés')
+    -- FIX: RunTimedOut esemény megtartva, de a courier nem hallgatja – nincs rekurzió
     TriggerEvent('fvg-courier:server:RunTimedOut', src)
 end)
 
