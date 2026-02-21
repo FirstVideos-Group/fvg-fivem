@@ -1,0 +1,141 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none;
+}
+
+.hidden { display: none !important; }
+
+/* ── HUD pozíciók ─────────────────────────────────────────── */
+.hud {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9998;
+    min-width: 200px;
+    max-width: 280px;
+}
+.pos-top-left     { top: 24px;    left: 24px; }
+.pos-top-right    { top: 24px;    right: 24px; }
+.pos-bottom-left  { bottom: 80px; left: 24px; }
+.pos-bottom-right { bottom: 80px; right: 24px; }
+
+/* ── Kód badge ─────────────────────────────────────────────── */
+.code-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(15, 17, 22, 0.88);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    pointer-events: all;
+    animation: badgeIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes badgeIn {
+    from { opacity:0; transform: translateY(-6px); }
+    to   { opacity:1; transform: translateY(0); }
+}
+.code-badge i {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.code-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+#code-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: 0.5px;
+}
+.code-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── BOLO kártyák ───────────────────────────────────────────── */
+.bolo-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(168,85,247,0.1);
+    border: 1px solid rgba(168,85,247,0.25);
+    border-radius: 8px;
+    animation: badgeIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+.bolo-card i { font-size: 16px; color: #a855f7; flex-shrink:0; margin-top:2px; }
+.bolo-card .bolo-info { display:flex; flex-direction:column; gap:2px; }
+.bolo-plate {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 1px;
+}
+.bolo-desc {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+}
+
+/* ── Signal 100 sáv ─────────────────────────────────────────── */
+.signal100-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #fff;
+    animation: signal100Pulse 1.2s ease-in-out infinite;
+}
+.signal100-bar i { font-size: 16px; color: #fff; }
+@keyframes signal100Pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
+}
+
+/* ── Beérkező kód toast ───────────────────────────────────── */
+.incoming-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    background: rgba(15,17,22,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    max-width: 320px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.incoming-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.incoming-toast i { font-size: 22px; flex-shrink:0; }
+.toast-body { display:flex; flex-direction:column; gap:2px; }
+#toast-label { font-size:13px; font-weight:700; color:#f1f5f9; }
+#toast-sub   { font-size:11px; color:rgba(255,255,255,0.5); }

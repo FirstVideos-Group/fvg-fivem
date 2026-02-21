@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-emergency</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HUD panel -->
+<div id="emergency-hud" class="hud hidden pos-top-left">
+
+    <!-- Aktív kód jelző -->
+    <div id="code-badge" class="code-badge hidden">
+        <i id="code-icon" class="hgi-stroke hgi-shield-check"></i>
+        <div class="code-info">
+            <span id="code-label">Code 4</span>
+            <span id="code-note" class="code-note"></span>
+        </div>
+    </div>
+
+    <!-- BOLO lista -->
+    <div id="bolo-list"></div>
+
+    <!-- Signal 100 sáv -->
+    <div id="signal100-bar" class="signal100-bar hidden">
+        <i class="hgi-stroke hgi-radio-02"></i>
+        <span>SIGNAL 100 – ÜZEMZÁR</span>
+    </div>
+
+</div>
+
+<!-- Beérkező kód értesítés (jobb felső sarok) -->
+<div id="incoming-toast" class="incoming-toast hidden">
+    <i id="toast-icon" class="hgi-stroke hgi-alert-circle"></i>
+    <div class="toast-body">
+        <span id="toast-label"></span>
+        <span id="toast-sub"></span>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

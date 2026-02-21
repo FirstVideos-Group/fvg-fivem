@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-emergency – Dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <style>
+        :root {
+            --bg:#0f1117; --surface:#181c27; --border:rgba(255,255,255,0.08);
+            --accent:#6366f1; --red:#ef4444; --green:#22c55e;
+            --yellow:#f59e0b; --purple:#a855f7; --blue:#3b82f6;
+            --text:#e2e8f0; --muted:rgba(255,255,255,0.45); --radius:12px;
+            --mono:'JetBrains Mono','Fira Code',monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.7;}
+        .container{max-width:940px;margin:0 auto;padding:48px 24px;}
+        h1{font-size:2rem;font-weight:800;margin-bottom:6px;}
+        h1 span{color:var(--accent);}
+        .tagline{color:var(--muted);margin-bottom:40px;font-size:.95rem;}
+        h2{font-size:1.15rem;font-weight:700;margin:40px 0 14px;padding-bottom:8px;
+           border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+        h2 i{color:var(--accent);font-size:1.1rem;}
+        p{color:rgba(255,255,255,.72);margin-bottom:12px;}
+        code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;
+             font-family:var(--mono);font-size:.82em;color:#93c5fd;}
+        pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+            padding:20px 24px;overflow-x:auto;margin:14px 0 24px;}
+        pre code{background:none;padding:0;color:#e2e8f0;font-size:.84rem;line-height:1.8;}
+        .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.72rem;
+               font-weight:700;letter-spacing:.5px;vertical-align:middle;margin-left:8px;}
+        .badge-server{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+        .badge-client{background:rgba(96,165,250,.18);color:#93c5fd;border:1px solid rgba(96,165,250,.3);}
+        .badge-event {background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);}
+        .badge-cmd   {background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.3);}
+        table{width:100%;border-collapse:collapse;margin:14px 0 24px;}
+        th{text-align:left;padding:10px 14px;background:var(--surface);color:var(--muted);
+           font-size:.78rem;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+        td{padding:10px 14px;border-bottom:1px solid var(--border);color:rgba(255,255,255,.75);font-size:.88rem;}
+        tr:last-child td{border-bottom:none;}
+        .code-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
+        .code-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;
+                   border-radius:20px;font-size:.82rem;font-weight:700;border:1px solid;}
+        .demo-box{background:var(--surface);border:1px solid var(--border);
+                  border-radius:var(--radius);padding:24px;margin:16px 0 24px;}
+        .demo-output{background:#0a0c12;border:1px solid var(--border);border-radius:8px;
+                     padding:14px 18px;font-family:var(--mono);font-size:.82rem;
+                     color:#4ade80;margin-top:14px;min-height:44px;line-height:1.7;}
+        button{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
+               border-radius:8px;border:1px solid var(--border);
+               background:rgba(255,255,255,.07);color:var(--text);font-size:.85rem;
+               cursor:pointer;margin:4px 4px 4px 0;transition:background .2s,transform .15s;}
+        button:hover{background:rgba(255,255,255,.13);transform:translateY(-1px);}
+        button:active{transform:translateY(0);}
+        button i{font-size:15px;}
+        /* mini HUD preview */
+        .hud-preview{position:relative;height:220px;background:#0a0c12;
+                     border:1px solid var(--border);border-radius:var(--radius);
+                     overflow:hidden;margin:16px 0 24px;}
+        .hud-code-badge{
+            position:absolute;top:16px;left:16px;
+            display:flex;align-items:center;gap:10px;
+            padding:10px 14px;
+            background:rgba(15,17,22,.9);border:1px solid rgba(255,255,255,.08);
+            border-radius:10px;min-width:170px;
+        }
+        .hud-code-badge i{font-size:22px;}
+        .hud-code-info{display:flex;flex-direction:column;gap:2px;}
+        .hud-code-label{font-size:13px;font-weight:700;}
+        .hud-code-note{font-size:11px;color:rgba(255,255,255,.4);}
+        .hud-bolo{
+            position:absolute;top:74px;left:16px;
+            display:flex;align-items:center;gap:8px;
+            padding:7px 12px;
+            background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);
+            border-radius:8px;min-width:170px;
+        }
+        .hud-bolo i{font-size:15px;color:#a855f7;}
+        .hud-bolo-text{font-size:12px;font-weight:700;color:#e2e8f0;}
+        .hud-signal{
+            position:absolute;bottom:16px;left:16px;right:16px;
+            display:flex;align-items:center;gap:8px;
+            padding:8px 14px;
+            background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.25);
+            border-radius:8px;font-size:12px;font-weight:800;letter-spacing:1.5px;color:#fff;
+        }
+        .hud-signal i{font-size:15px;}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1><span>fvg</span>-emergency</h1>
+    <p class="tagline">Közszolgálati hívókód rendszer – Code 1–4, BOLO, Signal 100 – rendőrség, tűzoltóság, EMS</p>
+
+    <!-- Hívókódok -->
+    <h2><i class="hgi-stroke hgi-police"></i> Hívókódok</h2>
+    <table>
+        <tr><th>Kód</th><th>Szín</th><th>Leírás</th></tr>
+        <tr><td><code>code1</code></td><td><span style="color:#22c55e;">&#9632; Code 1</span></td><td>Normál menetsebessség, sziréna nélkül</td></tr>
+        <tr><td><code>code2</code></td><td><span style="color:#f59e0b;">&#9632; Code 2</span></td><td>Sürgett menetel, fények be – sziréna opcionális</td></tr>
+        <tr><td><code>code3</code></td><td><span style="color:#ef4444;">&#9632; Code 3</span></td><td>Teljes vészhelyzet – sziréna és fények kötelező</td></tr>
+        <tr><td><code>code4</code></td><td><span style="color:#3b82f6;">&#9632; Code 4</span></td><td>Helyzet biztosítva, nincs szükség segítségre</td></tr>
+        <tr><td><code>bolo</code></td><td><span style="color:#a855f7;">&#9632; BOLO</span></td><td>Be On Look Out – körözés kiadva</td></tr>
+        <tr><td><code>signal100</code></td><td><span style="color:#fff;">&#9632; Signal 100</span></td><td>Üzemzár – minden egység visszavonul</td></tr>
+    </table>
+
+    <!-- HUD előnézet -->
+    <h2><i class="hgi-stroke hgi-dashboard-square-01"></i> HUD előnézet</h2>
+    <div class="hud-preview">
+        <div class="hud-code-badge" id="preview-badge">
+            <i class="hgi-stroke hgi-alert-circle" style="color:#ef4444;"></i>
+            <div class="hud-code-info">
+                <span class="hud-code-label" style="color:#ef4444;">Code 3</span>
+                <span class="hud-code-note">Menetel a helyszínre</span>
+            </div>
+        </div>
+        <div class="hud-bolo" id="preview-bolo">
+            <i class="hgi-stroke hgi-search-02"></i>
+            <span class="hud-bolo-text">BOLO #1 – ABC-123</span>
+        </div>
+        <div class="hud-signal" id="preview-signal" style="display:none;">
+            <i class="hgi-stroke hgi-radio-02"></i>
+            SIGNAL 100 – ÜZEMZÁR
+        </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;">
+        <button onclick="previewCode('code1','#22c55e','hgi-stroke hgi-checkmark-circle-02','Code 1')"><i class="hgi-stroke hgi-checkmark-circle-02" style="color:#22c55e;"></i> Code 1</button>
+        <button onclick="previewCode('code2','#f59e0b','hgi-stroke hgi-alert-02','Code 2')"><i class="hgi-stroke hgi-alert-02" style="color:#f59e0b;"></i> Code 2</button>
+        <button onclick="previewCode('code3','#ef4444','hgi-stroke hgi-alert-circle','Code 3')"><i class="hgi-stroke hgi-alert-circle" style="color:#ef4444;"></i> Code 3</button>
+        <button onclick="previewCode('code4','#3b82f6','hgi-stroke hgi-shield-check','Code 4')"><i class="hgi-stroke hgi-shield-check" style="color:#3b82f6;"></i> Code 4</button>
+        <button onclick="toggleSignal100()"><i class="hgi-stroke hgi-radio-02"></i> Signal 100</button>
+        <button onclick="resetPreview()"><i class="hgi-stroke hgi-refresh"></i> Reset</button>
+    </div>
+
+    <!-- Parancsok -->
+    <h2><i class="hgi-stroke hgi-command"></i> Chat parancsok <span class="badge badge-cmd">COMMANDS</span></h2>
+    <table>
+        <tr><th>Parancs</th><th>Példa</th><th>Leírás</th></tr>
+        <tr><td><code>/code [kód] [megjegyzés]</code></td><td><code>/code code3 Menetel</code></td><td>Hívókód beállítása</td></tr>
+        <tr><td><code>/clearcode</code></td><td>–</td><td>Aktív kód törlése</td></tr>
+        <tr><td><code>/bolo [rend.szám] [leírás]</code></td><td><code>/bolo ABC-123 Piros BMW</code></td><td>BOLO kiadása</td></tr>
+        <tr><td><code>/clearbolo [id]</code></td><td><code>/clearbolo 3</code></td><td>BOLO visszavonása</td></tr>
+        <tr><td><code>/signal100 on|off</code></td><td><code>/signal100 on</code></td><td>Üzemzár ki- vagy bekapcsolása</td></tr>
+    </table>
+
+    <!-- Szerver exportok -->
+    <h2><i class="hgi-stroke hgi-code"></i> Szerver exportok <span class="badge badge-server">SERVER</span></h2>
+    <table>
+        <tr><th>Export</th><th>Paraméter</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr><td><code>GetActiveCode(src)</code></td><td>src: number</td><td>table|nil</td><td>Játékos aktív kódja</td></tr>
+        <tr><td><code>GetAllActiveCodes()</code></td><td>–</td><td>table</td><td>Összes egység aktív kódjai</td></tr>
+        <tr><td><code>SetCode(src, code, note)</code></td><td>src, code, note</td><td>boolean</td><td>Kód kényszerítése (rendszer)</td></tr>
+        <tr><td><code>ClearCode(src)</code></td><td>src: number</td><td>boolean</td><td>Kód törlése</td></tr>
+        <tr><td><code>IsSignal100()</code></td><td>–</td><td>boolean</td><td>Signal 100 aktív-e</td></tr>
+        <tr><td><code>GetActiveBOLOs()</code></td><td>–</td><td>table</td><td>Összes aktív BOLO lista</td></tr>
+        <tr><td><code>IssueBOLO(plate, desc, by)</code></td><td>plate, desc, by: string</td><td>number (id)</td><td>BOLO kiadás (rendszer)</td></tr>
+        <tr><td><code>ClearBOLO(id)</code></td><td>id: number</td><td>boolean</td><td>BOLO visszavonás (rendszer)</td></tr>
+    </table>
+
+    <!-- Kliens exportok -->
+    <h2><i class="hgi-stroke hgi-code"></i> Kliens exportok <span class="badge badge-client">CLIENT</span></h2>
+    <table>
+        <tr><th>Export</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr><td><code>GetCurrentCode()</code></td><td>table|nil</td><td>Helyi játékos aktív kódja</td></tr>
+        <tr><td><code>IsAuthorized()</code></td><td>boolean</td><td>Jogosult-e az egység a rendszer használatára</td></tr>
+        <tr><td><code>SetCodeLocal(data)</code></td><td>–</td><td>HUD kód frissítése helyben (szerver bypass nélkül)</td></tr>
+    </table>
+
+    <!-- Esemény hook-ok -->
+    <h2><i class="hgi-stroke hgi-notification-02"></i> Esemény hook-ok <span class="badge badge-event">EVENTS</span></h2>
+    <table>
+        <tr><th>Esemény</th><th>Oldal</th><th>Paraméterek</th></tr>
+        <tr><td><code>fvg-emergency:server:CodeSet</code></td><td>Server</td><td>src, code, note</td></tr>
+        <tr><td><code>fvg-emergency:server:CodeCleared</code></td><td>Server</td><td>src</td></tr>
+        <tr><td><code>fvg-emergency:server:BOLOIssued</code></td><td>Server</td><td>id, data</td></tr>
+        <tr><td><code>fvg-emergency:server:BOLOCleared</code></td><td>Server</td><td>id</td></tr>
+        <tr><td><code>fvg-emergency:server:Signal100Changed</code></td><td>Server</td><td>active, src</td></tr>
+        <tr><td><code>fvg-emergency:client:CodeChanged</code></td><td>Client</td><td>data|nil</td></tr>
+    </table>
+
+    <!-- Integrációk -->
+    <h2><i class="hgi-stroke hgi-plug-socket"></i> Integrációk</h2>
+    <table>
+        <tr><th>Script</th><th>Hogyan</th></tr>
+        <tr><td><code>fvg-playercore</code></td><td>Job-alapon ellenőrzi a jogosultságot; job váltáskor automatikusan frissíti</td></tr>
+        <tr><td><code>fvg-notify</code></td><td>Beérkező kódok, BOLO és Signal 100 értesítések automatikusan megjelennek</td></tr>
+        <tr><td><code>fvg-neverwanted</code></td><td>Code 3 aktív alatt <code>SetEnabled(true)</code> hívással biztosítja a wanted törlést</td></tr>
+    </table>
+
+    <!-- Példa kódok -->
+    <h2><i class="hgi-stroke hgi-code-circle"></i> Példa – más scriptből</h2>
+    <pre><code>-- Ellenőrzés: van-e aktív Code 3
+local codeData = exports['fvg-emergency']:GetActiveCode(src)
+if codeData and codeData.code == 'code3' then
+    -- sebeség limit feloldása stb.
+end
+
+-- BOLO kiadás rendszerből (pl. bűnügyi script)
+local boloId = exports['fvg-emergency']:IssueBOLO('XYZ-789', 'Fekete SUV, fegyveres', 'system')
+
+-- Signal 100 figyelés
+AddEventHandler('fvg-emergency:server:Signal100Changed', function(active, src)
+    if active then
+        -- zárjuk le a kaszinót stb.
+    end
+end)
+
+-- Kliens: aktív kód más UI-ban
+local code = exports['fvg-emergency']:GetCurrentCode()
+if code then
+    print('Aktív kód: ' .. code.label)
+end</code></pre>
+
+    <!-- Interaktív demo -->
+    <h2><i class="hgi-stroke hgi-test-tube"></i> Interaktív demo</h2>
+    <div class="demo-box">
+        <p style="margin-bottom:14px;">Szimulálja a hívókód rendszer működését:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button onclick="demoSetCode('code1','#22c55e','Code 1','Normál menetel')"><i class="hgi-stroke hgi-checkmark-circle-02" style="color:#22c55e;"></i>Code 1</button>
+            <button onclick="demoSetCode('code2','#f59e0b','Code 2','Fények be')"><i class="hgi-stroke hgi-alert-02" style="color:#f59e0b;"></i>Code 2</button>
+            <button onclick="demoSetCode('code3','#ef4444','Code 3','Teljes vészhelyzet')"><i class="hgi-stroke hgi-alert-circle" style="color:#ef4444;"></i>Code 3</button>
+            <button onclick="demoSetCode('code4','#3b82f6','Code 4','Biztosítva')"><i class="hgi-stroke hgi-shield-check" style="color:#3b82f6;"></i>Code 4</button>
+            <button onclick="demoBOLO()"><i class="hgi-stroke hgi-search-02" style="color:#a855f7;"></i>BOLO kiad</button>
+            <button onclick="demoClearBOLO()"><i class="hgi-stroke hgi-cancel-circle"></i>BOLO töröl</button>
+            <button onclick="demoSignal()"><i class="hgi-stroke hgi-radio-02"></i>Signal 100</button>
+            <button onclick="demoClear()"><i class="hgi-stroke hgi-refresh"></i>Clear</button>
+        </div>
+        <div class="demo-output" id="demo-out">Nyomj egy gombot...</div>
+    </div>
+
+</div>
+
+<script>
+    let signal100On = false;
+    let boloCount   = 0;
+
+    function previewCode(code, color, icon, label) {
+        const badge = document.getElementById('preview-badge');
+        badge.querySelector('i').className = icon;
+        badge.querySelector('i').style.color = color;
+        badge.querySelector('.hud-code-label').textContent = label;
+        badge.querySelector('.hud-code-label').style.color = color;
+    }
+    function toggleSignal100() {
+        const sig = document.getElementById('preview-signal');
+        sig.style.display = sig.style.display === 'none' ? 'flex' : 'none';
+    }
+    function resetPreview() {
+        previewCode('code3','#ef4444','hgi-stroke hgi-alert-circle','Code 3');
+        document.getElementById('preview-signal').style.display = 'none';
+    }
+
+    function out(msg) {
+        document.getElementById('demo-out').innerHTML += msg + '<br>';
+    }
+    function demoSetCode(code, color, label, note) {
+        out('<span style="color:'+color+'">▶ SetCode: ' + label + ' – ' + note + '</span>');
+    }
+    function demoBOLO() {
+        boloCount++;
+        out('🔍 BOLO #' + boloCount + ' kiadva – ABC-' + (100+boloCount) + ' – Gúnymó jármű');
+    }
+    function demoClearBOLO() {
+        if (boloCount < 1) { out('⚠ Nincs aktív BOLO'); return; }
+        out('✓ BOLO #' + boloCount + ' visszavonva'); boloCount--;
+    }
+    function demoSignal() {
+        signal100On = !signal100On;
+        out(signal100On
+            ? '<span style="color:#fff">⚠ SIGNAL 100 – ÜZEMZÁR!</span>'
+            : '✓ Signal 100 megszüntetve');
+    }
+    function demoClear() {
+        document.getElementById('demo-out').textContent = 'Nyomj egy gombot...';
+        boloCount = 0; signal100On = false;
+    }
+</script>
+</body>
+</html>
