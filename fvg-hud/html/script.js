@@ -104,7 +104,12 @@ window.addEventListener('message', function(e) {
         case 'registerModule':
             if (!moduleEls[d.id]) createModuleEl(d.id);
             if (d.position) setPosition(d.position);
-            if (!d.enabled) {
+
+            // Ha enabled, akkor rögtön jelenítsük meg egy alapértékkel,
+            // különben hidden marad, amíg nem jön updateModule.
+            if (d.enabled) {
+                updateModule(d.id, 100, true);
+            } else {
                 const el = moduleEls[d.id];
                 if (el) el.classList.add('hidden');
             }
