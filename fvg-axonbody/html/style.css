@@ -1,0 +1,276 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden; background: transparent;
+    font-family: 'Share Tech Mono', 'JetBrains Mono', 'Courier New', monospace;
+    pointer-events: none;
+    user-select: none;
+}
+.hidden { opacity: 0 !important; pointer-events: none !important; }
+
+/* ── Root ─────────────────────────────────────────────────────── */
+.bodycam-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9800;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: opacity 0.3s ease;
+}
+
+/* ── Scanlines ────────────────────────────────────────────────── */
+.scanlines {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.00) 0px,
+        rgba(0,0,0,0.00) 2px,
+        rgba(0,0,0,0.055) 2px,
+        rgba(0,0,0,0.055) 4px
+    );
+    animation: scanShift 10s linear infinite;
+}
+@keyframes scanShift {
+    from { background-position: 0 0; }
+    to   { background-position: 0 60px; }
+}
+
+/* ── Vignette ─────────────────────────────────────────────────── */
+.vignette {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 42%,
+        rgba(0,0,0,0.72) 100%
+    );
+}
+
+/* ── Fisheye illúzió (oldalsó fekete csíkok) ──────────────────── */
+.fisheye-bars {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    border-radius: 0;
+    box-shadow:
+        inset 28px  0  35px -18px rgba(0,0,0,0.45),
+        inset -28px 0  35px -18px rgba(0,0,0,0.45),
+        inset 0  22px  28px -14px rgba(0,0,0,0.30),
+        inset 0 -22px  28px -14px rgba(0,0,0,0.30);
+}
+
+/* ── Noise (kamera zaj) ───────────────────────────────────────── */
+.bodycam-root::after {
+    content: '';
+    position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    animation: noiseAnim 0.12s steps(2) infinite;
+}
+@keyframes noiseAnim {
+    0%   { transform: translate(0,0); }
+    25%  { transform: translate(-1px, 1px); }
+    50%  { transform: translate(1px,-1px); }
+    75%  { transform: translate(1px, 1px); }
+    100% { transform: translate(0,0); }
+}
+
+/* ── Sarokjelek ───────────────────────────────────────────────── */
+.corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    z-index: 12;
+}
+.corner.tl { top:10px;    left:10px;  border-top:2px solid rgba(255,255,255,0.45); border-left:2px solid rgba(255,255,255,0.45); }
+.corner.tr { top:10px;    right:10px; border-top:2px solid rgba(255,255,255,0.45); border-right:2px solid rgba(255,255,255,0.45); }
+.corner.bl { bottom:10px; left:10px;  border-bottom:2px solid rgba(255,255,255,0.45); border-left:2px solid rgba(255,255,255,0.45); }
+.corner.br { bottom:10px; right:10px; border-bottom:2px solid rgba(255,255,255,0.45); border-right:2px solid rgba(255,255,255,0.45); }
+
+/* ── Felső sáv ────────────────────────────────────────────────── */
+.hud-top {
+    position: relative; z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 18px 10px;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.78) 0%,
+        rgba(0,0,0,0.00) 100%
+    );
+}
+
+/* Logo */
+.axon-logo {
+    display: flex; align-items: center; gap: 5px;
+}
+.axon-logo i { font-size: 16px; color: #38bdf8; }
+.axon-brand {
+    font-size: 15px; font-weight: 900;
+    letter-spacing: 3px; color: #fff;
+    text-shadow: 0 0 12px rgba(56,189,248,0.55);
+}
+.axon-model {
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.45);
+    padding-top: 5px;
+}
+
+/* REC */
+.rec-row {
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 5px;
+}
+.rec-dot {
+    width: 8px; height: 8px;
+    background: #ef4444; border-radius: 50%;
+    box-shadow: 0 0 7px rgba(239,68,68,0.9);
+    animation: recBlink 0.8s ease-in-out infinite;
+}
+.rec-text {
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 2.5px; color: #ef4444;
+}
+@keyframes recBlink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.1; }
+}
+
+/* Járőr neve + egység (közép) */
+.top-center {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    flex: 1; padding: 0 20px;
+}
+.officer-name {
+    font-size: 15px; font-weight: 900;
+    letter-spacing: 2px; color: #fff;
+    text-shadow: 0 0 14px rgba(56,189,248,0.45);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.officer-meta {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+}
+
+/* Idő + dátum + akksi (jobb) */
+.top-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 3px;
+}
+.battery-row {
+    display: flex; align-items: center; gap: 5px;
+    margin-bottom: 2px;
+}
+.batt-icon {
+    font-size: 13px;
+    color: #22c55e;
+    transition: color 0.5s;
+}
+.batt-icon.low   { color: #f59e0b; }
+.batt-icon.crit  { color: #ef4444;
+    animation: battBlink 1s ease-in-out infinite;
+}
+@keyframes battBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.batt-pct {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; color: rgba(255,255,255,0.6);
+}
+.time-val {
+    font-size: 20px; font-weight: 900;
+    letter-spacing: 2px; color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+.date-val {
+    font-size: 10px; letter-spacing: 1px;
+    color: rgba(255,255,255,0.5);
+}
+
+/* ── Alsó sáv ─────────────────────────────────────────────────── */
+.hud-bottom {
+    position: relative; z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 8px 18px 38px;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.72) 0%,
+        rgba(0,0,0,0.00) 100%
+    );
+}
+
+/* GPS (bal) */
+.bottom-left {}
+.info-row { display: flex; align-items: center; gap: 6px; }
+.info-icon { font-size: 12px; color: rgba(255,255,255,0.4); }
+.info-lbl {
+    font-size: 8px; letter-spacing: 2px;
+    color: rgba(255,255,255,0.38); width: 28px;
+}
+.info-val {
+    font-size: 12px; font-weight: 700;
+    color: #fff; letter-spacing: 1px;
+}
+
+/* EVD (közép) */
+.bottom-center {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1px;
+}
+.evd-label {
+    font-size: 18px; font-weight: 900;
+    letter-spacing: 5px; color: rgba(255,255,255,0.85);
+    text-shadow: 0 0 12px rgba(255,255,255,0.2);
+}
+.evd-sub {
+    font-size: 7px; letter-spacing: 3px;
+    color: rgba(255,255,255,0.3);
+}
+
+/* Serial (jobb) */
+.serial {
+    font-size: 9px; letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+}
+
+/* ── Crosshair ────────────────────────────────────────────────── */
+.crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5; pointer-events: none;
+}
+.ch-h {
+    position: absolute; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width: 18px; height: 1px;
+    background: rgba(255,255,255,0.12);
+}
+.ch-v {
+    position: absolute; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width: 1px; height: 18px;
+    background: rgba(255,255,255,0.12);
+}
+
+/* ── Axon időbélyeg csík ──────────────────────────────────────── */
+.timestamp-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 11;
+    background: rgba(0,0,0,0.62);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 4px 18px;
+    display: flex; align-items: center;
+}
+.ts-inner {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.38);
+    font-weight: 700;
+    text-transform: uppercase;
+}

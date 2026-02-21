@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-axonbody</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="bodycam-root" class="bodycam-root hidden">
+
+    <!-- Háttér effektek -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="fisheye-bars"></div>
+
+    <!-- Sarokjelek -->
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- ── Felső sáv ── -->
+    <div class="hud-top">
+
+        <!-- Bal: AXON logo + REC -->
+        <div class="top-left">
+            <div class="axon-logo">
+                <i class="hgi-stroke hgi-camera-video-01"></i>
+                <span class="axon-brand">AXON</span>
+                <span class="axon-model">BODY</span>
+            </div>
+            <div class="rec-row">
+                <span class="rec-dot" id="rec-dot"></span>
+                <span class="rec-text">REC</span>
+            </div>
+        </div>
+
+        <!-- Közép: járőr neve + egység -->
+        <div class="top-center">
+            <span class="officer-name" id="officer-name">—</span>
+            <span class="officer-meta" id="officer-meta">—</span>
+        </div>
+
+        <!-- Jobb: idő + dátum + akksi -->
+        <div class="top-right">
+            <div class="battery-row" id="battery-row">
+                <i class="hgi-stroke hgi-battery-full-01 batt-icon" id="batt-icon"></i>
+                <span class="batt-pct" id="batt-pct">87%</span>
+            </div>
+            <span class="time-val" id="time-val">00:00:00</span>
+            <span class="date-val" id="date-val">0000-00-00</span>
+        </div>
+
+    </div>
+
+    <!-- ── Alsó sáv ── -->
+    <div class="hud-bottom">
+
+        <!-- Bal: GPS -->
+        <div class="bottom-left">
+            <div class="info-row">
+                <i class="hgi-stroke hgi-maps-location-01 info-icon"></i>
+                <span class="info-lbl">GPS</span>
+                <span class="info-val" id="gps-val">— / —</span>
+            </div>
+        </div>
+
+        <!-- Közép: EVD felirat (Evidence) -->
+        <div class="bottom-center">
+            <span class="evd-label">EVD</span>
+            <span class="evd-sub">EVIDENCE</span>
+        </div>
+
+        <!-- Jobb: serial -->
+        <div class="bottom-right">
+            <span class="serial">BWC-FVG-001</span>
+        </div>
+
+    </div>
+
+    <!-- Középső crosshair – nagyon halvány -->
+    <div class="crosshair">
+        <div class="ch-h"></div>
+        <div class="ch-v"></div>
+    </div>
+
+    <!-- Axon jellegű időbélyeg csík (alul középen) -->
+    <div class="timestamp-bar">
+        <span class="ts-inner" id="ts-inner">AXON · BWC · 00:00:00 · 0000-00-00</span>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

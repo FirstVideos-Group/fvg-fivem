@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-axonbody – Dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <style>
+        :root {
+            --bg:#0f1117; --surface:#181c27; --border:rgba(255,255,255,0.08);
+            --accent:#38bdf8; --red:#ef4444; --green:#22c55e;
+            --text:#e2e8f0; --muted:rgba(255,255,255,0.45); --radius:12px;
+            --mono:'JetBrains Mono','Fira Code',monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.7;}
+        .container{max-width:940px;margin:0 auto;padding:48px 24px;}
+        h1{font-size:2rem;font-weight:800;margin-bottom:6px;}
+        h1 span{color:var(--accent);}
+        .tagline{color:var(--muted);margin-bottom:40px;font-size:.95rem;}
+        h2{font-size:1.15rem;font-weight:700;margin:40px 0 14px;padding-bottom:8px;
+           border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+        h2 i{color:var(--accent);}
+        p{color:rgba(255,255,255,.72);margin-bottom:12px;}
+        code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;
+             font-family:var(--mono);font-size:.82em;color:#93c5fd;}
+        pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+            padding:20px 24px;overflow-x:auto;margin:14px 0 24px;}
+        pre code{background:none;padding:0;color:#e2e8f0;font-size:.84rem;line-height:1.8;}
+        .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.72rem;
+               font-weight:700;letter-spacing:.5px;vertical-align:middle;margin-left:8px;}
+        .badge-client{background:rgba(96,165,250,.18);color:#93c5fd;border:1px solid rgba(96,165,250,.3);}
+        .badge-config{background:rgba(250,204,21,.15);color:#fde047;border:1px solid rgba(250,204,21,.25);}
+        .badge-event {background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);}
+        table{width:100%;border-collapse:collapse;margin:14px 0 24px;}
+        th{text-align:left;padding:10px 14px;background:var(--surface);color:var(--muted);
+           font-size:.78rem;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+        td{padding:10px 14px;border-bottom:1px solid var(--border);color:rgba(255,255,255,.75);font-size:.88rem;}
+        tr:last-child td{border-bottom:none;}
+        .demo-box{background:var(--surface);border:1px solid var(--border);
+                  border-radius:var(--radius);padding:24px;margin:16px 0 24px;}
+        .demo-output{background:#0a0c12;border:1px solid var(--border);border-radius:8px;
+                     padding:14px 18px;font-family:var(--mono);font-size:.82rem;
+                     color:#4ade80;margin-top:14px;min-height:44px;line-height:1.8;}
+        button{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
+               border-radius:8px;border:1px solid var(--border);
+               background:rgba(255,255,255,.07);color:var(--text);font-size:.85rem;
+               cursor:pointer;margin:4px 4px 4px 0;transition:background .2s,transform .15s;}
+        button:hover{background:rgba(255,255,255,.13);transform:translateY(-1px);}
+
+        /* ── Kamera előnézet ── */
+        .cam-wrap {
+            position: relative; width: 100%; padding-top: 56.25%;
+            background: #0d1018; border-radius: var(--radius);
+            overflow: hidden; border: 1px solid var(--border);
+            margin: 16px 0 28px;
+        }
+        .cam-inner {
+            position: absolute; inset: 0;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg,#141820 0%,#0a0c12 100%);
+        }
+        .p-scan {
+            position:absolute;inset:0;pointer-events:none;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px,
+                rgba(0,0,0,0.065) 2px, rgba(0,0,0,0.065) 4px
+            );
+        }
+        .p-vig {
+            position:absolute;inset:0;pointer-events:none;
+            background: radial-gradient(ellipse at center,transparent 42%,rgba(0,0,0,0.75) 100%);
+        }
+        .p-fish {
+            position:absolute;inset:0;pointer-events:none;
+            box-shadow:
+                inset 22px 0 28px -14px rgba(0,0,0,0.5),
+                inset -22px 0 28px -14px rgba(0,0,0,0.5),
+                inset 0 16px 22px -10px rgba(0,0,0,0.35),
+                inset 0 -16px 22px -10px rgba(0,0,0,0.35);
+        }
+        .p-corn { position:absolute; width:14px; height:14px; z-index:10; }
+        .p-corn.tl{top:8px;left:8px;border-top:2px solid rgba(255,255,255,0.4);border-left:2px solid rgba(255,255,255,0.4);}
+        .p-corn.tr{top:8px;right:8px;border-top:2px solid rgba(255,255,255,0.4);border-right:2px solid rgba(255,255,255,0.4);}
+        .p-corn.bl{bottom:22px;left:8px;border-bottom:2px solid rgba(255,255,255,0.4);border-left:2px solid rgba(255,255,255,0.4);}
+        .p-corn.br{bottom:22px;right:8px;border-bottom:2px solid rgba(255,255,255,0.4);border-right:2px solid rgba(255,255,255,0.4);}
+        /* top bar */
+        .p-top {
+            position:absolute;top:0;left:0;right:0;z-index:9;
+            display:flex;justify-content:space-between;align-items:flex-start;
+            padding:8px 12px 7px;
+            background:linear-gradient(to bottom,rgba(0,0,0,0.8) 0%,transparent 100%);
+        }
+        .p-logo{display:flex;align-items:center;gap:4px;}
+        .p-logo i{font-size:13px;color:#38bdf8;}
+        .p-brand{font-size:12px;font-weight:900;letter-spacing:3px;color:#fff;}
+        .p-model{font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.4);padding-top:3px;}
+        .p-rec{display:flex;align-items:center;gap:4px;margin-top:4px;}
+        .p-rdot{width:6px;height:6px;background:#ef4444;border-radius:50%;box-shadow:0 0 5px #ef4444;animation:rb .8s infinite;}
+        @keyframes rb{0%,100%{opacity:1}50%{opacity:0.1}}
+        .p-rlbl{font-size:8px;font-weight:800;letter-spacing:2px;color:#ef4444;}
+        .p-center{flex:1;text-align:center;padding:0 12px;}
+        .p-oname{font-size:11px;font-weight:900;letter-spacing:2px;color:#fff;display:block;text-shadow:0 0 10px rgba(56,189,248,0.4);}
+        .p-ometa{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.45);display:block;margin-top:2px;}
+        .p-right{text-align:right;}
+        .p-brow{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-bottom:2px;}
+        .p-bico{font-size:11px;color:#22c55e;}
+        .p-bpct{font-size:8px;color:rgba(255,255,255,0.55);}
+        .p-time{font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;display:block;}
+        .p-date{font-size:8px;letter-spacing:1px;color:rgba(255,255,255,0.48);display:block;margin-top:2px;}
+        /* bottom bar */
+        .p-bot {
+            position:absolute;bottom:16px;left:0;right:0;z-index:9;
+            display:flex;justify-content:space-between;align-items:flex-end;
+            padding:6px 12px;
+            background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%);
+        }
+        .p-gpsrow{display:flex;align-items:center;gap:4px;}
+        .p-gico{font-size:10px;color:rgba(255,255,255,0.38);}
+        .p-glbl{font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.35);width:22px;}
+        .p-gval{font-size:10px;font-weight:700;color:#fff;letter-spacing:1px;}
+        .p-evd{text-align:center;}
+        .p-evdl{font-size:14px;font-weight:900;letter-spacing:5px;color:rgba(255,255,255,0.8);display:block;}
+        .p-evds{font-size:6px;letter-spacing:3px;color:rgba(255,255,255,0.28);}
+        .p-serial{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.28);text-align:right;}
+        /* timestamp csík */
+        .p-tsbar {
+            position:absolute;bottom:0;left:0;right:0;z-index:11;
+            background:rgba(0,0,0,0.65);
+            border-top:1px solid rgba(255,255,255,0.06);
+            padding:3px 12px;
+        }
+        .p-tsinner{font-size:7px;letter-spacing:2px;color:rgba(255,255,255,0.35);font-weight:700;}
+        /* crosshair */
+        .p-ch{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;}
+        .p-chh{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:1px;background:rgba(255,255,255,0.1);}
+        .p-chv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:16px;background:rgba(255,255,255,0.1);}
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1><span>fvg</span>-axonbody</h1>
+    <p class="tagline">Axon Body 3/4 stílusú testikamera overlay · csak rendőrök · valós idő és dátum · járőr neve + egység · GPS</p>
+
+    <!-- Előnézet -->
+    <h2><i class="hgi-stroke hgi-camera-video-01"></i> Kamera előnézet</h2>
+    <div class="cam-wrap">
+        <div class="cam-inner">
+            <div class="p-scan"></div>
+            <div class="p-vig"></div>
+            <div class="p-fish"></div>
+            <div class="p-corn tl"></div><div class="p-corn tr"></div>
+            <div class="p-corn bl"></div><div class="p-corn br"></div>
+            <!-- Top -->
+            <div class="p-top">
+                <div>
+                    <div class="p-logo">
+                        <i class="hgi-stroke hgi-camera-video-01"></i>
+                        <span class="p-brand">AXON</span>
+                        <span class="p-model">BODY</span>
+                    </div>
+                    <div class="p-rec">
+                        <span class="p-rdot"></span>
+                        <span class="p-rlbl">REC</span>
+                    </div>
+                </div>
+                <div class="p-center">
+                    <span class="p-oname" id="doc-name">KISS PÉTER</span>
+                    <span class="p-ometa" id="doc-meta">ALPHA-4 · EGYSÉG: CHARLIE-2</span>
+                </div>
+                <div class="p-right">
+                    <div class="p-brow">
+                        <i class="hgi-stroke hgi-battery-full-01 p-bico" id="doc-bico"></i>
+                        <span class="p-bpct" id="doc-bpct">87%</span>
+                    </div>
+                    <span class="p-time" id="doc-time">00:00:00</span>
+                    <span class="p-date" id="doc-date">2026-02-21</span>
+                </div>
+            </div>
+            <!-- Bottom -->
+            <div class="p-bot">
+                <div class="p-gpsrow">
+                    <i class="hgi-stroke hgi-maps-location-01 p-gico"></i>
+                    <span class="p-glbl">GPS</span>
+                    <span class="p-gval" id="doc-gps">219 / -810</span>
+                </div>
+                <div class="p-evd">
+                    <span class="p-evdl">EVD</span>
+                    <span class="p-evds">EVIDENCE</span>
+                </div>
+                <div class="p-serial">BWC-FVG-001</div>
+            </div>
+            <!-- Timestamp -->
+            <div class="p-tsbar">
+                <span class="p-tsinner" id="doc-ts">AXON · BWC · 00:00:00 · 2026-02-21 · ALPHA-4</span>
+            </div>
+            <!-- Crosshair -->
+            <div class="p-ch"><div class="p-chh"></div><div class="p-chv"></div></div>
+        </div>
+    </div>
+
+    <!-- Összehasonlítás dashcammel -->
+    <h2><i class="hgi-stroke hgi-compare"></i> BodyCam vs DashCam</h2>
+    <table>
+        <tr><th>Tulajdonság</th><th>fvg-axonbody</th><th>fvg-axondash</th></tr>
+        <tr><td>Parancs</td><td><code>/bodycam</code></td><td><code>/dashcam</code></td></tr>
+        <tr><td>Jármű szükséges</td><td>Nem</td><td>Igen (emergency model)</td></tr>
+        <tr><td>Megjelenít</td><td>Járőr neve, callsign, egység, GPS</td><td>Egységszám, sebesség, GPS, játékidő</td></tr>
+        <tr><td>Játékbeli idő</td><td>Nem</td><td>Igen</td></tr>
+        <tr><td>Valós idő</td><td>Igen</td><td>Igen</td></tr>
+        <tr><td>Fisheye hatás</td><td>Igen (inset box-shadow)</td><td>Nem</td></tr>
+        <tr><td>Akkumulátor</td><td>Igen (szimulált)</td><td>Nem</td></tr>
+        <tr><td>Auto-stop</td><td>Halálkor</td><td>Jármű elhagyásakor</td></tr>
+    </table>
+
+    <!-- Aktiválás -->
+    <h2><i class="hgi-stroke hgi-terminal"></i> Aktiválás</h2>
+    <p>A bodycam a <code>/bodycam</code> paranccsal kapcsolható be és ki. Nincs jármű-feltétel – gyalog is használható. Két feltétel kell:</p>
+    <table>
+        <tr><th>Feltétel</th><th>Ellenőrzés</th></tr>
+        <tr><td>Jogosult job</td><td><code>Config.AuthorizedJobs</code> lista</td></tr>
+        <tr><td>Job megváltozik</td><td><code>DataUpdated</code> → automatikus leállás ha kikerül a listából</td></tr>
+        <tr><td>Halál</td><td><code>IsEntityDead(ped)</code> → auto stop (<code>StopOnDeath = true</code>)</td></tr>
+    </table>
+
+    <!-- Overlay elemek -->
+    <h2><i class="hgi-stroke hgi-layers-01"></i> Overlay elemek</h2>
+    <table>
+        <tr><th>Elem</th><th>Forrás</th><th>Pozíció</th></tr>
+        <tr><td>AXON BODY logó + REC</td><td>Statikus + CSS animáció</td><td>Bal felső</td></tr>
+        <tr><td>Járőr neve</td><td><code>fvg-playercore</code> firstname+lastname</td><td>Felső közép</td></tr>
+        <tr><td>Callsign + egység</td><td><code>fvg-police:GetOfficer()</code></td><td>Felső közép (sub)</td></tr>
+        <tr><td>Akkumulátor</td><td>Szimulált, <code>BatteryDrainSec</code> alapján</td><td>Jobb felső</td></tr>
+        <tr><td>Valós idő (ÓÓ:PP:MP)</td><td>JS <code>Date()</code>, 500ms</td><td>Jobb felső</td></tr>
+        <tr><td>Valós dátum</td><td>JS <code>Date()</code></td><td>Jobb felső</td></tr>
+        <tr><td>GPS koordináta</td><td><code>GetEntityCoords</code>, 500ms</td><td>Bal alsó</td></tr>
+        <tr><td>EVD / EVIDENCE</td><td>Statikus</td><td>Alsó közép</td></tr>
+        <tr><td>Sorozatszám</td><td>Statikus (BWC-FVG-001)</td><td>Jobb alsó</td></tr>
+        <tr><td>Timestamp csík</td><td>JS ticker + callsign</td><td>Legalsó sáv</td></tr>
+    </table>
+
+    <!-- Kamera effektek -->
+    <h2><i class="hgi-stroke hgi-image-01"></i> Kamera effektek</h2>
+    <table>
+        <tr><th>Effekt</th><th>Megvalósítás</th></tr>
+        <tr><td>Timecycle modifier</td><td><code>camera_security_BORED</code>, 35% erő (enyhébb mint dashcam)</td></tr>
+        <tr><td>Scanline csíkok</td><td>CSS <code>repeating-linear-gradient</code> + <code>scanShift</code> animáció</td></tr>
+        <tr><td>Vignette</td><td>CSS <code>radial-gradient</code> – erősebb mint dashcam (42% átmenet)</td></tr>
+        <tr><td>Fisheye illúzió</td><td>4 irányú <code>inset box-shadow</code> – szélesebb látószög érzet</td></tr>
+        <tr><td>Kamera zaj</td><td>SVG <code>feTurbulence</code> + 0.12s <code>steps(2)</code> animáció</td></tr>
+        <tr><td>Sarokjelek</td><td>4 × CSS <code>.corner</code> div</td></tr>
+        <tr><td>Crosshair</td><td>2 × 1px vonal (halvány, 12% opacitás)</td></tr>
+    </table>
+
+    <!-- Konfiguráció -->
+    <h2><i class="hgi-stroke hgi-settings-01"></i> Konfiguráció <span class="badge badge-config">config.lua</span></h2>
+    <table>
+        <tr><th>Kulcs</th><th>Alapértéke</th><th>Leírás</th></tr>
+        <tr><td><code>AuthorizedJobs</code></td><td>police, sheriff…</td><td>Jogosult job-ok</td></tr>
+        <tr><td><code>Command</code></td><td>'bodycam'</td><td>Chat parancs neve</td></tr>
+        <tr><td><code>StopOnDeath</code></td><td>true</td><td>Auto leállás halálakor</td></tr>
+        <tr><td><code>SyncState</code></td><td>true</td><td>Szerver-oldali állapot szinkron</td></tr>
+        <tr><td><code>BatteryStart</code></td><td>87</td><td>Kezdeti akkumulátor %</td></tr>
+        <tr><td><code>BatteryDrainSec</code></td><td>120</td><td>Másodpercek 1% csökkentéshez</td></tr>
+        <tr><td><code>TimecycleStrength</code></td><td>0.35</td><td>Effekt erőssége (0.0–1.0)</td></tr>
+        <tr><td><code>ShowOfficer</code></td><td>true</td><td>Járőr neve megjelenítése</td></tr>
+        <tr><td><code>ShowUnit</code></td><td>true</td><td>Egységszám megjelenítése</td></tr>
+    </table>
+
+    <!-- Kliens exportok -->
+    <h2><i class="hgi-stroke hgi-code"></i> Kliens exportok <span class="badge badge-client">CLIENT</span></h2>
+    <table>
+        <tr><th>Export</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr><td><code>IsActive()</code></td><td>boolean</td><td>A bodycam aktív-e jelenleg</td></tr>
+        <tr><td><code>ForceStart()</code></td><td>–</td><td>Kamera erőltetett indítása</td></tr>
+        <tr><td><code>ForceStop()</code></td><td>–</td><td>Kamera erőltetett leállítása</td></tr>
+        <tr><td><code>GetOfficerName()</code></td><td>string</td><td>Aktuális járőr teljes neve</td></tr>
+        <tr><td><code>GetCallsign()</code></td><td>string</td><td>Callsign / egységszám</td></tr>
+        <tr><td><code>GetBatteryLevel()</code></td><td>number</td><td>Aktuális akkumulátor szint (%)</td></tr>
+    </table>
+
+    <!-- Esemény hook-ok -->
+    <h2><i class="hgi-stroke hgi-notification-02"></i> Esemény hook-ok <span class="badge badge-event">EVENTS</span></h2>
+    <table>
+        <tr><th>Esemény</th><th>Oldal</th><th>Leírás</th></tr>
+        <tr><td><code>fvg-axonbody:client:Stop</code></td><td>Client</td><td>Kamera leállítása külső triggerből</td></tr>
+        <tr><td><code>fvg-axonbody:server:SyncState</code></td><td>Server</td><td>Állapot szinkron más scriptek számára</td></tr>
+    </table>
+
+    <!-- Integrációk -->
+    <h2><i class="hgi-stroke hgi-plug-socket"></i> Integrációk</h2>
+    <table>
+        <tr><th>Script</th><th>Hogyan</th></tr>
+        <tr><td><code>fvg-police</code></td><td>Callsign + egység: <code>exports['fvg-police']:GetOfficer(PlayerId())</code></td></tr>
+        <tr><td><code>fvg-playercore</code></td><td>Név, job: <code>PlayerLoaded</code> + <code>DataUpdated</code> event</td></tr>
+        <tr><td><code>fvg-notify</code></td><td>Be/ki értesítések szerver oldalon</td></tr>
+    </table>
+
+    <!-- Példa kódok -->
+    <h2><i class="hgi-stroke hgi-code-circle"></i> Példa – más scriptből</h2>
+    <pre><code>-- BodyCam állapot lekérdezése (pl. MDT log)
+local active = exports['fvg-axonbody']:IsActive()
+
+-- Járőr neve és callsign-je
+local name = exports['fvg-axonbody']:GetOfficerName()   -- 'Kiss Péter'
+local cs   = exports['fvg-axonbody']:GetCallsign()       -- 'ALPHA-4'
+
+-- Akkumulátor szint figyelése
+local batt = exports['fvg-axonbody']:GetBatteryLevel()   -- 87
+
+-- Kamera leállítása letartóztatáskor
+TriggerEvent('fvg-axonbody:client:Stop')
+
+-- Külső leállítás exporttal
+exports['fvg-axonbody']:ForceStop()</code></pre>
+
+    <!-- server.cfg -->
+    <h2><i class="hgi-stroke hgi-terminal"></i> server.cfg sorrend</h2>
+    <pre><code>ensure fvg-playercore
+ensure fvg-police
+ensure fvg-notify
+ensure fvg-axondash     ; opcionális, de ajánlott egyszerre
+ensure fvg-axonbody</code></pre>
+
+    <!-- Demo -->
+    <h2><i class="hgi-stroke hgi-test-tube"></i> Interaktív demo</h2>
+    <div class="demo-box">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button onclick="demoToggle()"><i class="hgi-stroke hgi-camera-video-01" style="color:#38bdf8"></i>Kamera toggle</button>
+            <button onclick="demoOfficer('NAGY GÁBOR','BRAVO-2','DELTA-1')"><i class="hgi-stroke hgi-user-shield-01"></i>Nagy Gábor / Bravo-2</button>
+            <button onclick="demoBattery(12)"><i class="hgi-stroke hgi-battery-empty-01" style="color:#ef4444"></i>Akksi kritikus (12%)</button>
+            <button onclick="demoGPS('428 / -984')"><i class="hgi-stroke hgi-maps-location-01"></i>GPS: MRPD</button>
+            <button onclick="demoReset()"><i class="hgi-stroke hgi-refresh"></i>Reset</button>
+        </div>
+        <div class="demo-output" id="demo-out">Nyomj egy gombot...</div>
+    </div>
+
+</div>
+
+<script>
+    let camOn = false;
+    function out(m) { document.getElementById('demo-out').innerHTML = m; }
+
+    // Élő idő az előnézetben
+    setInterval(() => {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const s = String(now.getSeconds()).padStart(2,'0');
+        const tStr = `${h}:${m}:${s}`;
+        const dStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const t = document.getElementById('doc-time'); if(t) t.textContent = tStr;
+        const d = document.getElementById('doc-date'); if(d) d.textContent = dStr;
+        const ts = document.getElementById('doc-ts');
+        if(ts) ts.textContent = `AXON · BWC · ${tStr} · ${dStr} · ALPHA-4`;
+    }, 500);
+
+    function demoToggle() {
+        camOn = !camOn;
+        out(camOn
+            ? '📹 <b>BodyCam AKTÍV</b> – <code>IsActive()</code> → <b>true</b>'
+            : '⏹ <b>BodyCam LEÁLLT</b> – <code>IsActive()</code> → <b>false</b>'
+        );
+    }
+    function demoOfficer(name, cs, unit) {
+        document.getElementById('doc-name').textContent = name;
+        document.getElementById('doc-meta').textContent = cs + ' · EGYSÉG: ' + unit;
+        out(`👮 <b>${name}</b> | Callsign: <b>${cs}</b> | Egység: <b>${unit}</b>`);
+    }
+    function demoBattery(v) {
+        const bi = document.getElementById('doc-bico');
+        const bp = document.getElementById('doc-bpct');
+        if(bp) bp.textContent = v + '%';
+        if(bi) {
+            bi.style.color = v <= 15 ? '#ef4444' : v <= 35 ? '#f59e0b' : '#22c55e';
+        }
+        out(`🔋 Akkumulátor: <b style="color:${v<=15?'#ef4444':v<=35?'#f59e0b':'#22c55e'}">${v}%</b> – <code>GetBatteryLevel()</code> → ${v}`);
+    }
+    function demoGPS(gps) {
+        const g = document.getElementById('doc-gps'); if(g) g.textContent = gps;
+        out(`📍 GPS frissítve: <b>${gps}</b>`);
+    }
+    function demoReset() {
+        camOn = false;
+        document.getElementById('doc-name').textContent = 'KISS PÉTER';
+        document.getElementById('doc-meta').textContent = 'ALPHA-4 · EGYSÉG: CHARLIE-2';
+        document.getElementById('doc-gps').textContent  = '219 / -810';
+        demoBattery(87);
+        out('Reset kész.');
+    }
+</script>
+</body>
+</html>
