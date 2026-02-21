@@ -13,7 +13,7 @@ DisplayRadar(true)
 
 -- ── Modul regisztrátor ──────────────────────────────────────
 -- Minden modules/*.lua fájl ezt hívja meg
-local function RegisterModule(id, tickFn)
+function RegisterModule(id, tickFn)
     if _moduleIndex[id] then return end
 
     local cfg = Config.Modules[id]
