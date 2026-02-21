@@ -2,13 +2,13 @@
 -- ║       fvg-playercore :: server               ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Szerver oldali játékos objektum cache ─────────────────────
+-- ── Szerver oldali játékos objektum cache ────────────────────────
 -- [serverId] = { id, identifier, name, firstname, lastname,
 --                metadata, loaded, source }
 local Players = {}
 local _pending = {}
 
--- ── Segédfüggvények ──────────────────────────────────────────
+-- ── Segédfüggvények ────────────────────────────────────────────
 
 local function GetIdentifier(src)
     for i = 0, GetNumPlayerIdentifiers(src) - 1 do
@@ -17,7 +17,6 @@ local function GetIdentifier(src)
             return id
         end
     end
-    -- Fallback: bármilyen license
     for i = 0, GetNumPlayerIdentifiers(src) - 1 do
         local id = GetPlayerIdentifier(src, i)
         if string.find(id, 'license:', 1, true) then
@@ -42,7 +41,7 @@ local function Notify(src, msg, ntype)
     })
 end
 
--- ── Exportok ─────────────────────────────────────────────────
+-- ── Exportok ───────────────────────────────────────────────────
 
 -- Szerver oldali játékos objektum lekérdezése
 exports('GetPlayer', function(src)
@@ -101,6 +100,22 @@ exports('KickPlayer', function(src, reason)
     DropPlayer(tonumber(src), reason or 'Kirúgtak a szerverről.')
 end)
 
+-- Azonnali mentes egy adott játékosnak (metadata változás után hívandó)
+-- Hasznos pl. job váltáskor, hogy ne kelljen az AutoSave-re várni
+exports('SavePlayerNow', function(src)
+    local p = Players[tonumber(src)]
+    if not p or not p.loaded then return false end
+    exports['fvg-database']:SavePlayer(tonumber(src), {
+        firstname = p.firstname,
+        lastname  = p.lastname,
+        sex       = p.sex,
+        dob       = p.dob,
+        phone     = p.phone,
+        metadata  = p.metadata
+    })
+    return true
+end)
+
 -- Összes játékos mentése (pl. szerver leállításkor)
 exports('SaveAllPlayers', function()
     local count = 0
@@ -118,9 +133,9 @@ exports('SaveAllPlayers', function()
     return count
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  CSATLAKOZÁS KEZELÉS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     local src = source
@@ -128,7 +143,7 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     deferrals.defer()
     Wait(0)
 
-    -- ── 1. Azonosító ellenőrzés ────────────────────────────
+    -- ── 1. Azonosító ellenőrzés ────────────────────────────────
     deferrals.update(Config.ConnectMessages.checking)
 
     local identifier = GetIdentifier(src)
@@ -137,7 +152,7 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
         return
     end
 
-    -- ── 2. Adatbázis lekérdezés / létrehozás ──────────────
+    -- ── 2. Adatbázis lekérdezés / létrehozás ──────────────────────
     deferrals.update(Config.ConnectMessages.loading)
     Wait(0)
 
@@ -153,7 +168,7 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
         return
     end
 
-    -- ── 3. Átmeneti belépési adat tárolása ─────────────────
+    -- ── 3. Átmeneti belépési adat tárolása ────────────────────────
     -- A végleges Players bejegyzés csak spawn után jön létre
     _pending[identifier] = {
         id          = result.id,
@@ -173,9 +188,9 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     deferrals.done()
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  SPAWN KEZELÉS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 -- Kliens jelzi hogy készen áll a spawn adatok fogadására
 RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
@@ -190,7 +205,6 @@ RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
     -- Pending-ből áthozzuk a Players-be a valódi src-vel
     local p = _pending[identifier]
     if not p then
-        -- Hátha már Players-ben van (pl. resource restart)
         p = Players[src]
     end
 
@@ -232,7 +246,6 @@ RegisterNetEvent('fvg-playercore:server:PlayerReady', function()
 
     p.loaded = true
 
-    -- Üdvözlő értesítés
     local msg = p.isNew
         and Config.Locale.welcome_new
         or  Config.Locale.welcome_back
@@ -240,15 +253,14 @@ RegisterNetEvent('fvg-playercore:server:PlayerReady', function()
     Wait(1000)
     Notify(src, msg, p.isNew and 'success' or 'info')
 
-    -- Más scriptek értesítése
     TriggerEvent('fvg-playercore:server:PlayerLoaded', src, p)
     print(string.format('[fvg-playercore] Játékos betöltve: %s %s (ID: %d, src: %d)',
         p.firstname, p.lastname, p.id, src))
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  POZÍCIÓ MENTÉS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-playercore:server:SavePosition', function(pos)
     local src = source
@@ -264,21 +276,19 @@ RegisterNetEvent('fvg-playercore:server:SavePosition', function(pos)
     }
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  KILÉPÉS KEZELÉS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 AddEventHandler('playerDropped', function(reason)
     local src        = source
     local identifier = GetIdentifier(src)
 
-    -- Pending tisztítás (ha még nem spawnolt)
     if identifier then _pending[identifier] = nil end
 
     local p = Players[src]
     if not p then return end
 
-    -- Mentés ha már be volt töltve
     if p.loaded then
         exports['fvg-database']:SavePlayer(src, {
             firstname = p.firstname,
@@ -293,15 +303,14 @@ AddEventHandler('playerDropped', function(reason)
             p.name, src, reason))
     end
 
-    -- Más scriptek értesítése
     TriggerEvent('fvg-playercore:server:PlayerUnloaded', src, p)
 
     Players[src] = nil
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  AUTOMATIKUS MENTÉS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 CreateThread(function()
     while true do
@@ -323,9 +332,9 @@ CreateThread(function()
     end
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  SZERVER LEÁLLÁS
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end

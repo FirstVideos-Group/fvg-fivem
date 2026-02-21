@@ -5,8 +5,6 @@
 -- ── Migráció ───────────────────────────────────────────
 CreateThread(function()
     Wait(200)
-
-    -- JAVÍTÁS: TIMESTAMP DEFAULT NULL → DATETIME (MySQL strict mód kompatibilitás)
     exports['fvg-database']:RegisterMigration('fvg_unemployment', [[
         CREATE TABLE IF NOT EXISTS `fvg_unemployment` (
             `player_id`      INT        NOT NULL,
@@ -42,7 +40,6 @@ CreateThread(function()
 end)
 
 -- ── Cache ─────────────────────────────────────────────────
--- [src] = { eligible, claims_used, last_claim, tasks_done={} }
 local unemploymentData = {}
 
 -- ── Segédfüggvények ───────────────────────────────────────────
@@ -54,14 +51,11 @@ local function Notify(src, msg, ntype)
     })
 end
 
--- JAVÍTÁS: player.job → player.metadata.job (job a metadata JSON-ben van)
 local function IsUnemployedPlayer(src)
     local player = exports['fvg-playercore']:GetPlayer(src)
     return player and player.metadata and player.metadata.job == Config.BenefitEligibleJob
 end
 
--- JAVÍTÁS: SQL-alapú lekérdezés helyett online játékos cache-ből számolunk
--- (a job a metadata JSON-ben van, nem önálló oszlopban az fvg_players táblában)
 local function GetCurrentSlotCount(jobId)
     local count = 0
     for _, src in ipairs(GetPlayers()) do
@@ -80,7 +74,6 @@ end
 
 -- ── Betöltés ───────────────────────────────────────────────
 AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
-    -- Csak munkanélkülieknek töltünk be adatot, de cachelunk mindenkinél
     local row = exports['fvg-database']:QuerySingle(
         'SELECT * FROM `fvg_unemployment` WHERE `player_id` = ?',
         { player.id }
@@ -101,7 +94,6 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
             tasks_done  = tasksDone,
         }
     else
-        -- Első belépés: insertálás
         exports['fvg-database']:Insert(
             'INSERT INTO `fvg_unemployment` (`player_id`) VALUES (?)',
             { player.id }
@@ -131,10 +123,8 @@ local function CanClaim(src)
     if not IsUnemployedPlayer(src) then return false, 'ineligible' end
     if data.claims_used >= Config.BenefitMaxClaims then return false, 'maxed' end
 
-    -- Cooldown ellenőrzés
     if data.last_claim then
-        local lastTs  = 0
-        -- last_claim string 'YYYY-MM-DD HH:MM:SS' formátum
+        local lastTs = 0
         local y, mo, d, h, mi, s = string.match(tostring(data.last_claim), '(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)')
         if y then
             lastTs = os.time({ year=tonumber(y), month=tonumber(mo), day=tonumber(d),
@@ -143,8 +133,8 @@ local function CanClaim(src)
         local elapsed = os.time() - lastTs
         if elapsed < Config.BenefitCooldown then
             local remaining = Config.BenefitCooldown - elapsed
-            local mins      = math.floor(remaining / 60)
-            local secs      = remaining % 60
+            local mins = math.floor(remaining / 60)
+            local secs = remaining % 60
             return false, string.format('%d:%02d', mins, secs)
         end
     end
@@ -178,7 +168,7 @@ exports('SetBenefitEligible', function(src, state)
 end)
 
 exports('ClaimBenefit', function(src)
-    local s   = tonumber(src)
+    local s = tonumber(src)
     local ok, err = CanClaim(s)
     if not ok then
         if err == 'ineligible' then
@@ -195,14 +185,12 @@ exports('ClaimBenefit', function(src)
     data.claims_used = data.claims_used + 1
     data.last_claim  = os.date('%Y-%m-%d %H:%M:%S')
 
-    -- Pénz juttatás
     if Config.UseBankingForBenefit then
         exports['fvg-banking']:AddBalance(s, Config.BenefitAmount)
     else
         exports['fvg-playercore']:AddCash(s, Config.BenefitAmount)
     end
 
-    -- DB frissítés
     exports['fvg-database']:Execute(
         'UPDATE `fvg_unemployment` SET `claims_used`=?, `last_claim`=NOW() WHERE `player_id`=?',
         { data.claims_used, data.player_id }
@@ -215,17 +203,16 @@ exports('ClaimBenefit', function(src)
 end)
 
 exports('GetAvailableJobs', function(src)
-    local s       = tonumber(src)
-    local result  = {}
-    local identity= exports['fvg-identity']:GetPlayerIdentity(s)
-    local age     = identity and identity.age or 0
+    local s        = tonumber(src)
+    local result   = {}
+    local identity = exports['fvg-identity']:GetPlayerIdentity(s)
+    local age      = identity and identity.age or 0
 
     for _, job in ipairs(Config.Jobs) do
         if job.open then
             local currentSlots = job.slots > 0 and GetCurrentSlotCount(job.id) or 0
             local isFull       = job.slots > 0 and currentSlots >= job.slots
 
-            -- Követelmény ellenőrzés
             local meetsReqs  = true
             local reqDetails = {}
             if job.requirements then
@@ -265,8 +252,10 @@ exports('ApplyForJob', function(src, jobId)
     local player = exports['fvg-playercore']:GetPlayer(s)
     if not player then return false end
 
-    -- JAVÍTÁS: player.job → player.metadata.job
-    if player.metadata and player.metadata.job ~= Config.BenefitEligibleJob then
+    -- Ellenőrzés: csak munkanélküli jelentkezhet
+    -- Ha nincs metadata vagy a job nem 'unemployed' → már van állása
+    local currentJob = player.metadata and player.metadata.job or Config.BenefitEligibleJob
+    if currentJob ~= Config.BenefitEligibleJob then
         Notify(s, Config.Notifications.job_already, 'warning')
         return false
     end
@@ -300,12 +289,14 @@ exports('ApplyForJob', function(src, jobId)
         end
     end
 
-    -- JAVÍTÁS: SetJob nem létezik a playercore-ban.
-    -- A job a metadata.job mezőben tárolódik → SetPlayerData használata,
-    -- majd JobChanged event kiváltása a többi script értesítéséhez.
-    local oldJob = player.metadata and player.metadata.job or Config.BenefitEligibleJob
+    -- Job beállítása a metadata-ban
     exports['fvg-playercore']:SetPlayerData(s, 'job', jobId)
-    TriggerEvent('fvg-playercore:server:JobChanged', s, jobId, oldJob)
+
+    -- Azonnali DB mentés, hogy kilépés/újraindulás után se veszzen el
+    exports['fvg-playercore']:SavePlayerNow(s)
+
+    -- Többi script értesítése a job változásról
+    TriggerEvent('fvg-playercore:server:JobChanged', s, jobId, currentJob)
 
     -- Segély adatok reset
     local data = unemploymentData[s]
@@ -335,7 +326,6 @@ end)
 --  NET EVENTS
 -- ═══════════════════════════════════════════════════════════════
 
--- Panel megnyitás kérés
 RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
     local src  = source
     local data = unemploymentData[src]
@@ -344,7 +334,6 @@ RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
     local jobs          = exports['fvg-unemployment']:GetAvailableJobs(src)
     local canClaim, err = CanClaim(src)
 
-    -- Cooldown másodperc visszaadása
     local cooldownLeft = 0
     if data.last_claim then
         local y, mo, d, h, mi, s = string.match(tostring(data.last_claim), '(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)')
@@ -369,17 +358,14 @@ RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
     })
 end)
 
--- Segély igénylés
 RegisterNetEvent('fvg-unemployment:server:ClaimBenefit', function()
     exports['fvg-unemployment']:ClaimBenefit(source)
 end)
 
--- Állásra jelentékezés
 RegisterNetEvent('fvg-unemployment:server:ApplyForJob', function(jobId)
     exports['fvg-unemployment']:ApplyForJob(source, jobId)
 end)
 
--- Napi feladat ellenőrzés
 RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
     local src  = source
     local data = unemploymentData[src]
@@ -392,20 +378,17 @@ RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
     if not taskDef then return end
 
     local tasks = data.tasks_done or {}
-    if tasks[taskId] then return end -- már megcsinálta
+    if tasks[taskId] then return end
 
     local completed = false
 
     if taskDef.type == 'inventory' and Config.UseInventoryTasks then
         local count = exports['fvg-inventory']:GetItemCount(src, taskDef.item)
         completed   = count >= taskDef.amount
-
     elseif taskDef.type == 'location' then
-        completed = true -- kliens oldalon triggerelve, ha ott van
-
+        completed = true
     elseif taskDef.type == 'cash' then
         local player = exports['fvg-playercore']:GetPlayer(src)
-        -- JAVÍTÁS: player.cash → player.metadata.cash
         completed    = player and (player.metadata and player.metadata.cash or 0) >= taskDef.amount
     end
 
@@ -418,7 +401,6 @@ RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
             { json.encode(tasks), data.player_id }
         )
 
-        -- Jutalom
         if Config.UseBankingForBenefit then
             exports['fvg-banking']:AddBalance(src, taskDef.reward)
         else
@@ -439,7 +421,6 @@ AddEventHandler('fvg-playercore:server:JobChanged', function(src, newJob, oldJob
     if not data then return end
 
     if newJob == Config.BenefitEligibleJob then
-        -- Kirúgte / visszaalltak munkanélkülinek
         data.eligible    = true
         data.claims_used = 0
         data.tasks_done  = {}
