@@ -2,11 +2,10 @@
 -- ║        fvg-inventory :: server               ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Migráció ─────────────────────────────────────────────────
+-- ── Migráció ──────────────────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
 
-    -- Játékos inventory tábla
     exports['fvg-database']:RegisterMigration('fvg_inventory', [[
         CREATE TABLE IF NOT EXISTS `fvg_inventory` (
             `id`         INT          NOT NULL AUTO_INCREMENT,
@@ -23,7 +22,6 @@ CreateThread(function()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
 
-    -- Stash tábla
     exports['fvg-database']:RegisterMigration('fvg_stashes', [[
         CREATE TABLE IF NOT EXISTS `fvg_stashes` (
             `id`         INT          NOT NULL AUTO_INCREMENT,
@@ -38,7 +36,6 @@ CreateThread(function()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
 
-    -- Drop tábla
     exports['fvg-database']:RegisterMigration('fvg_drops', [[
         CREATE TABLE IF NOT EXISTS `fvg_drops` (
             `id`         INT          NOT NULL AUTO_INCREMENT,
@@ -57,14 +54,11 @@ CreateThread(function()
     ]])
 end)
 
--- ── Szerver cache ─────────────────────────────────────────────
--- [src] = { [slot] = { item, amount, metadata } }
+-- ── Szerver cache ─────────────────────────────────────────────────────
 local inventories = {}
+local drops       = {}
 
--- Aktív dropok: { [dropId] = { item, amount, metadata, x, y, z, expires } }
-local drops = {}
-
--- ── Segédfüggvények ───────────────────────────────────────────
+-- ── Segédfüggvények ──────────────────────────────────────────────────
 
 local function GetItemDef(itemName)
     return Config.Items[itemName]
@@ -132,7 +126,7 @@ local function SyncInventory(src)
     })
 end
 
--- ── Betöltés ─────────────────────────────────────────────────
+-- ── Betöltés ───────────────────────────────────────────────────────────
 AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
     local rows = exports['fvg-database']:Query(
         'SELECT * FROM `fvg_inventory` WHERE `player_id` = ? ORDER BY `slot` ASC',
@@ -156,7 +150,7 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
     SyncInventory(src)
 end)
 
--- ── Mentés ────────────────────────────────────────────────────
+-- ── Mentés ──────────────────────────────────────────────────────────────
 local function SaveInventory(src)
     local player = exports['fvg-playercore']:GetPlayer(src)
     if not player or not inventories[src] then return end
@@ -179,9 +173,9 @@ AddEventHandler('fvg-playercore:server:PlayerUnloaded', function(src, _)
     inventories[src] = nil
 end)
 
--- ═════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 --  SZERVER EXPORT LOGIKA
--- ═════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 
 local function ServerAddItem(src, itemName, amount, metadata, slot)
     local def = GetItemDef(itemName)
@@ -191,14 +185,12 @@ local function ServerAddItem(src, itemName, amount, metadata, slot)
     amount = tonumber(amount) or 1
     if amount <= 0 then return false, 'Érvénytelen mennyiség' end
 
-    -- Súly ellenőrzés
     local currentWeight = CalcWeight(inventories[src])
     local addWeight     = def.weight * amount
     if currentWeight + addWeight > Config.MaxWeight then
         return false, 'Túl nehéz!'
     end
 
-    -- Stack keresés (ha stackable)
     if def.stackable then
         local existSlot = FindItemSlot(inventories[src], itemName)
         if existSlot then
@@ -208,7 +200,6 @@ local function ServerAddItem(src, itemName, amount, metadata, slot)
         end
     end
 
-    -- Szabad slot keresés
     local targetSlot = slot or FindFreeSlot(inventories[src])
     if not targetSlot then return false, 'Tele az inventory!' end
 
@@ -261,9 +252,9 @@ local function ServerHasItem(src, itemName, amount)
     return ServerGetItemCount(src, itemName) >= (tonumber(amount) or 1)
 end
 
--- ═════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 --  EXPORTOK
--- ═════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 
 exports('GetInventory', function(src)
     if not inventories[tonumber(src)] then return {} end
@@ -294,7 +285,7 @@ exports('ClearInventory', function(src)
     end
 end)
 
--- ── Stash exportok ────────────────────────────────────────────
+-- ── Stash exportok ─────────────────────────────────────────────────
 
 exports('GetStash', function(stashId)
     local rows = exports['fvg-database']:Query(
@@ -321,7 +312,6 @@ exports('AddToStash', function(stashId, itemName, amount, metadata)
     local stash = exports['fvg-inventory']:GetStash(stashId)
     local cfg   = Config.StashTypes.shared
 
-    -- Stack keresés
     if def.stackable then
         for slot, data in pairs(stash) do
             if data.item == itemName then
@@ -334,7 +324,6 @@ exports('AddToStash', function(stashId, itemName, amount, metadata)
         end
     end
 
-    -- Szabad slot
     local freeSlot = 1
     while stash[freeSlot] do freeSlot = freeSlot + 1 end
     if freeSlot > cfg.slots then return false end
@@ -369,25 +358,135 @@ exports('RemoveFromStash', function(stashId, itemName, amount)
     return toRemove == 0
 end)
 
--- ═════════════════════════════════════════════════════════════
---  NET EVENTS – NUI CALLBACK-EK KISZOLGÁLÁSA
--- ═════════════════════════════════════════════════════════════
+-- ── OpenStorage export ────────────────────────────────────────────
+-- Más resource-ok hívhatják: egy adott játékosnak megnyit egy stash-t a kliensen
+-- src       : játékos server-id
+-- stashId   : egyedi azonosító (pl. 'police_personal_3')
+-- options   : { label, slots, weight, shared }
+exports('OpenStorage', function(src, stashId, options)
+    src = tonumber(src)
+    if not src then return false end
 
--- Inventory megnyitás kérés
+    options = options or {}
+    local label   = options.label   or stashId
+    local slots   = options.slots   or Config.StashTypes.shared.slots
+    local weight  = options.weight  or Config.StashTypes.shared.maxWeight
+    local shared  = options.shared  or false
+
+    -- Stash tartalom betöltése DB-ből
+    local rows = exports['fvg-database']:Query(
+        'SELECT * FROM `fvg_stashes` WHERE `stash_id` = ? ORDER BY `slot` ASC',
+        { stashId }
+    )
+    local stashItems = {}
+    if rows then
+        for _, row in ipairs(rows) do
+            local meta = {}
+            if row.metadata then
+                local ok, d = pcall(json.decode, row.metadata)
+                meta = ok and d or {}
+            end
+            table.insert(stashItems, {
+                slot     = row.slot,
+                item     = row.item,
+                amount   = row.amount,
+                metadata = meta,
+                label    = (GetItemDef(row.item) or {}).label or row.item,
+                weight   = (GetItemDef(row.item) or {}).weight or 0,
+                category = (GetItemDef(row.item) or {}).category or 'misc',
+                image    = (GetItemDef(row.item) or {}).image or 'default.png',
+            })
+        end
+    end
+
+    -- Kliens oldali megnyitás indulása
+    TriggerClientEvent('fvg-inventory:client:OpenStash', src, {
+        stashId  = stashId,
+        label    = label,
+        slots    = slots,
+        weight   = weight,
+        shared   = shared,
+        items    = stashItems,
+    })
+    return true
+end)
+
+-- ══════════════════════════════════════════════════════════════
+--  NET EVENTS – NUI CALLBACK-EK KISZOLGÁLÁSA
+-- ══════════════════════════════════════════════════════════════
+
 RegisterNetEvent('fvg-inventory:server:RequestOpen', function()
     local src = source
     if not inventories[src] then return end
     SyncInventory(src)
     TriggerClientEvent('fvg-inventory:client:OpenInventory', src, {
-        slots    = InvToArray(inventories[src]),
-        weight   = CalcWeight(inventories[src]),
-        maxWeight= Config.MaxWeight,
-        maxSlots = Config.MaxSlots,
+        slots      = InvToArray(inventories[src]),
+        weight     = CalcWeight(inventories[src]),
+        maxWeight  = Config.MaxWeight,
+        maxSlots   = Config.MaxSlots,
         categories = Config.Categories,
     })
 end)
 
--- Item use
+-- Stash item mozgatás (stash-ból inv-be vagy fordítva)
+RegisterNetEvent('fvg-inventory:server:MoveStashItem', function(stashId, fromStash, slot, amount)
+    local src = source
+    if not inventories[src] then return end
+
+    local rows = exports['fvg-database']:Query(
+        'SELECT * FROM `fvg_stashes` WHERE `stash_id` = ? AND `slot` = ? LIMIT 1',
+        { stashId, slot }
+    )
+    if not rows or not rows[1] then return end
+    local row = rows[1]
+
+    amount = math.min(tonumber(amount) or row.amount, row.amount)
+
+    if fromStash then
+        -- Stash → inventory
+        local ok, err = ServerAddItem(src, row.item, amount, {})
+        if not ok then Notify(src, err, 'error'); return end
+
+        if row.amount - amount <= 0 then
+            exports['fvg-database']:Execute(
+                'DELETE FROM `fvg_stashes` WHERE `stash_id`=? AND `slot`=?',
+                { stashId, slot }
+            )
+        else
+            exports['fvg-database']:Execute(
+                'UPDATE `fvg_stashes` SET `amount`=? WHERE `stash_id`=? AND `slot`=?',
+                { row.amount - amount, stashId, slot }
+            )
+        end
+    else
+        -- Inventory → stash (external slot kell)
+        local ok, err = ServerRemoveItem(src, row.item, amount)
+        if not ok then Notify(src, err, 'error'); return end
+        exports['fvg-inventory']:AddToStash(stashId, row.item, amount, {})
+    end
+
+    -- Stash frissítés kliensnnek
+    local updatedRows = exports['fvg-database']:Query(
+        'SELECT * FROM `fvg_stashes` WHERE `stash_id` = ? ORDER BY `slot` ASC',
+        { stashId }
+    )
+    local stashItems = {}
+    if updatedRows then
+        for _, r in ipairs(updatedRows) do
+            table.insert(stashItems, {
+                slot   = r.slot,
+                item   = r.item,
+                amount = r.amount,
+                label  = (GetItemDef(r.item) or {}).label or r.item,
+                weight = (GetItemDef(r.item) or {}).weight or 0,
+                image  = (GetItemDef(r.item) or {}).image or 'default.png',
+            })
+        end
+    end
+    TriggerClientEvent('fvg-inventory:client:SyncStash', src, stashId, stashItems)
+    SyncInventory(src)
+end)
+
 RegisterNetEvent('fvg-inventory:server:UseItem', function(slot)
     local src  = source
     local inv  = inventories[src]
@@ -397,14 +496,12 @@ RegisterNetEvent('fvg-inventory:server:UseItem', function(slot)
     local def      = GetItemDef(itemName)
     if not def or not def.usable then return end
 
-    -- Use callback keresés
     local cb = Config.UseCallbacks[itemName]
     if cb then
         cb(src, slot, inv[slot])
         return
     end
 
-    -- Beépített use logikák
     if def.category == 'food' then
         if itemName == 'bread' or itemName == 'sandwich' then
             if Config.UseNeeds then exports['fvg-needs']:AddNeed(src, 'food', 25) end
@@ -427,19 +524,17 @@ RegisterNetEvent('fvg-inventory:server:UseItem', function(slot)
     elseif itemName == 'painkillers' then
         if Config.UseStress then exports['fvg-stress']:RemoveStress(src, 20) end
         ServerRemoveItem(src, itemName, 1)
-        if Config.NotifyOnUse then Notify(src, 'Fájdalomcsillapító bevéve.', 'success') end
+        if Config.NotifyOnUse then Notify(src, 'Fájdalomcsillapitó bevéve.', 'success') end
 
     elseif def.category == 'weapon' then
         TriggerClientEvent('fvg-inventory:client:EquipWeapon', src, itemName, inv[slot].metadata or {})
 
     else
-        -- Generikus use – más script reagálhat
         TriggerEvent('fvg-inventory:server:ItemUsed', src, itemName, inv[slot].metadata or {})
         if Config.NotifyOnUse then Notify(src, def.label .. ' használva.', 'info') end
     end
 end)
 
--- Item drop
 RegisterNetEvent('fvg-inventory:server:DropItem', function(slot, amount)
     local src = source
     local inv = inventories[src]
@@ -450,8 +545,6 @@ RegisterNetEvent('fvg-inventory:server:DropItem', function(slot, amount)
     if not def then return end
 
     amount = math.min(tonumber(amount) or 1, inv[slot].amount)
-
-    -- Koordináta lekérés
     TriggerClientEvent('fvg-inventory:client:GetDropCoords', src, slot, amount)
 end)
 
@@ -464,9 +557,7 @@ RegisterNetEvent('fvg-inventory:server:ConfirmDrop', function(slot, amount, coor
     local ok, err  = ServerRemoveItem(src, itemName, amount)
     if not ok then Notify(src, err, 'error') return end
 
-    -- Drop ID generálás
     local dropId = string.format('drop_%d_%d', GetGameTimer(), src)
-
     drops[dropId] = {
         item     = itemName,
         amount   = amount,
@@ -475,20 +566,17 @@ RegisterNetEvent('fvg-inventory:server:ConfirmDrop', function(slot, amount, coor
         expires  = GetGameTimer() + Config.DropTimeout * 1000,
     }
 
-    -- DB mentés
     exports['fvg-database']:Insert(
         'INSERT INTO `fvg_drops` (`drop_id`,`item`,`amount`,`metadata`,`x`,`y`,`z`) VALUES (?,?,?,?,?,?,?)',
         { dropId, itemName, amount, json.encode({}), coords.x, coords.y, coords.z }
     )
 
-    -- Mindenki kliensnek elküldjük a drop adatot
     TriggerClientEvent('fvg-inventory:client:AddDrop', -1, dropId, drops[dropId])
     if Config.NotifyOnDrop then
         Notify(src, (GetItemDef(itemName) or {}).label .. ' eldobva.', 'warning')
     end
 end)
 
--- Item felvétel (drop)
 RegisterNetEvent('fvg-inventory:server:PickupDrop', function(dropId)
     local src = source
     if not drops[dropId] then return end
@@ -497,7 +585,6 @@ RegisterNetEvent('fvg-inventory:server:PickupDrop', function(dropId)
     local ok, err = ServerAddItem(src, drop.item, drop.amount, drop.metadata)
     if not ok then Notify(src, err, 'error') return end
 
-    -- Drop törlés
     drops[dropId] = nil
     exports['fvg-database']:Execute('DELETE FROM `fvg_drops` WHERE `drop_id`=?', { dropId })
     TriggerClientEvent('fvg-inventory:client:RemoveDrop', -1, dropId)
@@ -508,7 +595,6 @@ RegisterNetEvent('fvg-inventory:server:PickupDrop', function(dropId)
     end
 end)
 
--- Slot mozgatás (drag & drop)
 RegisterNetEvent('fvg-inventory:server:MoveSlot', function(fromSlot, toSlot)
     local src = source
     local inv = inventories[src]
@@ -522,7 +608,6 @@ RegisterNetEvent('fvg-inventory:server:MoveSlot', function(fromSlot, toSlot)
     local fromData = inv[fromSlot]
     local toData   = inv[toSlot]
 
-    -- Ha a célban ugyanolyan stackable item van
     if toData and toData.item == fromData.item then
         local def = GetItemDef(fromData.item)
         if def and def.stackable then
@@ -533,13 +618,11 @@ RegisterNetEvent('fvg-inventory:server:MoveSlot', function(fromSlot, toSlot)
         end
     end
 
-    -- Csere
     inv[fromSlot] = toData
     inv[toSlot]   = fromData
     SyncInventory(src)
 end)
 
--- Drop timeout tisztítás
 CreateThread(function()
     while true do
         Wait(30000)
@@ -556,11 +639,8 @@ CreateThread(function()
     end
 end)
 
--- ── Use callback regisztráció (más scripteknek) ───────────────
--- pl. exports['fvg-inventory']:RegisterUseCallback('item_name', function(src, slot, data) end)
 RegisterNetEvent('fvg-inventory:server:RegisterUse', function() end)
 
--- Belső API függvény – más Lua scriptek hívhatják
 function RegisterUseCallback(itemName, callback)
     Config.UseCallbacks[itemName] = callback
 end
