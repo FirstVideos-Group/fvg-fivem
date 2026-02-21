@@ -22,10 +22,18 @@ end)
 -- ── Spawn indítása ────────────────────────────────────────────
 
 -- Jelezzük a szervernek hogy készen állunk
+-- A szerver oldal csak akkor kész, ha a playerConnecting már lefutott
 AddEventHandler('onClientResourceStart', function(res)
     if res ~= GetCurrentResourceName() then return end
-    -- Kis várakozás hogy a szerver oldal is inicializálódjon
-    Citizen.SetTimeout(1000, function()
+    
+    -- Várunk amíg a hálózat aktív, UTÁNA kérünk spawn adatokat
+    Citizen.CreateThread(function()
+        -- Várunk amíg a játékos ténylegesen csatlakozott a hálózathoz
+        while not NetworkIsPlayerActive(PlayerId()) do
+            Citizen.Wait(200)
+        end
+        -- Extra várakozás hogy playerConnecting biztosan lefusson szerveren
+        Citizen.Wait(500)
         TriggerServerEvent('fvg-playercore:server:RequestSpawn')
     end)
 end)
