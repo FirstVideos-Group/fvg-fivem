@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-traffipax</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Közeledik figyelmeztetés -->
+<div id="warn-box" class="warn-box hidden">
+    <i class="hgi-stroke hgi-alert-diamond"></i>
+    <div class="warn-text">
+        <span class="warn-title">Traffipax közel!</span>
+        <span class="warn-sub" id="warn-sub">Sebességhatár: 50 km/h</span>
+    </div>
+</div>
+
+<!-- Vaku / büntetés flash -->
+<div id="flash-overlay" class="flash-overlay"></div>
+
+<!-- Bírsság kiszabás popup -->
+<div id="fine-popup" class="fine-popup hidden">
+    <div class="fine-popup-inner">
+        <i class="hgi-stroke hgi-camera-01 fine-icon"></i>
+        <div class="fine-details">
+            <span class="fine-title">Traffipax rögzített!</span>
+            <span class="fine-speed" id="fine-speed"></span>
+            <span class="fine-amount" id="fine-amount"></span>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

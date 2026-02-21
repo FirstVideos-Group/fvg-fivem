@@ -1,0 +1,101 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden; background: transparent;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    pointer-events: none;
+}
+.hidden { display: none !important; }
+
+/* ── Közeledik figyelmeztetsé ───────────────────────────── */
+.warn-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    background: rgba(15,17,22,0.92);
+    border: 1px solid rgba(250,204,21,0.3);
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(250,204,21,0.15);
+    animation: warnIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+    z-index: 9990;
+}
+.warn-box i {
+    font-size: 30px;
+    color: #facc15;
+    filter: drop-shadow(0 0 8px rgba(250,204,21,0.6));
+    animation: warnPulse 1s ease-in-out infinite;
+}
+.warn-text { display: flex; flex-direction: column; gap: 3px; }
+.warn-title { font-size: 14px; font-weight: 700; color: #facc15; letter-spacing: 0.5px; }
+.warn-sub   { font-size: 12px; color: rgba(255,255,255,0.55); }
+
+@keyframes warnIn {
+    from { opacity:0; transform: translate(-50%, -55%); }
+    to   { opacity:1; transform: translate(-50%, -60%); }
+}
+@keyframes warnPulse {
+    0%,100% { opacity:1; }
+    50%     { opacity:0.5; }
+}
+
+/* ── Vaku flash overlay ────────────────────────────────── */
+.flash-overlay {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9995;
+    transition: opacity 0.08s ease;
+}
+.flash-overlay.active {
+    opacity: 0.65;
+}
+
+/* ── Bírsság popup ──────────────────────────────────────── */
+.fine-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    z-index: 9994;
+    animation: none;
+}
+.fine-popup.show {
+    animation: fineIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes fineIn {
+    from { opacity:0; transform: translate(-50%,-50%) scale(0.85); }
+    to   { opacity:1; transform: translate(-50%,-50%) scale(1); }
+}
+.fine-popup-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 28px;
+    background: rgba(15,17,22,0.95);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 14px;
+    box-shadow: 0 8px 40px rgba(239,68,68,0.2);
+    min-width: 280px;
+}
+.fine-icon {
+    font-size: 38px;
+    color: #ef4444;
+    filter: drop-shadow(0 0 12px rgba(239,68,68,0.5));
+    flex-shrink: 0;
+}
+.fine-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.fine-title  { font-size:14px; font-weight:800; color:#f1f5f9; letter-spacing:0.5px; }
+.fine-speed  { font-size:12px; color:rgba(255,255,255,0.55); }
+.fine-amount { font-size:18px; font-weight:900; color:#ef4444;
+               text-shadow:0 0 12px rgba(239,68,68,0.5); }
