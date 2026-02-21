@@ -41,7 +41,7 @@ local function Notify(src, msg, ntype)
     })
 end
 
--- ── Exportok ───────────────────────────────────────────────
+-- ── Exportok ─────────────────────────────────────────────────
 
 exports('GetPlayer', function(src)
     return Players[tonumber(src)]
@@ -66,16 +66,31 @@ exports('GetPlayerByIdentifier', function(identifier)
     return nil
 end)
 
--- FIX: SetPlayerData most TriggerEvent-et is küld,
--- így más resource-ok (pl. fvg-police) reaglni tudnak a változásra
+-- FIX: SetPlayerData
+--  1. Frissíti a memória-cache-t
+--  2. Azonnal menti DB-be (hogy újracsatlakozáskor is megmaradjon)
+--  3. Szinkronizál klienssel
+--  4. TriggerEvent más resource-oknak (pl. fvg-police job-sync)
 exports('SetPlayerData', function(src, key, value)
     src = tonumber(src)
     local p = Players[src]
     if not p then return false end
+
     p.metadata[key] = value
+
+    -- Azonnali DB mentés – ettől működik az újracsatlakozás utáni job megőrzés
+    exports['fvg-database']:SavePlayer(src, {
+        firstname = p.firstname,
+        lastname  = p.lastname,
+        sex       = p.sex,
+        dob       = p.dob,
+        phone     = p.phone,
+        metadata  = p.metadata,
+    })
+
     -- Kliens szinkronizálás
     TriggerClientEvent('fvg-playercore:client:SyncData', src, key, value)
-    -- Szerver oldali event: más resource-ok is reaglhatnak
+    -- Szerver oldali event: más resource-ok reagálhatnak
     TriggerEvent('fvg-playercore:server:PlayerDataChanged', src, key, value)
     return true
 end)
@@ -95,7 +110,7 @@ exports('IsPlayerLoaded', function(src)
 end)
 
 exports('KickPlayer', function(src, reason)
-    DropPlayer(tonumber(src), reason or 'Kirúgtk a szerverről.')
+    DropPlayer(tonumber(src), reason or 'Kirúgtak a szerverről.')
 end)
 
 exports('SavePlayerNow', function(src)
@@ -285,13 +300,11 @@ AddEventHandler('playerDropped', function(reason)
             phone     = p.phone,
             metadata  = p.metadata
         })
-
         print(string.format('[fvg-playercore] Játékos kilépett és mentve: %s (src: %d) – %s',
             p.name, src, reason))
     end
 
     TriggerEvent('fvg-playercore:server:PlayerUnloaded', src, p)
-
     Players[src] = nil
 end)
 

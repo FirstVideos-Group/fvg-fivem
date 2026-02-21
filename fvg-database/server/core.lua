@@ -99,7 +99,7 @@ exports('Execute', function(query, params)
     return result or 0
 end)
 
--- ── INSERT (visszaadja az új sort ID-ját) ─────────────────────
+-- ── INSERT (visszaadja az új sor ID-ját) ─────────────────────
 exports('Insert', function(query, params)
     local t = GetGameTimer()
     local ok, result = pcall(MySQL.insert.await, query, params or {})
@@ -244,6 +244,7 @@ exports('GetOrCreatePlayer', function(source, defaultData)
 end)
 
 -- ── Játékos mentése ───────────────────────────────────────────
+-- FIX: SQL szintaxis javítva – vesszők rendben, COALESCE minden mezőnél
 exports('SavePlayer', function(source, data)
     local identifier = GetIdentifier(source)
     if not identifier then return false end
@@ -253,16 +254,22 @@ exports('SavePlayer', function(source, data)
         data.metadata = json.encode(data.metadata)
     end
 
+    -- Cache invalidálás azonnal, hogy a következő olvasás friss adatot kapjon
+    CacheInvalidate(identifier)
+
     local updated = MySQL.update.await(
-        [[UPDATE `fvg_players` SET
-            `name`      = COALESCE(?, `name`),
-            `firstname` = COALESCE(?, `firstname`),
-            `lastname`  = COALESCE(?, `lastname`),
-            `sex`       = COALESCE(?, `sex`),
-            `dob`       = COALESCE(?, `dob`),
-            `phone`     = COALESCE(?, `phone`),
-            `metadata`  = COALESCE(?, `metadata`)
-        WHERE `identifier` = ?]],
+        [[
+            UPDATE `fvg_players` SET
+                `name`      = COALESCE(?, `name`),
+                `firstname` = COALESCE(?, `firstname`),
+                `lastname`  = COALESCE(?, `lastname`),
+                `sex`       = COALESCE(?, `sex`),
+                `dob`       = COALESCE(?, `dob`),
+                `phone`     = COALESCE(?, `phone`),
+                `metadata`  = COALESCE(?, `metadata`),
+                `last_seen` = NOW()
+            WHERE `identifier` = ?
+        ]],
         {
             data.name      or nil,
             data.firstname or nil,
@@ -275,8 +282,6 @@ exports('SavePlayer', function(source, data)
         }
     )
 
-    -- Cache invalidálás
-    CacheInvalidate(identifier)
     return (updated or 0) > 0
 end)
 
