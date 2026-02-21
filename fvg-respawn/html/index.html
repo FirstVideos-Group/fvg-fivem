@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-respawn</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="death-screen" class="hidden">
+
+    <div class="death-overlay"></div>
+
+    <div class="death-content">
+
+        <div class="death-icon">
+            <i class="hgi-stroke hgi-heart-broken"></i>
+        </div>
+
+        <h1 class="death-title">MEGHALTÁL</h1>
+        <p class="death-subtitle">Várj amíg valaki segít, vagy kérj mentőt...</p>
+
+        <!-- Időzítő -->
+        <div class="death-timer">
+            <div class="timer-bar-wrap">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+            <span class="timer-label" id="timer-label">0s / 60s</span>
+        </div>
+
+        <!-- Önrespawn gomb -->
+        <button id="self-respawn-btn" class="respawn-btn hidden" onclick="selfRespawn()">
+            <i class="hgi-stroke hgi-hospital-01"></i>
+            Kórházi ellátás kérése
+        </button>
+
+        <p class="death-hint" id="respawn-hint">Az önrespawn <span id="countdown">60</span>s múlva lesz elérhető</p>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

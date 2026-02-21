@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-respawn – Dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <style>
+        :root {
+            --bg:      #0f1117;
+            --surface: #181c27;
+            --border:  rgba(255,255,255,0.08);
+            --accent:  #ef4444;
+            --blue:    #60a5fa;
+            --text:    #e2e8f0;
+            --muted:   rgba(255,255,255,0.45);
+            --radius:  12px;
+            --mono:    'JetBrains Mono', 'Fira Code', monospace;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.7; }
+        .container { max-width:900px; margin:0 auto; padding:48px 24px; }
+        h1 { font-size:2rem; font-weight:800; margin-bottom:6px; }
+        h1 span { color:var(--accent); }
+        .tagline { color:var(--muted); margin-bottom:40px; font-size:0.95rem; }
+        h2 { font-size:1.15rem; font-weight:700; margin:40px 0 14px; padding-bottom:8px;
+             border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+        h2 i { color:var(--accent); font-size:1.1rem; }
+        p { color:rgba(255,255,255,0.72); margin-bottom:12px; }
+        code { background:rgba(255,255,255,0.07); padding:2px 7px; border-radius:5px;
+               font-family:var(--mono); font-size:0.82em; color:#93c5fd; }
+        pre { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+              padding:20px 24px; overflow-x:auto; margin:14px 0 24px; }
+        pre code { background:none; padding:0; color:#e2e8f0; font-size:0.84rem; line-height:1.8; }
+        .badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:0.72rem;
+                 font-weight:700; letter-spacing:0.5px; vertical-align:middle; margin-left:8px; }
+        .badge-server { background:rgba(239,68,68,0.18); color:#f87171; border:1px solid rgba(239,68,68,0.3); }
+        .badge-client { background:rgba(96,165,250,0.18); color:#93c5fd; border:1px solid rgba(96,165,250,0.3); }
+        .badge-event  { background:rgba(167,139,250,0.18); color:#c4b5fd; border:1px solid rgba(167,139,250,0.3); }
+        table { width:100%; border-collapse:collapse; margin:14px 0 24px; }
+        th { text-align:left; padding:10px 14px; background:var(--surface); color:var(--muted);
+             font-size:0.78rem; letter-spacing:0.5px; text-transform:uppercase;
+             border-bottom:1px solid var(--border); }
+        td { padding:10px 14px; border-bottom:1px solid var(--border); color:rgba(255,255,255,0.75); font-size:0.88rem; }
+        tr:last-child td { border-bottom:none; }
+        .demo-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+                    padding:24px; margin:16px 0 24px; }
+        .demo-output { background:#0a0c12; border:1px solid var(--border); border-radius:8px;
+                       padding:14px 18px; font-family:var(--mono); font-size:0.82rem;
+                       color:#4ade80; margin-top:12px; min-height:40px; }
+        button { padding:9px 20px; border-radius:8px; border:1px solid var(--border);
+                 background:rgba(255,255,255,0.07); color:var(--text); font-size:0.88rem;
+                 cursor:pointer; margin-right:8px; margin-top:8px; transition:background 0.2s; }
+        button:hover { background:rgba(255,255,255,0.13); }
+        .pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+                border-radius:20px; font-size:0.78rem; font-weight:600;
+                background:rgba(239,68,68,0.12); color:#f87171;
+                border:1px solid rgba(239,68,68,0.25); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1><span>fvg</span>-respawn</h1>
+    <p class="tagline">Halálkezelés, respawn és karakter modell megőrzés – FiveM RP szerverekhez</p>
+
+    <h2><i class="hgi-stroke hgi-information-circle"></i> Hogyan működik</h2>
+    <p>
+        A script figyeli a játékos halálát, blokkolja a GTA natív wasted képernyőt,
+        elmenti a karakter modellt, majd respawnkor pontosan ugyanazt a modellt tölti be.
+        Az önrespawn gomb csak <code>Config.SelfRespawnDelay</code> másodperc után jelenik meg.
+    </p>
+
+    <h2><i class="hgi-stroke hgi-settings-01"></i> Konfiguráció</h2>
+    <table>
+        <tr><th>Kulcs</th><th>Alapérték</th><th>Leírás</th></tr>
+        <tr><td><code>InjuredTimeout</code></td><td>300</td><td>Automatikus respawn ideje (mp)</td></tr>
+        <tr><td><code>SelfRespawnDelay</code></td><td>60</td><td>Önrespawn gomb megjelenés (mp)</td></tr>
+        <tr><td><code>AllowSelfRespawn</code></td><td>true</td><td>Engedélyezett-e az önrespawn</td></tr>
+        <tr><td><code>RespawnHealth</code></td><td>150</td><td>HP respawn után (max 200)</td></tr>
+        <tr><td><code>HospitalBill</code></td><td>true</td><td>Kórházi számla levonás</td></tr>
+        <tr><td><code>HospitalBillAmount</code></td><td>500</td><td>Kórházi számla összege ($)</td></tr>
+        <tr><td><code>PreserveModel</code></td><td>true</td><td>Karakter modell megőrzés</td></tr>
+    </table>
+
+    <h2><i class="hgi-stroke hgi-code"></i> Szerver exportok <span class="badge badge-server">SERVER</span></h2>
+    <table>
+        <tr><th>Export</th><th>Paraméter</th><th>Leírás</th></tr>
+        <tr><td><code>IsPlayerDead(src)</code></td><td>src: number</td><td>Meghalt-e a játékos</td></tr>
+        <tr><td><code>GetDeadPlayers()</code></td><td>–</td><td>Összes halott játékos listája</td></tr>
+        <tr><td><code>RevivePlayer(src, target)</code></td><td>src, target: number</td><td>Játékos revive-olása</td></tr>
+        <tr><td><code>RespawnPlayer(target)</code></td><td>target: number</td><td>Kórházi respawn kényszerítés</td></tr>
+    </table>
+
+    <h2><i class="hgi-stroke hgi-code"></i> Kliens exportok <span class="badge badge-client">CLIENT</span></h2>
+    <table>
+        <tr><th>Export</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr><td><code>IsDead()</code></td><td>boolean</td><td>Halott-e a helyi játékos</td></tr>
+        <tr><td><code>GetDeathTime()</code></td><td>number|nil</td><td>Halál időpontja (GetGameTimer)</td></tr>
+        <tr><td><code>ForceRespawn()</code></td><td>boolean</td><td>Azonnali respawn kérés</td></tr>
+    </table>
+
+    <h2><i class="hgi-stroke hgi-notification-02"></i> Esemény hook-ok <span class="badge badge-event">EVENTS</span></h2>
+    <table>
+        <tr><th>Esemény</th><th>Oldal</th><th>Paraméterek</th></tr>
+        <tr><td><code>fvg-respawn:server:PlayerDied</code></td><td>Server</td><td>src, coords</td></tr>
+        <tr><td><code>fvg-respawn:server:PlayerRespawned</code></td><td>Server</td><td>src, spawnPoint</td></tr>
+        <tr><td><code>fvg-respawn:server:PlayerRevived</code></td><td>Server</td><td>src, targetSrc</td></tr>
+        <tr><td><code>fvg-respawn:client:PlayerDied</code></td><td>Client</td><td>–</td></tr>
+        <tr><td><code>fvg-respawn:client:PlayerRespawned</code></td><td>Client</td><td>isRevive (bool)</td></tr>
+    </table>
+
+    <h2><i class="hgi-stroke hgi-test-tube"></i> Interaktív demo</h2>
+    <div class="demo-box">
+        <p style="margin-bottom:12px;">Szimulálja a halál/respawn folyamatot (csak UI demo – nem küld valódi eseményt):</p>
+        <button onclick="demoShowDeath()"><i class="hgi-stroke hgi-heart-broken"></i> Halál képernyő</button>
+        <button onclick="demoHide()"><i class="hgi-stroke hgi-cancel-01"></i> Elrejt</button>
+        <button onclick="demoEnableRespawn()"><i class="hgi-stroke hgi-hospital-01"></i> Önrespawn engedélyez</button>
+        <div class="demo-output" id="demo-output">Nyomj egy gombot a szimulációhoz...</div>
+    </div>
+
+    <!-- Beágyazott death screen preview -->
+    <div id="death-screen" class="hidden" style="position:relative;height:320px;border-radius:12px;overflow:hidden;">
+        <div class="death-overlay"></div>
+        <div class="death-content">
+            <div class="death-icon"><i class="hgi-stroke hgi-heart-broken"></i></div>
+            <h1 class="death-title">MEGHALTÁL</h1>
+            <p class="death-subtitle">Várj amíg valaki segít, vagy kérj mentőt...</p>
+            <div class="death-timer">
+                <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+                <span class="timer-label" id="timer-label">0s / 60s</span>
+            </div>
+            <button id="self-respawn-btn" class="respawn-btn hidden">
+                <i class="hgi-stroke hgi-hospital-01"></i> Kórházi ellátás kérése
+            </button>
+            <p class="death-hint" id="respawn-hint">Önrespawn <span id="countdown">60</span>s múlva</p>
+        </div>
+    </div>
+
+    <h2><i class="hgi-stroke hgi-code-circle"></i> Példa – más scriptből</h2>
+    <pre><code>-- Revive más játékost (pl. orvos script)
+exports['fvg-respawn']:RevivePlayer(source, targetSrc)
+
+-- Ellenőrzés: meghalt-e
+if exports['fvg-respawn']:IsPlayerDead(src) then
+    -- ne engedje kiszállni / menüt nyitni stb.
+end
+
+-- Halál esemény figyelés (pl. log rendszer)
+AddEventHandler('fvg-respawn:server:PlayerDied', function(src, coords)
+    print('Játékos meghalt: ' .. src)
+end)</code></pre>
+
+</div>
+
+<link rel="stylesheet" href="../html/style.css">
+<script>
+    function demoShowDeath() {
+        document.getElementById('death-screen').classList.remove('hidden');
+        document.getElementById('self-respawn-btn').classList.add('hidden');
+        document.getElementById('respawn-hint').classList.remove('hidden');
+        document.getElementById('timer-bar').style.width = '0%';
+        document.getElementById('demo-output').textContent = '▶ Halál képernyő megjelenítve. Modell mentve, GTA natív wasted blokkolva.';
+        let pct = 0;
+        const iv = setInterval(() => {
+            pct = Math.min(pct + 2, 100);
+            document.getElementById('timer-bar').style.width = pct + '%';
+            if (pct >= 100) clearInterval(iv);
+        }, 80);
+    }
+    function demoHide() {
+        document.getElementById('death-screen').classList.add('hidden');
+        document.getElementById('demo-output').textContent = '✓ Képernyő elrejtve – respawn végrehajtva, karakter modell visszaállítva.';
+    }
+    function demoEnableRespawn() {
+        document.getElementById('self-respawn-btn').classList.remove('hidden');
+        document.getElementById('respawn-hint').classList.add('hidden');
+        document.getElementById('demo-output').textContent = '⏱ SelfRespawnDelay lejárt – önrespawn gomb aktív.';
+    }
+</script>
+</body>
+</html>
