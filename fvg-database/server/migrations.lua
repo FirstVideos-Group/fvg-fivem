@@ -5,21 +5,49 @@
 -- Regisztrált migrációk listája: { name, query }
 local _migrations = {}
 
--- ── Migráció regisztrálása ────────────────────────────────────
--- Más scriptek (fvg-needs, fvg-jobs stb.) ezt hívják induláskor
+-- FIX: _dbReady flag – jelzi hogy a DB már connected és az
+-- alap migrációk lefutottak. Ha true, a RegisterMigration
+-- azonnal futtatja a queryt ahelyett, hogy csak listaba tenni.
+local _dbReady = false
+
+-- ── Egy migráció futtatása (közös segédfüggvény) ──────────────
+local function RunOne(m)
+    local ok, err = pcall(function()
+        MySQL.query.await(m.query)
+    end)
+    if ok then
+        DB_Log('info', 'Migráció OK: %s', m.name)
+    else
+        DB_Log('error', 'Migráció HIBA [%s]: %s', m.name, tostring(err))
+    end
+end
+
+-- ── Migráció regisztrálása ─────────────────────────────────────
+-- FIX: Ha a DB már kész (általában később induló resource-ok
+-- hívják, pl. fvg-police, fvg-courier stb.), a lekérdezést
+-- azonnal futtatjuk – nem várjuk a következő RunMigrations()-t.
+-- Ha még nem kész, berakjuk a listába (normál indulási sorrend).
 function RegisterMigration(name, query)
     if type(name) ~= 'string' or type(query) ~= 'string' then
         DB_Log('error', 'RegisterMigration: érvénytelen paraméter (%s)', tostring(name))
         return
     end
-    table.insert(_migrations, { name = name, query = query })
-    DB_Log('info', 'Migráció regisztrálva: %s', name)
+
+    if _dbReady then
+        -- DB már elérhető: azonnal futtatjuk
+        DB_Log('info', 'Migráció azonnali futtatás (DB kész): %s', name)
+        RunOne({ name = name, query = query })
+    else
+        -- DB még nem kész: listába tesszük
+        table.insert(_migrations, { name = name, query = query })
+        DB_Log('info', 'Migráció regisztrálva (futásra vár): %s', name)
+    end
 end
 
 -- Export: más scriptek is regisztrálhatnak migrációt
 exports('RegisterMigration', RegisterMigration)
 
--- ── Tábla létezés ellenőrzés ─────────────────────────────────
+-- ── Tábla létezés ellenőrzés ──────────────────────────────────
 exports('TableExists', function(tableName)
     local result = MySQL.scalar.await(
         'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
@@ -28,9 +56,8 @@ exports('TableExists', function(tableName)
     return (result or 0) > 0
 end)
 
--- ── Alap táblák ───────────────────────────────────────────────
+-- ── Alap táblák ────────────────────────────────────────────────
 local function CreateCoreTables()
-    -- Játékos alap tábla
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `fvg_players` (
             `id`           INT          NOT NULL AUTO_INCREMENT,
@@ -49,7 +76,6 @@ local function CreateCoreTables()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
 
-    -- Játékos inventory alap (más scriptek bővítik)
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `fvg_player_metadata` (
             `player_id`  INT          NOT NULL,
@@ -61,7 +87,6 @@ local function CreateCoreTables()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
 
-    -- Log tábla (opcionális – audit)
     MySQL.query.await([[
         CREATE TABLE IF NOT EXISTS `fvg_logs` (
             `id`         BIGINT       NOT NULL AUTO_INCREMENT,
@@ -79,44 +104,42 @@ local function CreateCoreTables()
     DB_Log('info', 'Alap táblák létrehozva / ellenőrizve.')
 end
 
--- ── Összes migráció futtatása ─────────────────────────────────
+-- ── Összes migráció futtatása ──────────────────────────────────
 local function RunMigrations()
     if not Config.AutoMigrate then return end
 
-    -- Előbb alap táblák
     if Config.CoreTables then
         CreateCoreTables()
     end
 
-    -- Regisztrált migrációk
     for _, m in ipairs(_migrations) do
-        local ok, err = pcall(function()
-            MySQL.query.await(m.query)
-        end)
-        if ok then
-            DB_Log('info', 'Migráció OK: %s', m.name)
-        else
-            DB_Log('error', 'Migráció HIBA [%s]: %s', m.name, tostring(err))
-        end
+        RunOne(m)
     end
 
-    DB_Log('info', 'Összes migráció lefutott.')
+    -- FIX: migrációs ablak bezárása: innentől minden
+    -- RegisterMigration hívás azonnal lefut
+    _dbReady = true
+
+    DB_Log('info', 'Összes migráció lefutott. DB kész.')
+
+    -- Tájékoztatjuk a többi resource-t hogy a DB kész
+    -- (opcionális: há bárki hallgatni akar rá)
+    TriggerEvent('fvg-database:ready')
 end
 
 -- Induláskor futtatjuk
 CreateThread(function()
-    -- Várunk az oxmysql ready eventre, nem fixált időre
     local ready = false
     AddEventHandler('onDatabaseConnected', function()
         ready = true
     end)
-    
+
     -- Fallback: max 10 másodpercet várunk
     local timeout = 0
     while not ready and timeout < 100 do
         Wait(100)
         timeout = timeout + 1
     end
-    
+
     RunMigrations()
 end)
