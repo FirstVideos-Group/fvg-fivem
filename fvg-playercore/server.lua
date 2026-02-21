@@ -6,6 +6,7 @@
 -- [serverId] = { id, identifier, name, firstname, lastname,
 --                metadata, loaded, source }
 local Players = {}
+local _pending = {}
 
 -- ── Segédfüggvények ──────────────────────────────────────────
 
@@ -154,7 +155,7 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
 
     -- ── 3. Átmeneti belépési adat tárolása ─────────────────
     -- A végleges Players bejegyzés csak spawn után jön létre
-    Players[src] = {
+    _pending[identifier] = {
         id          = result.id,
         identifier  = identifier,
         name        = name,
@@ -178,21 +179,37 @@ end)
 
 -- Kliens jelzi hogy készen áll a spawn adatok fogadására
 RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
-    local src = source
-    local p   = Players[src]
+    local src        = source
+    local identifier = GetIdentifier(src)
 
-    if not p then
+    if not identifier then
         DropPlayer(src, Config.KickReasons.db_error)
         return
     end
 
-    -- Spawn pozíció: utolsó mentett vagy alapértelmezett
+    -- Pending-ből áthozzuk a Players-be a valódi src-vel
+    local p = _pending[identifier]
+    if not p then
+        -- Hátha már Players-ben van (pl. resource restart)
+        p = Players[src]
+    end
+
+    if not p then
+        print(string.format('[fvg-playercore] RequestSpawn: nincs pending adat! identifier=%s src=%d', tostring(identifier), src))
+        DropPlayer(src, Config.KickReasons.db_error)
+        return
+    end
+
+    -- Áthelyezés pending → Players a helyes src kulccsal
+    p.source = src
+    Players[src] = p
+    _pending[identifier] = nil
+
     local spawnPos = Config.DefaultSpawn
-    if p.metadata.lastPos then
+    if p.metadata and p.metadata.lastPos then
         spawnPos = p.metadata.lastPos
     end
 
-    -- Kliens adatok küldése
     TriggerClientEvent('fvg-playercore:client:OnPlayerLoaded', src, {
         id        = p.id,
         firstname = p.firstname,
@@ -252,8 +269,13 @@ end)
 -- ══════════════════════════════════════════════════════════════
 
 AddEventHandler('playerDropped', function(reason)
-    local src = source
-    local p   = Players[src]
+    local src        = source
+    local identifier = GetIdentifier(src)
+
+    -- Pending tisztítás (ha még nem spawnolt)
+    if identifier then _pending[identifier] = nil end
+
+    local p = Players[src]
     if not p then return end
 
     -- Mentés ha már be volt töltve
