@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>fvg-police</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ── BÖRTÖN HUD ────────────────────────────────────────── -->
+<div id="prison-hud" class="hidden">
+    <div class="ph-icon"><i class="hgi-stroke hgi-jail"></i></div>
+    <div class="ph-info">
+        <div class="ph-label">Börtön</div>
+        <div class="ph-timer" id="prison-timer">0:00</div>
+    </div>
+    <div class="ph-cs" id="prison-cs-wrap" style="display:none">
+        <i class="hgi-stroke hgi-recycle-01"></i>
+        <span id="prison-cs-label">Közmunka</span>
+    </div>
+</div>
+
+<!-- ── DUTY BADGE ────────────────────────────────────────── -->
+<div id="duty-badge" class="hidden">
+    <i class="hgi-stroke hgi-police-badge-01"></i>
+    <div class="db-info">
+        <span id="db-rank">Rendőr</span>
+        <span id="db-unit">Egység: –</span>
+    </div>
+    <div id="db-dot" class="duty-dot"></div>
+</div>
+
+<!-- ── FŐ PANEL ──────────────────────────────────────────── -->
+<div id="overlay" class="hidden">
+    <div id="panel">
+
+        <!-- Fejléc -->
+        <div class="panel-header">
+            <div class="ph-left">
+                <div class="ph-icon-big"><i class="hgi-stroke hgi-police-badge-01"></i></div>
+                <div>
+                    <div class="ph-title" id="ph-title">LSPD</div>
+                    <div class="ph-sub"  id="ph-sub">Mission Row PD</div>
+                </div>
+            </div>
+            <div class="ph-right">
+                <div class="officer-chip" id="officer-chip">
+                    <i class="hgi-stroke hgi-user-02"></i>
+                    <div>
+                        <div class="oc-name" id="oc-name">–</div>
+                        <div class="oc-rank" id="oc-rank">–</div>
+                    </div>
+                </div>
+                <button class="close-btn" id="close-btn">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Duty + Info sáv -->
+        <div class="duty-bar">
+            <div class="duty-status" id="duty-status">
+                <div class="ds-dot off" id="ds-dot"></div>
+                <span id="ds-label">Szolgálaton kívül</span>
+            </div>
+            <div class="duty-stats">
+                <div class="dstat">
+                    <i class="hgi-stroke hgi-user-group"></i>
+                    <span id="stat-online">0 rendőr aktív</span>
+                </div>
+                <div class="dstat" id="unit-stat" style="display:none">
+                    <i class="hgi-stroke hgi-radio-02"></i>
+                    <span id="stat-unit">Egység: –</span>
+                </div>
+            </div>
+            <button class="duty-btn" id="duty-btn" onclick="Police.toggleDuty()">
+                <i class="hgi-stroke hgi-power-02" id="duty-btn-icon"></i>
+                <span id="duty-btn-label">Szolgálatba lép</span>
+            </button>
+        </div>
+
+        <!-- Tartalom: bal modul lista + jobb panel -->
+        <div class="panel-body">
+
+            <!-- Modul navigáció (automatikus) -->
+            <div class="module-nav" id="module-nav">
+                <!-- dinamikus -->
+            </div>
+
+            <!-- Modul tartalom -->
+            <div class="module-content" id="module-content">
+                <div class="welcome-screen" id="welcome-screen">
+                    <i class="hgi-stroke hgi-police-badge-01"></i>
+                    <div class="ws-title">Los Santos Police Department</div>
+                    <div class="ws-sub">Válassz egy modult a bal oldali menüből.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── BÍRSÁG MODAL ───────────────────────────────────────── -->
+<div id="fine-modal" class="modal hidden">
+    <div class="modal-box wide">
+        <div class="modal-header">
+            <i class="hgi-stroke hgi-file-02"></i>
+            <span>Bírság kiállítása</span>
+        </div>
+        <div class="modal-body" id="fine-modal-body"></div>
+        <div class="modal-footer">
+            <button class="modal-cancel-btn" onclick="Police.closeFineModal()">
+                <i class="hgi-stroke hgi-cancel-01"></i>Mégse
+            </button>
+            <button class="modal-ok-btn" id="fine-confirm">
+                <i class="hgi-stroke hgi-checkmark-02"></i>Bírság kiállítása
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── BÖRTÖN MODAL ───────────────────────────────────────── -->
+<div id="prison-modal" class="modal hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <i class="hgi-stroke hgi-jail"></i>
+            <span>Börtönbe küldés</span>
+        </div>
+        <div class="modal-body" id="prison-modal-body"></div>
+        <div class="modal-footer">
+            <button class="modal-cancel-btn" onclick="Police.closePrisonModal()">
+                <i class="hgi-stroke hgi-cancel-01"></i>Mégse
+            </button>
+            <button class="modal-ok-btn bd" id="prison-confirm">
+                <i class="hgi-stroke hgi-jail"></i>Bebörtönöz
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

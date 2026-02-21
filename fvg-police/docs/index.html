@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8"/>
+    <title>fvg-police – Export dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css"/>
+    <style>
+        :root {
+            --bg:#0a0c12; --card:#161b24; --code:#0f172a; --border:#1e293b;
+            --tp:#f1f5f9; --ts:#94a3b8; --tm:#475569; --ac:#38bdf8;
+            --success:#22c55e; --warning:#f59e0b; --danger:#ef4444; --purple:#a855f7;
+            --font:'Segoe UI',system-ui,sans-serif;
+        }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body {
+            background:var(--bg); color:var(--tp); font-family:var(--font);
+            padding:48px 28px 120px; max-width:1040px; margin:0 auto;
+        }
+        h1   { font-size:28px; font-weight:800; margin-bottom:6px; }
+        .sub { color:var(--tm); font-size:14px; line-height:1.7; margin-bottom:48px; }
+        .badge {
+            display:inline-block; background:rgba(56,189,248,.12); color:var(--ac);
+            font-size:11px; font-weight:700; padding:2px 10px; border-radius:20px;
+            letter-spacing:.05em; margin-left:10px; border:1px solid rgba(56,189,248,.25);
+        }
+        .job-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.2);
+            border-radius:8px; padding:4px 12px; font-size:12px; font-weight:700;
+            color:var(--ac); margin-right:8px; margin-bottom:4px;
+        }
+        section { margin-bottom:44px; }
+        .st {
+            font-size:11px; font-weight:700; color:var(--tm); text-transform:uppercase;
+            letter-spacing:.1em; border-bottom:1px solid var(--border);
+            padding-bottom:10px; margin-bottom:16px;
+        }
+        .card {
+            background:var(--card); border:1px solid var(--border);
+            border-radius:10px; padding:22px 24px; margin-bottom:14px;
+        }
+        .sig {
+            font-family:monospace; font-size:13px; font-weight:700;
+            color:var(--ac); margin-bottom:6px; line-height:1.9;
+        }
+        .side {
+            display:inline-block; font-size:10px; font-weight:700;
+            padding:2px 8px; border-radius:4px; text-transform:uppercase;
+            letter-spacing:.06em; margin-bottom:10px;
+        }
+        .ss { background:rgba(239,68,68,.12);  color:#ef4444; border:1px solid rgba(239,68,68,.25); }
+        .sc { background:rgba(34,197,94,.12);  color:#22c55e; border:1px solid rgba(34,197,94,.25); }
+        .sm { background:rgba(168,85,247,.12); color:#a855f7; border:1px solid rgba(168,85,247,.25); }
+        .desc { font-size:13px; color:var(--ts); line-height:1.65; margin-bottom:14px; }
+        table { width:100%; border-collapse:collapse; margin-bottom:14px; }
+        th {
+            font-size:10px; font-weight:700; color:var(--tm); text-transform:uppercase;
+            letter-spacing:.08em; text-align:left; padding:6px 10px;
+            border-bottom:1px solid var(--border);
+        }
+        td {
+            font-size:12px; padding:8px 10px;
+            border-bottom:1px solid rgba(255,255,255,.04);
+            color:var(--ts); vertical-align:top;
+        }
+        tr:last-child td { border-bottom:none; }
+        .pn { font-family:monospace; color:#a78bfa; }
+        .pt { font-family:monospace; color:#f59e0b; }
+        .cl {
+            font-size:10px; font-weight:700; color:var(--tm);
+            text-transform:uppercase; letter-spacing:.08em;
+            margin-bottom:6px; margin-top:14px;
+        }
+        code {
+            display:block; background:var(--code); border:1px solid var(--border);
+            border-radius:8px; padding:14px 16px; font-size:12px; color:#7dd3fc;
+            font-family:'Cascadia Code','Fira Code',monospace;
+            white-space:pre; overflow-x:auto; line-height:1.7;
+        }
+        .info {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:12px 16px; border-radius:8px;
+            background:rgba(56,189,248,.07); border:1px solid rgba(56,189,248,.2);
+            font-size:12px; color:#93c5fd; line-height:1.6; margin-top:14px;
+        }
+        .info i { font-size:16px; flex-shrink:0; color:var(--ac); }
+        .warn {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:12px 16px; border-radius:8px;
+            background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.2);
+            font-size:12px; color:#fcd34d; line-height:1.6; margin-top:14px;
+        }
+        .warn i { font-size:16px; flex-shrink:0; color:var(--warning); }
+        .danger-box {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:12px 16px; border-radius:8px;
+            background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.2);
+            font-size:12px; color:#fca5a5; line-height:1.6; margin-top:14px;
+        }
+        .danger-box i { font-size:16px; flex-shrink:0; color:var(--danger); }
+
+        /* Modul blokkok */
+        .mod-block {
+            border:1px solid var(--border); border-radius:12px;
+            overflow:hidden; margin-bottom:16px;
+        }
+        .mod-header {
+            display:flex; align-items:center; gap:12px;
+            padding:13px 18px; background:rgba(255,255,255,.025);
+            border-bottom:1px solid var(--border);
+        }
+        .mod-header-icon {
+            width:36px; height:36px; border-radius:9px; flex-shrink:0;
+            background:rgba(56,189,248,.08); border:1px solid rgba(56,189,248,.15);
+            display:flex; align-items:center; justify-content:center;
+            font-size:17px; color:var(--ac);
+        }
+        .mod-header-title { font-size:14px; font-weight:800; }
+        .mod-header-sub   { font-size:11px; color:var(--tm); margin-top:1px; }
+        .mod-body { padding:18px 20px; }
+
+        /* Flow */
+        .flow {
+            display:flex; flex-direction:column; gap:0;
+            background:var(--code); border:1px solid var(--border);
+            border-radius:10px; overflow:hidden; margin-top:14px;
+        }
+        .flow-step {
+            display:flex; align-items:center; gap:12px;
+            padding:11px 16px; border-bottom:1px solid var(--border);
+            font-size:12px;
+        }
+        .flow-step:last-child { border-bottom:none; }
+        .flow-num {
+            width:24px; height:24px; border-radius:50%; flex-shrink:0;
+            background:rgba(56,189,248,.1); border:1px solid rgba(56,189,248,.2);
+            display:flex; align-items:center; justify-content:center;
+            font-size:11px; font-weight:900; color:var(--ac);
+        }
+        .flow-label { flex:1; color:var(--ts); }
+        .flow-label strong { color:var(--tp); }
+        .flow-badge {
+            font-size:9px; font-weight:700; padding:2px 7px; border-radius:4px;
+            text-transform:uppercase; letter-spacing:.06em;
+        }
+        .fb-s { background:rgba(239,68,68,.12);  color:#ef4444; }
+        .fb-c { background:rgba(56,189,248,.12); color:#38bdf8; }
+        .fb-d { background:rgba(34,197,94,.12);  color:#22c55e; }
+        .fb-m { background:rgba(168,85,247,.12); color:#a855f7; }
+
+        /* Demo */
+        .dgrid  { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+        .dgrid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:14px; }
+        .dc {
+            background:var(--code); border:1px solid var(--border);
+            border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:8px;
+        }
+        .dct {
+            font-size:11px; font-weight:700; color:var(--tm);
+            text-transform:uppercase; letter-spacing:.08em;
+            display:flex; align-items:center; gap:7px;
+        }
+        .dct i { font-size:14px; color:var(--ac); }
+        .dbtn {
+            display:flex; align-items:center; justify-content:center; gap:7px;
+            padding:8px 14px; border-radius:8px; border:none;
+            font-size:12px; font-weight:600; cursor:pointer;
+            transition:opacity .15s; font-family:var(--font); width:100%;
+        }
+        .dbtn:hover { opacity:.8; }
+        .ba { background:rgba(56,189,248,.15);  color:#38bdf8;  border:1px solid rgba(56,189,248,.25); }
+        .bs { background:rgba(34,197,94,.15);   color:#22c55e;  border:1px solid rgba(34,197,94,.25); }
+        .bd { background:rgba(239,68,68,.15);   color:#ef4444;  border:1px solid rgba(239,68,68,.25); }
+        .bw { background:rgba(245,158,11,.15);  color:#f59e0b;  border:1px solid rgba(245,158,11,.25); }
+        .bp { background:rgba(168,85,247,.15);  color:#a855f7;  border:1px solid rgba(168,85,247,.25); }
+        .dsel, .dinp {
+            background:rgba(255,255,255,.04); border:1px solid var(--border);
+            border-radius:7px; padding:7px 10px; color:var(--tp);
+            font-size:12px; outline:none; font-family:var(--font); width:100%;
+        }
+        .dout {
+            font-family:monospace; font-size:11px; color:var(--tm);
+            min-height:16px; line-height:1.7; word-break:break-all;
+        }
+        .dout.ok   { color:#22c55e; }
+        .dout.err  { color:#ef4444; }
+        .dout.warn { color:#f59e0b; }
+
+        /* Compat tábla */
+        .compat-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
+        }
+        .compat-card {
+            background:var(--code); border:1px solid var(--border);
+            border-radius:9px; padding:13px 14px;
+        }
+        .cc-name  { font-family:monospace; font-size:12px; color:var(--ac); font-weight:700; margin-bottom:4px; }
+        .cc-type  { font-size:10px; color:var(--tm); margin-bottom:6px; }
+        .cc-desc  { font-size:11px; color:var(--ts); line-height:1.5; }
+
+        /* Job sablon kártyák */
+        .job-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:14px; }
+        .job-card {
+            background:var(--code); border:1px solid var(--border);
+            border-radius:10px; padding:14px 16px;
+            display:flex; flex-direction:column; gap:6px;
+        }
+        .jc-icon { font-size:24px; margin-bottom:4px; }
+        .jc-name { font-size:13px; font-weight:800; }
+        .jc-sub  { font-size:11px; color:var(--tm); line-height:1.5; }
+
+        /* Esemény tábla */
+        .evt-row td:first-child { color:#a78bfa; font-family:monospace; }
+        .evt-row td:nth-child(2){ color:#7dd3fc; font-family:monospace; font-size:11px; }
+    </style>
+</head>
+<body>
+
+<h1>fvg-police <span class="badge">v1.0.0</span></h1>
+<p class="sub">
+    FirstVideos Group · Moduláris Emergency Job rendszer — rendőrség alapimplementáció.<br>
+    Alap emergency job, amelyből más munkák (<span class="job-badge"><i class="hgi-stroke hgi-fire-02"></i>fvg-firefighter</span>
+    <span class="job-badge"><i class="hgi-stroke hgi-tree-02"></i>fvg-ranger</span>
+    <span class="job-badge"><i class="hgi-stroke hgi-ambulance"></i>fvg-ems</span>) is létrehozhatók.<br>
+    DB táblák:
+    <code style="display:inline;font-size:12px;color:#7dd3fc">
+        fvg_officers · fvg_officer_logs · fvg_fines · fvg_prison · fvg_mdt_notes
+    </code><br>
+    Integrációk:
+    <strong>fvg-banking</strong> ·
+    <strong>fvg-playercore</strong> ·
+    <strong>fvg-inventory</strong> ·
+    <strong>fvg-notify</strong> ·
+    <strong>fvg-database</strong> ·
+    <strong>fvg-admin</strong> ·
+    <strong>fvg-idcard</strong>
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Core szerver exportok</div>
+
+    <!-- GetOfficer -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetOfficer(source) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a megadott játékos rendőr cache bejegyzését.
+            Tartalmazza a rangot, callsignt, duty státuszt és az aktív egységet.
+            Ha a játékos nem rendőr vagy nincs betöltve, <code>nil</code>-t ad vissza.
+        </div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>          <td class="pt">number</td>  <td>DB sor azonosítója (<code>fvg_officers.id</code>)</td></tr>
+                <tr><td class="pn">identifier</td>  <td class="pt">string</td>  <td>Játékos egyedi azonosítója</td></tr>
+                <tr><td class="pn">playerId</td>    <td class="pt">number</td>  <td><code>fvg_players.id</code></td></tr>
+                <tr><td class="pn">firstname</td>   <td class="pt">string</td>  <td>Keresztnév</td></tr>
+                <tr><td class="pn">lastname</td>    <td class="pt">string</td>  <td>Vezetéknév</td></tr>
+                <tr><td class="pn">grade</td>       <td class="pt">number</td>  <td>Rang szint (0–5)</td></tr>
+                <tr><td class="pn">rankName</td>    <td class="pt">string</td>  <td>Rang belső neve (pl. <code>sergeant</code>)</td></tr>
+                <tr><td class="pn">rankLabel</td>   <td class="pt">string</td>  <td>Rang megjelenítési neve (pl. <code>Őrmester</code>)</td></tr>
+                <tr><td class="pn">callsign</td>    <td class="pt">string?</td> <td>Hívójel (pl. <code>A-12</code>)</td></tr>
+                <tr><td class="pn">duty</td>        <td class="pt">boolean</td> <td>Jelenleg szolgálatban van-e</td></tr>
+                <tr><td class="pn">unit</td>        <td class="pt">number?</td> <td>Aktív egység ID, nil ha nincs egységben</td></tr>
+                <tr><td class="pn">hireDate</td>    <td class="pt">string</td>  <td>Felvétel dátuma (YYYY-MM-DD)</td></tr>
+                <tr><td class="pn">totalSalary</td> <td class="pt">number</td>  <td>Összesen kapott fizetés</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-evidence: csak duty rendőr veheti fel a bizonyítékot
+RegisterNetEvent('fvg-evidence:server:Collect', function(itemId)
+    local src = source
+    local off = exports['fvg-police']:GetOfficer(src)
+    if not off or not off.duty then
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type='error', message='Csak szolgálatban lévő rendőr gyűjthet bizonyítékot.'
+        })
+        return
+    end
+    -- Bizonyíték összegyűjtése...
+    print(off.rankLabel .. ' ' .. off.lastname .. ' gyűjtötte be: ' .. itemId)
+end)</code>
+    </div>
+
+    <!-- GetAllOfficers -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetAllOfficers() → table</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja az összes betöltött rendőr cache bejegyzését.
+            A visszaadott tábla kulcsa a játékos szerver ID-ja (<code>[src] = officerData</code>).
+            Tartalmaz duty státusztól függetlenül minden rendőrt aki be van lépve.
+        </div>
+        <div class="cl">Lua példa – admin parancs</div>
+        <code>-- Admin: összes rendőr listázása
+RegisterCommand('listpolice', function(src)
+    if not exports['fvg-admin']:IsAdmin(src) then return end
+    local officers = exports['fvg-police']:GetAllOfficers()
+    local count = 0
+    for s, off in pairs(officers) do
+        count = count + 1
+        print(string.format('[%d] %s %s – %s – Duty: %s',
+            s, off.firstname, off.lastname,
+            off.rankLabel, tostring(off.duty)))
+    end
+    print('Összesen: ' .. count .. ' rendőr online')
+end, true)</code>
+    </div>
+
+    <!-- GetOnDutyOfficers -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetOnDutyOfficers() → table</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Csak a jelenleg szolgálatban lévő (<code>duty = true</code>) rendőröket adja vissza.
+            Más scriptek (pl. <code>fvg-dispatch</code>, <code>fvg-mdt</code>) használják
+            a szolgálatos egységek megjelenítéséhez.
+        </div>
+        <div class="cl">Lua példa – dispatch értesítés</div>
+        <code>-- fvg-dispatch: 911-es hívás küldése az összes duty rendőrnek
+RegisterNetEvent('fvg-dispatch:server:Call911', function(msg, coords)
+    local officers = exports['fvg-police']:GetOnDutyOfficers()
+    local count = 0
+    for src, _ in pairs(officers) do
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type    = 'warning',
+            title   = '📟 911 Hívás',
+            message = msg,
+            duration= 10000,
+        })
+        TriggerClientEvent('fvg-dispatch:client:ShowBlip', src, coords)
+        count = count + 1
+    end
+    print(count .. ' rendőrnek küldtük ki a hívást.')
+end)</code>
+    </div>
+
+    <!-- IsOnDuty -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:IsOnDuty(source) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Gyors ellenőrzés: a megadott játékos jelenleg rendőri szolgálatban van-e.
+            Nem kér le extra adatot, csak a duty flaget adja vissza.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- Blokkolja a bűncselekmény triggert ha rendőr van a közelben és duty-ban
+AddEventHandler('fvg-crime:server:AttemptRobbery', function(src)
+    local players = GetPlayers()
+    for _, s in ipairs(players) do
+        if exports['fvg-police']:IsOnDuty(tonumber(s)) then
+            local ped1 = GetPlayerPed(src)
+            local ped2 = GetPlayerPed(tonumber(s))
+            if #(GetEntityCoords(ped1) - GetEntityCoords(ped2)) < 100.0 then
+                TriggerClientEvent('fvg-notify:client:Notify', src, {
+                    type='error', message='Rendőr a közelben! Nem indítható a rablás.'
+                })
+                return
+            end
+        end
+    end
+    -- Rablás engedélyezve...
+end)</code>
+    </div>
+
+    <!-- GetOfficerUnit -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetOfficerUnit(source) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja a játékos aktív egységének teljes adatát
+            (<code>id</code>, <code>name</code>, <code>leader</code>, <code>members</code>, <code>channel</code>).
+            Ha nincs egységben, <code>nil</code>-t ad vissza.
+        </div>
+        <div class="cl">Lua példa – rádió csatorna szinkronizálás</div>
+        <code>-- fvg-radio: automatikusan a rendőr egységének csatornájára állítja a rádiót
+AddEventHandler('fvg-police:server:PlayerLoaded', function(src)
+    Wait(1000)
+    local unit = exports['fvg-police']:GetOfficerUnit(src)
+    if unit then
+        exports['fvg-radio']:SetChannel(src, unit.channel)
+    end
+end)</code>
+    </div>
+
+    <!-- SetOfficerRank -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:SetOfficerRank(source, grade) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Beállítja a megadott rendőr rangját a megadott grade értékre (0–5).
+            Automatikusan frissíti a cache-t, az adatbázist, és értesíti a klienst.
+            Napló bejegyzést is létrehoz a <code>fvg_officer_logs</code> táblában.
+        </div>
+        <table>
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">source</td><td class="pt">number</td><td>Játékos szerver ID</td></tr>
+                <tr><td class="pn">grade</td> <td class="pt">number</td><td>Rang szint 0–5 (Config.Ranks)</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – rangsor rendszer</div>
+        <code>-- fvg-achievements: automatikus rang emelés teljesítmény alapján
+AddEventHandler('fvg-achievements:server:AchievementUnlocked', function(src, achievId)
+    if achievId ~= 'arrests_100' then return end
+    local off = exports['fvg-police']:GetOfficer(src)
+    if not off then return end
+    if off.grade < 5 then
+        local newGrade = off.grade + 1
+        exports['fvg-police']:SetOfficerRank(src, newGrade)
+        exports['fvg-discord']:SendWebhook('promotions',
+            off.firstname .. ' ' .. off.lastname .. ' előléptetve!')
+    end
+end)</code>
+    </div>
+
+    <!-- AddSalary -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:AddSalary(source, amount) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Hozzáadja a megadott összeget a rendőr összesített fizetés számlálójához
+            (<code>fvg_officers.total_salary</code>). Nem von le semmit, csak nyilvántartja
+            a kapott fizetést. A tényleges kifizetés az automatikus salary ciklusban történik.
+        </div>
+        <div class="cl">Lua példa – bónusz fizetés</div>
+        <code>-- Jutalomfizetés kiemelkedő teljesítményért
+RegisterCommand('policebonus', function(src, args)
+    if not exports['fvg-admin']:IsAdmin(src) then return end
+    local targetSrc = tonumber(args[1])
+    local amount    = tonumber(args[2]) or 500
+    if not targetSrc then return end
+
+    exports['fvg-banking']:AddBalance(targetSrc, amount, 'checking',
+        'Rendőrségi teljesítménybónusz', 'salary')
+    exports['fvg-police']:AddSalary(targetSrc, amount)
+
+    TriggerClientEvent('fvg-notify:client:Notify', targetSrc, {
+        type='success', title='💰 Bónusz',
+        message='Teljesítménybónusz: $' .. amount
+    })
+end, true)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Bírság és börtön exportok</div>
+
+    <!-- GetFinesByIdentifier -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetFinesByIdentifier(identifier) → table[]</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja az adott azonosítóhoz tartozó összes bírságot az adatbázisból,
+            legújabbtól a legrégebbiig rendezve, maximum 50 bejegyzés.
+            Tartalmazza a kiállító rendőr adatait, az összegeket és a börtönidőt.
+        </div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>          <td class="pt">number</td>  <td>Bírság DB azonosítója</td></tr>
+                <tr><td class="pn">type_id</td>     <td class="pt">string</td>  <td>Bírság típus ID (pl. <code>speeding_major</code>)</td></tr>
+                <tr><td class="pn">label</td>        <td class="pt">string</td>  <td>Bírság megjelenítési neve</td></tr>
+                <tr><td class="pn">amount</td>       <td class="pt">number</td>  <td>Bírság összege ($)</td></tr>
+                <tr><td class="pn">jail_time</td>    <td class="pt">number</td>  <td>Börtönidő percben (0 ha nincs)</td></tr>
+                <tr><td class="pn">points</td>       <td class="pt">number</td>  <td>Pontlevonás (jogosítvány)</td></tr>
+                <tr><td class="pn">note</td>         <td class="pt">string</td>  <td>Megjegyzés szövege</td></tr>
+                <tr><td class="pn">paid</td>         <td class="pt">number</td>  <td><code>0</code> = kifizetetlen, <code>1</code> = fizetve</td></tr>
+                <tr><td class="pn">created_at</td>   <td class="pt">string</td>  <td>Kiállítás dátuma (timestamp)</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – idcard bírság összesítő</div>
+        <code>-- fvg-idcard: jogosítvány ellenőrzéskor pontlevonás összesítés
+RegisterNetEvent('fvg-idcard:server:CheckLicense', function(src, identifier)
+    local fines = exports['fvg-police']:GetFinesByIdentifier(identifier)
+    local totalPoints = 0
+    for _, f in ipairs(fines) do
+        if f.paid == 0 then
+            totalPoints = totalPoints + (f.points or 0)
+        end
+    end
+    if totalPoints >= 12 then
+        TriggerClientEvent('fvg-idcard:client:LicenseResult', src, {
+            valid  = false,
+            reason = 'Pontlevonás miatt visszavont jogosítvány (' .. totalPoints .. ' pont)'
+        })
+    end
+end)</code>
+    </div>
+
+    <!-- AddFine -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:AddFine(officerSrc, targetIdentifier, typeId, amount, jailTime, note) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Bírságot állít ki egy játékosra. Automatikusan levonja az összeget a bankszámláról
+            ha a célszemély online, értesíti a játékost, és DB bejegyzést hoz létre.
+            Az <code>officerSrc</code> lehet <code>nil</code> rendszer által generált bírsághoz.
+        </div>
+        <table>
+            <thead><tr><th>Paraméter</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">officerSrc</td>        <td class="pt">number?</td> <td>Kiállító rendőr szerver ID (nil = rendszer)</td></tr>
+                <tr><td class="pn">targetIdentifier</td>  <td class="pt">string</td>  <td>Célszemély egyedi azonosítója</td></tr>
+                <tr><td class="pn">typeId</td>            <td class="pt">string</td>  <td>Bírság típus ID a <code>Config.FineTypes</code>-ból</td></tr>
+                <tr><td class="pn">amount</td>            <td class="pt">number</td>  <td>Összeg (min–max között)</td></tr>
+                <tr><td class="pn">jailTime</td>          <td class="pt">number</td>  <td>Börtönidő percben (0 ha nincs)</td></tr>
+                <tr><td class="pn">note</td>              <td class="pt">string?</td> <td>Szöveges megjegyzés</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – automatikus sebesség bírság</div>
+        <code>-- fvg-radar: automatikus bírság kiállítás sebességmérőből
+AddEventHandler('fvg-radar:server:SpeedViolation', function(identifier, speed, limit)
+    local excess  = speed - limit
+    local typeId  = excess > 30 and 'speeding_major' or 'speeding_minor'
+    local amount  = excess > 30 and math.min(500 + excess * 30, 2000)
+                                 or  math.min(200 + excess * 10, 500)
+
+    exports['fvg-police']:AddFine(
+        nil,        -- rendszer kiállítja (nincs officer)
+        identifier,
+        typeId,
+        amount,
+        0,          -- nincs börtön
+        string.format('Automatikus sebességmérő – %d km/h (limit: %d km/h)', speed, limit)
+    )
+end)</code>
+    </div>
+
+    <!-- GetPrisonTime -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetPrisonTime(identifier) → table | nil</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Visszaadja az azonosítóhoz tartozó aktív börtönbüntetés adatait.
+            Kiszámítja a maradék időt a közmunkával csökkentett értékkel együtt.
+            Ha nincs aktív büntetés, <code>nil</code>-t ad vissza.
+        </div>
+        <table>
+            <thead><tr><th>Mező</th><th>Típus</th><th>Leírás</th></tr></thead>
+            <tbody>
+                <tr><td class="pn">id</td>          <td class="pt">number</td> <td>Börtön bejegyzés DB ID</td></tr>
+                <tr><td class="pn">timeMinutes</td> <td class="pt">number</td> <td>Eredeti börtönidő percben</td></tr>
+                <tr><td class="pn">timeServed</td>  <td class="pt">number</td> <td>Eddig letöltött idő</td></tr>
+                <tr><td class="pn">csMinutes</td>   <td class="pt">number</td> <td>Közmunkával ledolgozott percek</td></tr>
+                <tr><td class="pn">reason</td>      <td class="pt">string</td> <td>Bebörtönzés oka</td></tr>
+                <tr><td class="pn">timeLeft</td>    <td class="pt">number</td> <td>Maradék idő percben (csökkentve)</td></tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – kapunyitás ellenőrzés</div>
+        <code>-- fvg-prison: börtön belsejéből csak azok léphetnek ki akik letöltötték
+RegisterNetEvent('fvg-prison:server:ExitRequest', function()
+    local src = source
+    local p   = exports['fvg-playercore']:GetPlayer(src)
+    if not p then return end
+    local prison = exports['fvg-police']:GetPrisonTime(p.identifier)
+    if prison and prison.timeLeft > 0 then
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type='error',
+            message='Még ' .. prison.timeLeft .. ' perc börtön van hátra.'
+        })
+        return
+    end
+    -- Kapunyitás...
+    exports['fvg-police']:ReleasePrison(p.identifier)
+end)</code>
+    </div>
+
+    <!-- SendToPrison -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:SendToPrison(officerSrc, targetIdentifier, timeMinutes, reason) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Börtönbe küldi a megadott azonosítójú játékost.
+            Ha a célszemély online, automatikusan teleportálja a börtönbe
+            és elindítja a visszaszámlálót a kliens oldalon.
+            Triggeri a <code>fvg-police:server:PlayerImprisoned</code> eseményt.
+        </div>
+        <div class="cl">Lua példa – letartóztatás kezelés</div>
+        <code>-- fvg-cuff: bilincselés után automatikus börtönbe küldés
+RegisterNetEvent('fvg-cuff:server:SendToJail', function(targetSrc, time, reason)
+    local src = source
+    local off = exports['fvg-police']:GetOfficer(src)
+    if not off or not off.duty then return end
+    if not exports['fvg-police'].HasPermission or
+       not Config.HasPermission(off.grade, 'can_prison') then return end
+
+    local p = exports['fvg-playercore']:GetPlayer(targetSrc)
+    if not p then return end
+
+    exports['fvg-police']:SendToPrison(src, p.identifier, time, reason)
+end)</code>
+    </div>
+
+    <!-- ReleasePrison -->
+    <div class="card">
+        <div class="sig">exports['fvg-police']:ReleasePrison(targetIdentifier) → boolean</div>
+        <span class="side ss">Server</span>
+        <div class="desc">
+            Szabadon engedi a börtönből a megadott azonosítójú játékost.
+            Frissíti a DB státuszt <code>released</code>-re, törli a cache bejegyzést,
+            és ha a célszemély online, teleportálja a börtön kijáratához.
+        </div>
+        <div class="cl">Lua példa – ügyvéd által fizetett óvadék</div>
+        <code>-- fvg-lawyer: óvadék kifizetése után szabadon engedés
+RegisterNetEvent('fvg-lawyer:server:PayBail', function(targetIdentifier, bailAmount)
+    local src = source
+    local ok  = exports['fvg-banking']:RemoveBalance(src, bailAmount, 'checking',
+        'Óvadék kifizetés', 'payment')
+    if not ok then
+        TriggerClientEvent('fvg-notify:client:Notify', src, {
+            type='error', message='Nincs elég egyenleg az óvadékhoz.'
+        })
+        return
+    end
+    exports['fvg-police']:ReleasePrison(targetIdentifier)
+    TriggerClientEvent('fvg-notify:client:Notify', src, {
+        type='success', message='Óvadék fizetve. A fogoly szabadon engedve.'
+    })
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Kliens exportok</div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-police']:IsPlayerOnDuty() → boolean</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Visszaadja, hogy a helyi játékos jelenleg rendőri szolgálatban van-e.
+            Más scriptek kliens oldalon ezzel ellenőrizhetik a duty státuszt anélkül,
+            hogy szerver hívást kellene indítani.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-speedcam: csak duty rendőr látja a sebesség kamerákat
+CreateThread(function()
+    while true do
+        Wait(0)
+        if exports['fvg-police']:IsPlayerOnDuty() then
+            -- Kamera blipek megjelenítése
+            DrawSpeedCameraMarkers()
+        end
+    end
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-police']:GetLocalOfficer() → table | nil</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Visszaadja a helyi játékos rendőr adatait a kliens oldali cache-ből.
+            A menü legutóbbi megnyitásakor frissül. Nem indít szerver kérést.
+        </div>
+        <div class="cl">Lua példa</div>
+        <code>-- fvg-hud: rang és callsign megjelenítése a HUD-on
+CreateThread(function()
+    while true do
+        Wait(1000)
+        local off = exports['fvg-police']:GetLocalOfficer()
+        if off and off.duty then
+            exports['fvg-hud']:SetJobBadge({
+                label    = off.rankLabel,
+                callsign = off.callsign or '–',
+                icon     = 'hgi-stroke hgi-police-badge-01',
+                color    = '#38bdf8',
+            })
+        end
+    end
+end)</code>
+    </div>
+
+    <div class="card">
+        <div class="sig">exports['fvg-police']:OpenPoliceMenu(stationId?) → void</div>
+        <span class="side sc">Client</span>
+        <div class="desc">
+            Programatikusan megnyitja a rendőrségi menüt a megadott állomáshoz kötve.
+            Ha a <code>stationId</code> nincs megadva, alapértelmezett (<code>mission_row</code>) kerül használatra.
+            Nem nyitja meg, ha már nyitva van egy menü.
+        </div>
+        <div class="cl">Lua példa – NPC párbeszéd alapú megnyitás</div>
+        <code>-- fvg-dialogue: rendőrkapitány NPC megnyitja a menüt
+RegisterNetEvent('fvg-dialogue:client:OpenPoliceHQ', function(stationId)
+    exports['fvg-police']:OpenPoliceMenu(stationId)
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Szerver esemény lista</div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Esemény neve</th>
+                    <th>Paraméterek</th>
+                    <th>Mikor triggerel</th>
+                </tr>
+            </thead>
+            <tbody class="evt-row">
+                <tr class="evt-row">
+                    <td>fvg-police:server:VehiclePurchased</td>
+                    <td>src, model, plate, price, method</td>
+                    <td>Sikeres vásárlás (örökölt fvg-autoshop)</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-police:server:PlayerImprisoned</td>
+                    <td>identifier, timeMinutes, reason</td>
+                    <td>Játékos börtönbe kerül</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-police:server:FineIssued</td>
+                    <td>officerSrc, targetIdentifier, typeId, amount, jailTime</td>
+                    <td>Bírság kiállítása után</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-police:server:LeaveUnit</td>
+                    <td>src</td>
+                    <td>Rendőr elhagyja az egységét (disconnect, duty off)</td>
+                </tr>
+                <tr class="evt-row">
+                    <td>fvg-police:server:TestDriveCompleted</td>
+                    <td>src, model, returned</td>
+                    <td>Tesztvezetés befejezve (örökölt fvg-autoshop)</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="cl">Lua példa – Discord webhook eseményekre</div>
+        <code>-- Minden bebörtönzést logolunk Discord-ra
+AddEventHandler('fvg-police:server:PlayerImprisoned', function(identifier, time, reason)
+    exports['fvg-discord']:SendWebhook('prison_log', string.format(
+        '⛓️ **Bebörtönzés** | Azonosító: `%s` | Idő: %d perc | Ok: %s',
+        identifier, time, reason
+    ))
+end)
+
+-- Bírság statisztika
+AddEventHandler('fvg-police:server:FineIssued', function(offSrc, ident, typeId, amount, jail)
+    local off = exports['fvg-police']:GetOfficer(offSrc)
+    if not off then return end
+    exports['fvg-discord']:SendWebhook('fines_log', string.format(
+        '📋 **Bírság** | Rendőr: %s %s | Azonosító: `%s` | Típus: %s | $%d',
+        off.firstname, off.lastname, ident, typeId, amount
+    ))
+end)</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Modul architektúra</div>
+    <div class="card">
+        <div class="desc">
+            Minden modul a <code>modules/</code> mappában él, és automatikusan beolvasódik
+            a <code>fxmanifest.lua</code> glob mintájának (<code>modules/*/server.lua</code>,
+            <code>modules/*/client.lua</code>) köszönhetően.
+            Egy modul a következő interfészen keresztül regisztrálja magát:
+        </div>
+        <div class="cl">Modul regisztráció – szerver oldal</div>
+        <code>-- modules/mymodule/server.lua
+RegisterModule('mymodule', {
+    -- Hozzáférés ellenőrzés: mikor látható a modul a menüben?
+    checkAccess = function(off)
+        return Config.HasPermission(off.grade, 'can_something')
+    end
+})</code>
+        <div class="cl">Modul regisztráció – kliens oldal</div>
+        <code>-- modules/mymodule/client.lua
+RegisterClientModule('mymodule', {
+    -- NUI callback-ek kezelése (opcionális)
+    onAction = function(action, payload, cb)
+        if action == 'doSomething' then
+            -- Helyi logika vagy szerver továbítás
+            TriggerServerEvent('fvg-police:server:ModuleAction',
+                'mymodule', action, payload)
+        end
+        cb('ok')
+    end
+})</code>
+        <div class="cl">Szerver akció kezelő</div>
+        <code>-- A modul fogadja az akciót a fő dispatcher-től
+RegisterNetEvent('fvg-police:server:ModuleAction', function(module, action, payload)
+    if module ~= 'mymodule' then return end
+    local src = source
+    local off = exports['fvg-police']:GetOfficer(src)
+    if not off or not off.duty then return end
+
+    if action == 'doSomething' then
+        -- Logika...
+    end
+end)</code>
+        <div class="info" style="margin-top:14px">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>A modul automatikusan megjelenik a menü navigációban ha
+            <code>Config.Modules[id].enabled = true</code> és a
+            <code>checkAccess(off)</code> függvény <code>true</code>-t ad vissza.
+            A UI-t <strong>nem kell módosítani</strong> — az app.js dinamikusan rendereli a modul gombot.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Duty folyamat (flow)</div>
+    <div class="card">
+        <div class="flow">
+            <div class="flow-step">
+                <div class="flow-num">1</div>
+                <div class="flow-label"><strong>Kliens:</strong> Játékos megközelíti az állomást → [E] interakció</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">2</div>
+                <div class="flow-label"><strong>Szerver:</strong> <code>RequestMenu</code> → rendőr adatok + modul lista összeállítás</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">3</div>
+                <div class="flow-label"><strong>Kliens:</strong> NUI panel megnyílik, modulok automatikusan renderelve</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">4</div>
+                <div class="flow-label"><strong>Kliens:</strong> „Szolgálatba lép" → <code>ToggleDuty</code> szerver event</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">5</div>
+                <div class="flow-label"><strong>Szerver:</strong> Duty flag váltás, napló bejegyzés, <code>DutyChanged</code> kliens event</div>
+                <span class="flow-badge fb-s">Server</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">6</div>
+                <div class="flow-label"><strong>Fizetés ciklus:</strong> <code>Config.SalaryInterval</code> másodpercenként → rang alapján <code>fvg-banking</code></div>
+                <span class="flow-badge fb-d">Auto</span>
+            </div>
+            <div class="flow-step">
+                <div class="flow-num">7</div>
+                <div class="flow-label"><strong>Kliens:</strong> Duty badge, modul jogosultságok és HUD frissülnek</div>
+                <span class="flow-badge fb-c">Client</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Interaktív export demo</div>
+    <div class="card">
+        <div class="dgrid">
+            <!-- GetOfficer / IsOnDuty -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-police-badge-01"></i>GetOfficer / IsOnDuty</div>
+                <input class="dinp" id="d-src" type="number" placeholder="source (pl. 1)" value="1"/>
+                <button class="dbtn ba" onclick="demoGetOfficer()">
+                    <i class="hgi-stroke hgi-police-badge-01"></i>GetOfficer
+                </button>
+                <button class="dbtn bs" onclick="demoIsOnDuty()">
+                    <i class="hgi-stroke hgi-checkmark-02"></i>IsOnDuty
+                </button>
+                <div class="dout" id="d-off-out">—</div>
+            </div>
+
+            <!-- SetOfficerRank / AddSalary -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-star-02"></i>SetOfficerRank / AddSalary</div>
+                <input class="dinp" id="d-rank-src" type="number" placeholder="source" value="1"/>
+                <select class="dsel" id="d-rank-grade">
+                    <option value="0">0 – Újonc</option>
+                    <option value="1">1 – Rendőr</option>
+                    <option value="2">2 – Vezető Rendőr</option>
+                    <option value="3" selected>3 – Őrmester</option>
+                    <option value="4">4 – Főhadnagy</option>
+                    <option value="5">5 – Rendőrkapitány</option>
+                </select>
+                <button class="dbtn bp" onclick="demoSetRank()">
+                    <i class="hgi-stroke hgi-star-02"></i>SetOfficerRank
+                </button>
+                <button class="dbtn bs" onclick="demoAddSalary()">
+                    <i class="hgi-stroke hgi-money-02"></i>AddSalary (+500)
+                </button>
+                <div class="dout" id="d-rank-out">—</div>
+            </div>
+        </div>
+
+        <div class="dgrid" style="margin-top:12px">
+            <!-- AddFine / GetFines -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-file-02"></i>AddFine / GetFinesByIdentifier</div>
+                <input class="dinp" id="d-fine-ident" type="text"
+                       placeholder="Azonosító (pl. steam:abc123)" value="steam:abc123"/>
+                <select class="dsel" id="d-fine-type">
+                    <option value="speeding_minor">Gyorshajtás (enyhe) – $200–500</option>
+                    <option value="speeding_major">Gyorshajtás (súlyos) – $500–2000</option>
+                    <option value="dui">Ittas vezetés – $1500–5000</option>
+                    <option value="assault">Testi sértés – $2000–8000</option>
+                    <option value="drug_possession">Kábítószer birtok. – $2000–8000</option>
+                </select>
+                <button class="dbtn bd" onclick="demoAddFine()">
+                    <i class="hgi-stroke hgi-file-02"></i>AddFine
+                </button>
+                <button class="dbtn ba" onclick="demoGetFines()">
+                    <i class="hgi-stroke hgi-search-02"></i>GetFinesByIdentifier
+                </button>
+                <div class="dout" id="d-fine-out">—</div>
+            </div>
+
+            <!-- SendToPrison / GetPrisonTime / ReleasePrison -->
+            <div class="dc">
+                <div class="dct"><i class="hgi-stroke hgi-jail"></i>Prison exportok</div>
+                <input class="dinp" id="d-prison-ident" type="text"
+                       placeholder="Azonosító" value="steam:abc123"/>
+                <input class="dinp" id="d-prison-time" type="number"
+                       placeholder="Idő (perc)" value="15"/>
+                <button class="dbtn bd" onclick="demoSendToPrison()">
+                    <i class="hgi-stroke hgi-jail"></i>SendToPrison
+                </button>
+                <button class="dbtn bw" onclick="demoGetPrisonTime()">
+                    <i class="hgi-stroke hgi-clock-02"></i>GetPrisonTime
+                </button>
+                <button class="dbtn bs" onclick="demoReleasePrison()">
+                    <i class="hgi-stroke hgi-lock-02"></i>ReleasePrison
+                </button>
+                <div class="dout" id="d-prison-out">—</div>
+            </div>
+        </div>
+
+        <div class="info" style="margin-top:14px">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>Ez egy interaktív szimuláció — FiveM szerver nélkül is bemutatja az exportok
+            visszatérési értékeit és lehetséges hibakódjait. Éles környezetben a Lua exportokat
+            kell használni a fenti példák szerint.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Emergency job sablonok</div>
+    <div class="card">
+        <div class="desc">
+            Az <code>fvg-police</code> alapként szolgál. Egy új emergency job létrehozásához
+            csak a <code>config.lua</code>-t kell felülírni — a modul rendszer és az UI
+            automatikusan alkalmazkodik.
+        </div>
+        <div class="job-grid">
+            <div class="job-card">
+                <div class="jc-icon" style="color:#f97316">🔥</div>
+                <div class="jc-name">fvg-firefighter</div>
+                <div class="jc-sub">MDT + bírság ki, dispatch + vizsgálat modul be. Járművek: tűzoltóautók.</div>
+            </div>
+            <div class="job-card">
+                <div class="jc-icon" style="color:#22c55e">🌲</div>
+                <div class="jc-name">fvg-ranger</div>
+                <div class="jc-sub">Börtön + MDT ki, vadászat ellenőrzés + bírság be. Járművek: offroad.</div>
+            </div>
+            <div class="job-card">
+                <div class="jc-icon" style="color:#ef4444">🚑</div>
+                <div class="jc-name">fvg-ems</div>
+                <div class="jc-sub">Bírság + börtön ki, beteg kezelés + gyógyszer modul be. Járművek: mentők.</div>
+            </div>
+        </div>
+        <div class="cl" style="margin-top:14px">Új job minimális config</div>
+        <code>-- fvg-firefighter/config.lua
+Config.JobName   = 'firefighter'
+Config.JobLabel  = 'Tűzoltóság'
+Config.JobIcon   = 'hgi-stroke hgi-fire-02'
+Config.JobColor  = '#f97316'
+
+-- Modulok testreszabása
+Config.Modules.mdt.enabled    = false
+Config.Modules.fines.enabled  = false
+Config.Modules.prison.enabled = false
+
+-- Új egyedi modul hozzáadása (automatikusan megjelenik a menüben)
+Config.Modules.dispatch = {
+    enabled = true,
+    label   = 'Tűzriasztás',
+    icon    = 'hgi-stroke hgi-alarm-02',
+}
+
+-- modules/dispatch/server.lua → RegisterModule('dispatch', {...})
+-- modules/dispatch/client.lua → RegisterClientModule('dispatch', {...})</code>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<section>
+    <div class="st">Kompatibilitás más fvg scriptekkel</div>
+    <div class="card">
+        <div class="compat-grid">
+            <div class="compat-card">
+                <div class="cc-name">fvg-banking</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Fizetés, bírság levonás (<code>RemoveBalance</code>), elengedés után óvadék (<code>AddBalance</code>), salary (<code>AddBalance</code>)</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-playercore</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Játékos adatok (<code>GetPlayer</code>), készpénz kezelés, betöltési és kilépési események</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-database</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Migráció, <code>Query</code>, <code>Insert</code>, <code>Execute</code>, <code>QuerySingle</code> minden DB művelethez</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-notify</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Minden visszajelzés (<code>fvg-notify:client:Notify</code>) értesítés ezen keresztül érkezik</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-inventory</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Tárolók megnyitásához (<code>OpenStorage</code>) személyes és közös rendőrségi tárolóknál</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-idcard</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Jogosítvány ellenőrzés (<code>HasLicense</code>), pontlevonás összesítés bírságokból</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-admin</div>
+                <div class="cc-type">Aktív integráció</div>
+                <div class="cc-desc">Admin parancsok jogosultság ellenőrzése (<code>IsAdmin</code>) — hire, fire, setrank</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-autoshop</div>
+                <div class="cc-type">Export fogyasztó</div>
+                <div class="cc-desc">Rendőrségi járművek kivételénél a garázs modul az autoshop jármű rendszert használja alapul</div>
+            </div>
+            <div class="compat-card">
+                <div class="cc-name">fvg-dispatch</div>
+                <div class="cc-type">Export fogyasztó</div>
+                <div class="cc-desc"><code>GetOnDutyOfficers</code> és <code>GetOfficerUnit</code> exportokat használja a 911-es hívások kiosztásához</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// ── Szimulált adatok ──────────────────────────────────────────
+const mockOfficers = {
+    1: { id:1, identifier:'steam:abc123', grade:3, rankName:'sergeant', rankLabel:'Őrmester',
+         firstname:'Kiss', lastname:'Péter', callsign:'A-12', duty:true,
+         unit:1, hireDate:'2025-06-01', totalSalary:145000 },
+    2: { id:2, identifier:'steam:def456', grade:1, rankName:'officer', rankLabel:'Rendőr',
+         firstname:'Nagy', lastname:'Ádám', callsign:'B-07', duty:false,
+         unit:null, hireDate:'2025-11-15', totalSalary:42000 },
+};
+const ranks = [
+    { grade:0, name:'recruit',       label:'Újonc',          salary:800  },
+    { grade:1, name:'officer',       label:'Rendőr',         salary:1200 },
+    { grade:2, name:'senior_officer',label:'Vezető Rendőr',  salary:1600 },
+    { grade:3, name:'sergeant',      label:'Őrmester',       salary:2200 },
+    { grade:4, name:'lieutenant',    label:'Főhadnagy',      salary:3000 },
+    { grade:5, name:'chief',         label:'Rendőrkapitány', salary:5000 },
+];
+const fineDB = [];
+const prisonDB = {};
+
+const fineTypeDefs = {
+    speeding_minor: { label:'Gyorshajtás (enyhe)',   min:200,  max:500,   jail:0  },
+    speeding_major: { label:'Gyorshajtás (súlyos)',  min:500,  max:2000,  jail:0  },
+    dui:            { label:'Ittas vezetés',          min:1500, max:5000,  jail:15 },
+    assault:        { label:'Testi sértés',           min:2000, max:8000,  jail:30 },
+    drug_possession:{ label:'Kábítószer birtok.',     min:2000, max:8000,  jail:30 },
+};
+
+function setOut(id, msg, cls='') {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'dout ' + cls;
+}
+
+function demoGetOfficer() {
+    const src = parseInt(document.getElementById('d-src').value);
+    const off = mockOfficers[src];
+    if (!off) { setOut('d-off-out', `GetOfficer(${src}) → nil`, 'warn'); return; }
+    setOut('d-off-out',
+        `GetOfficer(${src}) →\n{ grade:${off.grade}, rankLabel:"${off.rankLabel}",\n` +
+        `  name:"${off.firstname} ${off.lastname}", callsign:"${off.callsign}",\n` +
+        `  duty:${off.duty}, unit:${off.unit}, totalSalary:$${off.totalSalary.toLocaleString('hu-HU')} }`,
+        'ok'
+    );
+}
+
+function demoIsOnDuty() {
+    const src = parseInt(document.getElementById('d-src').value);
+    const off = mockOfficers[src];
+    const result = off ? off.duty : false;
+    setOut('d-off-out', `IsOnDuty(${src}) → ${result}`, result ? 'ok' : 'warn');
+}
+
+function demoSetRank() {
+    const src   = parseInt(document.getElementById('d-rank-src').value);
+    const grade = parseInt(document.getElementById('d-rank-grade').value);
+    const rank  = ranks.find(r => r.grade === grade);
+    const off   = mockOfficers[src];
+    if (!off)  { setOut('d-rank-out', `SetOfficerRank(${src}, ${grade}) → false (nem rendőr)`, 'err'); return; }
+    if (!rank) { setOut('d-rank-out', `SetOfficerRank(${src}, ${grade}) → false (érvénytelen rang)`, 'err'); return; }
+    off.grade      = grade;
+    off.rankName   = rank.name;
+    off.rankLabel  = rank.label;
+    setOut('d-rank-out',
+        `SetOfficerRank(${src}, ${grade}) → true\nÚj rang: "${rank.label}" | Fizetés: $${rank.salary}/ciklus`,
+        'ok'
+    );
+}
+
+function demoAddSalary() {
+    const src = parseInt(document.getElementById('d-rank-src').value);
+    const off = mockOfficers[src];
+    if (!off) { setOut('d-rank-out', `AddSalary(${src}, 500) → false`, 'err'); return; }
+    off.totalSalary += 500;
+    setOut('d-rank-out',
+        `AddSalary(${src}, 500) → true\nÖsszes kapott fizetés: $${off.totalSalary.toLocaleString('hu-HU')}`,
+        'ok'
+    );
+}
+
+function demoAddFine() {
+    const ident  = document.getElementById('d-fine-ident').value.trim();
+    const typeId = document.getElementById('d-fine-type').value;
+    const ft     = fineTypeDefs[typeId];
+    if (!ident || !ft) { setOut('d-fine-out', 'Hiba: érvénytelen adatok', 'err'); return; }
+    const amount = Math.floor(Math.random() * (ft.max - ft.min) + ft.min);
+    const fine = {
+        id: fineDB.length + 1, identifier: ident,
+        type_id: typeId, label: ft.label,
+        amount, jail_time: ft.jail, paid: 0,
+        created_at: new Date().toISOString().slice(0,19).replace('T',' ')
+    };
+    fineDB.push(fine);
+    setOut('d-fine-out',
+        `AddFine(src, "${ident}", "${typeId}", ${amount}, ${ft.jail}) → true\n` +
+        `Bírság ID: ${fine.id} | $${amount.toLocaleString('hu-HU')}` +
+        (ft.jail > 0 ? ` | ${ft.jail} perc börtön` : '') + '\nLevonva a bankszámláról.',
+        'ok'
+    );
+}
+
+function demoGetFines() {
+    const ident = document.getElementById('d-fine-ident').value.trim();
+    const found = fineDB.filter(f => f.identifier === ident);
+    if (!found.length) {
+        setOut('d-fine-out', `GetFinesByIdentifier("${ident}") → [] (üres)`, 'warn'); return;
+    }
+    const total = found.reduce((s, f) => s + f.amount, 0);
+    setOut('d-fine-out',
+        `GetFinesByIdentifier("${ident}") →\n${found.length} bírság | Összesen: $${total.toLocaleString('hu-HU')}\n` +
+        found.map(f => `  [${f.id}] ${f.label} – $${f.amount} – ${f.paid ? 'Fizetve' : 'Kifizetetlen'}`).join('\n'),
+        'ok'
+    );
+}
+
+function demoSendToPrison() {
+    const ident = document.getElementById('d-prison-ident').value.trim();
+    const time  = parseInt(document.getElementById('d-prison-time').value) || 10;
+    prisonDB[ident] = {
+        id: Math.floor(Math.random()*900)+100,
+        timeMinutes: time, timeServed: 0, csMinutes: 0,
+        reason: 'Demo bebörtönzés',
+        timeLeft: time,
+    };
+    setOut('d-prison-out',
+        `SendToPrison(src, "${ident}", ${time}, "Demo") → true\n` +
+        `Börtön ID: ${prisonDB[ident].id} | Idő: ${time} perc\nJátékos teleportálva a börtönbe.`,
+        'ok'
+    );
+}
+
+function demoGetPrisonTime() {
+    const ident = document.getElementById('d-prison-ident').value.trim();
+    const p = prisonDB[ident];
+    if (!p) { setOut('d-prison-out', `GetPrisonTime("${ident}") → nil`, 'warn'); return; }
+    setOut('d-prison-out',
+        `GetPrisonTime("${ident}") →\n{ timeMinutes:${p.timeMinutes},\n` +
+        `  timeServed:${p.timeServed}, csMinutes:${p.csMinutes},\n` +
+        `  timeLeft:${p.timeLeft}, reason:"${p.reason}" }`,
+        'ok'
+    );
+}
+
+function demoReleasePrison() {
+    const ident = document.getElementById('d-prison-ident').value.trim();
+    if (!prisonDB[ident]) {
+        setOut('d-prison-out', `ReleasePrison("${ident}") → false (nincs aktív büntetés)`, 'err'); return;
+    }
+    delete prisonDB[ident];
+    setOut('d-prison-out',
+        `ReleasePrison("${ident}") → true\nStátusz: released | Játékos teleportálva a kijárathoz.`,
+        'ok'
+    );
+}
+</script>
+
+</body>
+</html>
