@@ -2,13 +2,13 @@
 -- ║       fvg-playercore :: server               ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Szerver oldali játékos objektum cache ────────────────────────
+-- ── Szerver oldali játékos objektum cache ────────────────────
 -- [serverId] = { id, identifier, name, firstname, lastname,
 --                metadata, loaded, source }
 local Players = {}
 local _pending = {}
 
--- ── Segédfüggvények ────────────────────────────────────────────
+-- ── Segédfüggvények ──────────────────────────────────────────
 
 local function GetIdentifier(src)
     for i = 0, GetNumPlayerIdentifiers(src) - 1 do
@@ -41,14 +41,12 @@ local function Notify(src, msg, ntype)
     })
 end
 
--- ── Exportok ───────────────────────────────────────────────────
+-- ── Exportok ───────────────────────────────────────────────
 
--- Szerver oldali játékos objektum lekérdezése
 exports('GetPlayer', function(src)
     return Players[tonumber(src)]
 end)
 
--- Összes betöltött játékos
 exports('GetAllPlayers', function()
     local result = {}
     for _, p in pairs(Players) do
@@ -59,7 +57,6 @@ exports('GetAllPlayers', function()
     return result
 end)
 
--- Játékos keresése identifier alapján
 exports('GetPlayerByIdentifier', function(identifier)
     for _, p in pairs(Players) do
         if p.identifier == identifier then
@@ -69,17 +66,20 @@ exports('GetPlayerByIdentifier', function(identifier)
     return nil
 end)
 
--- Egy mező beállítása a játékos metaadataiban
+-- FIX: SetPlayerData most TriggerEvent-et is küld,
+-- így más resource-ok (pl. fvg-police) reaglni tudnak a változásra
 exports('SetPlayerData', function(src, key, value)
-    local p = Players[tonumber(src)]
+    src = tonumber(src)
+    local p = Players[src]
     if not p then return false end
     p.metadata[key] = value
     -- Kliens szinkronizálás
     TriggerClientEvent('fvg-playercore:client:SyncData', src, key, value)
+    -- Szerver oldali event: más resource-ok is reaglhatnak
+    TriggerEvent('fvg-playercore:server:PlayerDataChanged', src, key, value)
     return true
 end)
 
--- Egy mező lekérdezése
 exports('GetPlayerData', function(src, key)
     local p = Players[tonumber(src)]
     if not p then return nil end
@@ -89,19 +89,15 @@ exports('GetPlayerData', function(src, key)
     return p
 end)
 
--- Betöltött-e a játékos
 exports('IsPlayerLoaded', function(src)
     local p = Players[tonumber(src)]
     return p ~= nil and p.loaded == true
 end)
 
--- Játékos kirúgása
 exports('KickPlayer', function(src, reason)
-    DropPlayer(tonumber(src), reason or 'Kirúgtak a szerverről.')
+    DropPlayer(tonumber(src), reason or 'Kirúgtk a szerverről.')
 end)
 
--- Azonnali mentes egy adott játékosnak (metadata változás után hívandó)
--- Hasznos pl. job váltáskor, hogy ne kelljen az AutoSave-re várni
 exports('SavePlayerNow', function(src)
     local p = Players[tonumber(src)]
     if not p or not p.loaded then return false end
@@ -116,7 +112,6 @@ exports('SavePlayerNow', function(src)
     return true
 end)
 
--- Összes játékos mentése (pl. szerver leállításkor)
 exports('SaveAllPlayers', function()
     local count = 0
     for src, p in pairs(Players) do
@@ -143,7 +138,6 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     deferrals.defer()
     Wait(0)
 
-    -- ── 1. Azonosító ellenőrzés ────────────────────────────────
     deferrals.update(Config.ConnectMessages.checking)
 
     local identifier = GetIdentifier(src)
@@ -152,7 +146,6 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
         return
     end
 
-    -- ── 2. Adatbázis lekérdezés / létrehozás ──────────────────────
     deferrals.update(Config.ConnectMessages.loading)
     Wait(0)
 
@@ -168,8 +161,6 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
         return
     end
 
-    -- ── 3. Átmeneti belépési adat tárolása ────────────────────────
-    -- A végleges Players bejegyzés csak spawn után jön létre
     _pending[identifier] = {
         id          = result.id,
         identifier  = identifier,
@@ -192,7 +183,6 @@ end)
 --  SPAWN KEZELÉS
 -- ═══════════════════════════════════════════════════════════════
 
--- Kliens jelzi hogy készen áll a spawn adatok fogadására
 RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
     local src        = source
     local identifier = GetIdentifier(src)
@@ -202,7 +192,6 @@ RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
         return
     end
 
-    -- Pending-ből áthozzuk a Players-be a valódi src-vel
     local p = _pending[identifier]
     if not p then
         p = Players[src]
@@ -214,7 +203,6 @@ RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
         return
     end
 
-    -- Áthelyezés pending → Players a helyes src kulccsal
     p.source = src
     Players[src] = p
     _pending[identifier] = nil
@@ -238,7 +226,6 @@ RegisterNetEvent('fvg-playercore:server:RequestSpawn', function()
     })
 end)
 
--- Kliens megerősíti a sikeres spawnot
 RegisterNetEvent('fvg-playercore:server:PlayerReady', function()
     local src = source
     local p   = Players[src]
