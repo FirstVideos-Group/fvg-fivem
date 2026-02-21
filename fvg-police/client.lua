@@ -2,17 +2,21 @@
 -- ║       fvg-police :: client (core)            ║
 -- ╚══════════════════════════════════════════════╝
 
-local menuOpen    = false
-local onDuty      = false
-local localOfficer= nil
-local stationBlips= {}
-local stationNPCs = {}
-local moduleHandlers = {}   -- { id → { onOpen = fn } }
+local menuOpen       = false
+local onDuty         = false
+local localOfficer   = nil
+local stationBlips   = {}
+local stationNPCs    = {}
+local moduleHandlers = {}
+
+-- FIX: Notification throttle – állomásonként tároljuk az utolsó hint szöveget
+-- Ha nem változott, nem küldünk új értesítést (courier mintájára)
+local _lastStationHint = {}
 
 -- ── Kliens exportok ───────────────────────────────────────────
-exports('IsPlayerOnDuty', function() return onDuty end)
+exports('IsPlayerOnDuty',  function() return onDuty end)
 exports('GetLocalOfficer', function() return localOfficer end)
-exports('OpenPoliceMenu', function(stationId)
+exports('OpenPoliceMenu',  function(stationId)
     if menuOpen then return end
     TriggerServerEvent('fvg-police:server:RequestMenu', stationId or 'mission_row')
 end)
@@ -37,7 +41,6 @@ CreateThread(function()
         EndTextCommandSetBlipName(blip)
         stationBlips[station.id] = blip
 
-        -- Duty NPC
         local model = GetHashKey('s_m_y_cop_01')
         RequestModel(model)
         while not HasModelLoaded(model) do Wait(10) end
@@ -54,7 +57,7 @@ CreateThread(function()
     end
 end)
 
--- ── Interakció thread ─────────────────────────────────────────
+-- ── Interakció thread ───────────────────────────────────────────
 CreateThread(function()
     while true do
         local sleep  = 1000
@@ -63,6 +66,7 @@ CreateThread(function()
 
         for _, station in ipairs(Config.Locations.stations) do
             local dist = #(coords - vector3(station.coords.x, station.coords.y, station.coords.z))
+
             if dist < 30.0 then
                 sleep = 0
                 DrawMarker(1,
@@ -72,23 +76,39 @@ CreateThread(function()
                     56, 189, 248, 120,
                     false, true, 2, nil, nil, false
                 )
+
                 if dist < Config.DutyRadius then
-                    exports['fvg-notify']:Notify({
-                        type='info',
-                        message='[E] ' .. station.label,
-                        duration=600, static=true
-                    })
+                    -- FIX: hint throttle – csak ha változott a szöveg küldünk új notify-t
+                    local hint = '[E] ' .. station.label
+                    if _lastStationHint[station.id] ~= hint then
+                        _lastStationHint[station.id] = hint
+                        exports['fvg-notify']:Notify({
+                            type     = 'info',
+                            message  = hint,
+                            duration = 4000,
+                            static   = true
+                        })
+                    end
+
                     if IsControlJustPressed(0, 38) and not menuOpen then
                         TriggerServerEvent('fvg-police:server:RequestMenu', station.id)
                     end
+                else
+                    -- Kiléptünk a DutyRadius zónából: reset, hogy 
+                    -- visszalépve újra megjelenjen a hint
+                    _lastStationHint[station.id] = ''
                 end
+            else
+                -- 30m-nél távolabb: teljes reset
+                _lastStationHint[station.id] = ''
             end
         end
+
         Wait(sleep)
     end
 end)
 
--- ── Pánik gomb ────────────────────────────────────────────────
+-- ── Pánik gomb ──────────────────────────────────────────────
 RegisterKeyMapping(Config.PanicButton.key, Config.PanicButton.description, 'keyboard', Config.PanicButton.key)
 RegisterCommand(Config.PanicButton.key, function()
     if not onDuty then return end
@@ -105,15 +125,16 @@ RegisterNetEvent('fvg-police:client:OpenMenu', function(data)
     SendNUIMessage({ action = 'open', payload = data })
 end)
 
--- ── Duty változás ─────────────────────────────────────────────
+-- ── Duty változás ────────────────────────────────────────────
 RegisterNetEvent('fvg-police:client:DutyChanged', function(state)
     onDuty = state
+    -- Hint reset: duty váltás után frissül a hint szövege
+    for k in pairs(_lastStationHint) do _lastStationHint[k] = '' end
     SendNUIMessage({ action = 'dutyChanged', duty = state })
-    -- HUD frissítés
     TriggerEvent('fvg-police:client:HudUpdate', state)
 end)
 
--- ── Rang frissítés ────────────────────────────────────────────
+-- ── Rang frissítés ───────────────────────────────────────────
 RegisterNetEvent('fvg-police:client:RankUpdate', function(data)
     if localOfficer then
         localOfficer.grade     = data.grade
@@ -126,6 +147,8 @@ end)
 RegisterNUICallback('close', function(_, cb)
     menuOpen = false
     SetNuiFocus(false, false)
+    -- Hint reset, hogy zárás után közelben maradva újra látssza a hint-et
+    for k in pairs(_lastStationHint) do _lastStationHint[k] = '' end
     cb('ok')
 end)
 
@@ -135,19 +158,17 @@ RegisterNUICallback('toggleDuty', function(_, cb)
 end)
 
 RegisterNUICallback('moduleAction', function(data, cb)
-    -- Modul-specifikus akció dispatch
     local handler = moduleHandlers[data.module]
     if handler and handler.onAction then
         handler.onAction(data.action, data.payload, cb)
     else
-        -- Szerver felé továbbít
         TriggerServerEvent('fvg-police:server:ModuleAction',
             data.module, data.action, data.payload)
         cb('ok')
     end
 end)
 
--- ── Cleanup ───────────────────────────────────────────────────
+-- ── Cleanup ─────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     SetNuiFocus(false, false)
