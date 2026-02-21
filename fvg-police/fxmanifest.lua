@@ -15,12 +15,28 @@ shared_scripts {
 
 server_scripts {
     'server.lua',
-    'modules/*/server.lua',
+    -- Modulok (explicit – glob nem megbízható FiveM-ben)
+    'modules/clothing/server.lua',
+    'modules/fines/server.lua',
+    'modules/garage/server.lua',
+    'modules/mdt/server.lua',
+    'modules/prison/server.lua',
+    'modules/storage/server.lua',
+    'modules/unit/server.lua',
+    'modules/weapons/server.lua',
 }
 
 client_scripts {
     'client.lua',
-    'modules/*/client.lua',
+    -- Modulok (explicit – glob nem megbízható FiveM-ben)
+    'modules/clothing/client.lua',
+    'modules/fines/client.lua',
+    'modules/garage/client.lua',
+    'modules/mdt/client.lua',
+    'modules/prison/client.lua',
+    'modules/storage/client.lua',
+    'modules/unit/client.lua',
+    'modules/weapons/client.lua',
 }
 
 ui_page 'html/index.html'
