@@ -2,9 +2,9 @@
 -- ║          fvg-admin :: client                 ║
 -- ╚══════════════════════════════════════════════╝
 
-local menuOpen    = false
-local noclipOn    = false
-local spectateOn  = false
+local menuOpen       = false
+local noclipOn       = false
+local spectateOn     = false
 local spectateTarget = nil
 
 -- ── Menü megnyitás ────────────────────────────────────────────
@@ -14,7 +14,7 @@ end, false)
 
 RegisterKeyMapping('adminmenu', 'Admin menü megnyitás', 'keyboard', 'F10')
 
--- ── Menü adatok fogadása ──────────────────────────────────────
+-- ── Menü adatok fogadása ──────────────────────────────────
 RegisterNetEvent('fvg-admin:client:OpenMenu', function(data)
     menuOpen = true
     SetNuiFocus(true, true)
@@ -93,6 +93,12 @@ RegisterNUICallback('setPlayerInfo', function(data, cb)
     cb('ok')
 end)
 
+-- FIX: Hianyzó setJob NUI callback – ez az oka, hogy a job váltás nem működött
+RegisterNUICallback('setJob', function(data, cb)
+    TriggerServerEvent('fvg-admin:server:SetJob', tonumber(data.src), data.job)
+    cb('ok')
+end)
+
 RegisterNUICallback('spawnVehicle', function(data, cb)
     TriggerServerEvent('fvg-admin:server:SpawnVehicle', data.model)
     cb('ok')
@@ -138,7 +144,7 @@ RegisterNUICallback('refreshPlayers', function(_, cb)
     cb('ok')
 end)
 
--- ── Revive fogadása ───────────────────────────────────────────
+-- ── Revive fogadása ────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:Revive', function()
     local ped = PlayerPedId()
     NetworkResurrectLocalPlayer(
@@ -159,7 +165,6 @@ end)
 
 -- ── Teleport to player ────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:TeleportToPlayer', function(targetSrc)
-    -- Kér a céltól koordinátát
     TriggerServerEvent('fvg-admin:server:GetCoords', targetSrc)
 end)
 
@@ -172,9 +177,7 @@ RegisterNetEvent('fvg-admin:client:ReceiveCoords', function(coords, heading)
     DoScreenFadeIn(500)
 end)
 
--- Koordináta kérés kiszolgálása
 RegisterNetEvent('fvg-admin:server:GetCoords', function(targetSrc)
-    -- Ezt a szerver triggereli ide kliens oldalra a koordináta kérőnek
 end)
 
 AddEventHandler('fvg-admin:server:GetCoords', function(requesterSrc)
@@ -188,13 +191,12 @@ RegisterNetEvent('fvg-admin:server:SendCoords', function(requesterSrc, coords, h
     TriggerClientEvent('fvg-admin:client:ReceiveCoords', requesterSrc, coords, heading)
 end)
 
--- ── Teleport to me fogadása ───────────────────────────────────
+-- ── Teleport to me fogadása ─────────────────────────────────
 RegisterNetEvent('fvg-admin:client:TeleportToMe', function(adminSrc)
-    -- Koordinátát kapjuk az admintól
     TriggerServerEvent('fvg-admin:server:GetAdminCoords', adminSrc)
 end)
 
--- ── Godmode ───────────────────────────────────────────────────
+-- ── Godmode ───────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:SetGodmode', function(state)
     SetEntityInvincible(PlayerPedId(), state)
     exports['fvg-notify']:Notify({
@@ -203,16 +205,16 @@ RegisterNetEvent('fvg-admin:client:SetGodmode', function(state)
     })
 end)
 
--- ── Jármű spawn ───────────────────────────────────────────────
+-- ── Jármű spawn ─────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:SpawnVehicle', function(model)
     local hash = GetHashKey(model)
     RequestModel(hash)
     while not HasModelLoaded(hash) do Wait(50) end
 
-    local ped    = PlayerPedId()
-    local coords = GetEntityCoords(ped)
-    local heading= GetEntityHeading(ped)
-    local veh    = CreateVehicle(hash, coords.x, coords.y, coords.z, heading, true, false)
+    local ped     = PlayerPedId()
+    local coords  = GetEntityCoords(ped)
+    local heading = GetEntityHeading(ped)
+    local veh     = CreateVehicle(hash, coords.x, coords.y, coords.z, heading, true, false)
 
     SetPedIntoVehicle(ped, veh, -1)
     SetEntityAsNoLongerNeeded(veh)
@@ -234,7 +236,7 @@ RegisterNetEvent('fvg-admin:client:DeleteVehicle', function()
     end
 end)
 
--- ── Jármű javítás ─────────────────────────────────────────────
+-- ── Jármű javítás ────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:FixVehicle', function()
     local ped = PlayerPedId()
     local veh = GetVehiclePedIsIn(ped, false)
@@ -246,26 +248,26 @@ RegisterNetEvent('fvg-admin:client:FixVehicle', function()
     end
 end)
 
--- ── Időjárás szerver fogadás ──────────────────────────────────
+-- ── Időjárás szerver fogadás ───────────────────────────────
 RegisterNetEvent('fvg-admin:client:SetWeather', function(weather)
     SetWeatherTypePersist(weather)
     SetWeatherTypeNow(weather)
     SetWeatherTypeNowPersist(weather)
 end)
 
--- ── Idő fogadása ──────────────────────────────────────────────
+-- ── Idő fogadása ─────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:SetTime', function(hour, minute)
     NetworkOverrideClockTime(hour, minute, 0)
 end)
 
--- ── Ban lista fogadása ────────────────────────────────────────
+-- ── Ban lista fogadása ───────────────────────────────────────
 RegisterNetEvent('fvg-admin:client:ReceiveBanList', function(bans)
     SendNUIMessage({ action = 'receiveBanList', bans = bans })
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  NOCLIP
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-admin:client:SetNoclip', function(state)
     noclipOn = state
@@ -284,7 +286,6 @@ CreateThread(function()
         if not noclipOn then goto continue end
 
         local ped    = PlayerPedId()
-        local coords = GetEntityCoords(ped)
         DisableAllControlActions(0)
         EnableControlAction(0, 1, true)
         EnableControlAction(0, 2, true)
@@ -294,14 +295,13 @@ CreateThread(function()
 
         local speed = IsControlPressed(0, 21) and Config.NoclipSpeedFast or Config.NoclipSpeed
 
-        -- Irányok
         local fwd = GetEntityForwardVector(ped)
         local x, y, z = 0.0, 0.0, 0.0
 
-        if IsControlPressed(0, 32) then x = fwd.x * speed y = fwd.y * speed end  -- W előre
-        if IsControlPressed(0, 33) then x = -fwd.x * speed y = -fwd.y * speed end -- S hátra
-        if IsControlPressed(0, 44) then z = -speed end  -- leszáll
-        if IsControlPressed(0, 22) then z =  speed end  -- felszáll
+        if IsControlPressed(0, 32) then x = fwd.x * speed; y = fwd.y * speed  end
+        if IsControlPressed(0, 33) then x = -fwd.x * speed; y = -fwd.y * speed end
+        if IsControlPressed(0, 44) then z = -speed end
+        if IsControlPressed(0, 22) then z =  speed end
 
         SetEntityVelocity(ped, x, y, z)
 
@@ -309,13 +309,12 @@ CreateThread(function()
     end
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 --  SPECTATE
--- ══════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-admin:client:StartSpectate', function(targetSrc)
     if spectateOn then
-        -- Már spectate van, leállítás
         NetworkSetInSpectatorMode(false, PlayerPedId())
         spectateOn = false
         exports['fvg-notify']:Notify({ type = 'info', message = 'Spectate leállítva.' })
@@ -323,9 +322,7 @@ RegisterNetEvent('fvg-admin:client:StartSpectate', function(targetSrc)
     end
     spectateTarget = targetSrc
     spectateOn     = true
-    -- A célpont PedId-jét a hálózaton kell megszerezni
-    local netId  = GetPlayerServerId(GetPlayerFromServerId(targetSrc))
-    local ped    = GetPlayerPed(GetPlayerFromServerId(targetSrc))
+    local ped = GetPlayerPed(GetPlayerFromServerId(targetSrc))
     NetworkSetInSpectatorMode(true, ped)
     exports['fvg-notify']:Notify({ type = 'info', message = 'Spectate elindítva. Nyomj F10-et a leállításhoz.' })
 end)
