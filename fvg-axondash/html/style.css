@@ -1,0 +1,281 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden; background: transparent;
+    font-family: 'Share Tech Mono', 'JetBrains Mono', 'Courier New', monospace;
+    pointer-events: none;
+}
+.hidden { opacity: 0 !important; pointer-events: none !important; }
+
+/* ── Root overlay ─────────────────────────────────────────────── */
+.dashcam-root {
+    position: fixed;
+    inset: 0;
+    z-index: 9800;
+    transition: opacity 0.35s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* ── Scanlines ─────────────────────────────────────────────────── */
+.scanlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.0) 0px,
+        rgba(0,0,0,0.0) 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+    );
+    animation: scanlineShift 8s linear infinite;
+}
+@keyframes scanlineShift {
+    from { background-position: 0 0; }
+    to   { background-position: 0 40px; }
+}
+
+/* ── Vinyette ─────────────────────────────────────────────────── */
+.vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+        radial-gradient(ellipse at center,
+            transparent 55%,
+            rgba(0,0,0,0.55) 100%
+        );
+}
+
+/* ── Sarokjelek ───────────────────────────────────────────────── */
+.corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    z-index: 10;
+}
+.corner.tl { top: 12px;    left:  12px;  border-top:   2px solid rgba(255,255,255,0.55); border-left:  2px solid rgba(255,255,255,0.55); }
+.corner.tr { top: 12px;    right: 12px;  border-top:   2px solid rgba(255,255,255,0.55); border-right: 2px solid rgba(255,255,255,0.55); }
+.corner.bl { bottom: 12px; left:  12px;  border-bottom:2px solid rgba(255,255,255,0.55); border-left:  2px solid rgba(255,255,255,0.55); }
+.corner.br { bottom: 12px; right: 12px;  border-bottom:2px solid rgba(255,255,255,0.55); border-right: 2px solid rgba(255,255,255,0.55); }
+
+/* ── Felső sáv ─────────────────────────────────────────────────── */
+.hud-top {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 14px 20px 10px;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.72) 0%,
+        rgba(0,0,0,0.0)  100%
+    );
+}
+
+/* Axon logo */
+.axon-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+}
+.axon-logo i { font-size: 18px; color: #38bdf8; }
+.axon-brand {
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #fff;
+    text-shadow: 0 0 12px rgba(56,189,248,0.6);
+}
+.axon-sub {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.5);
+    padding-top: 4px;
+}
+
+/* REC */
+.rec-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+.rec-dot {
+    width: 9px; height: 9px;
+    background: #ef4444;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #ef4444;
+    animation: recBlink 0.8s ease-in-out infinite;
+}
+.rec-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ef4444;
+}
+@keyframes recBlink {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.15; }
+}
+
+/* Unit label (közép) */
+.hud-center { text-align: center; }
+.unit-label {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #fff;
+    text-shadow: 0 0 14px rgba(56,189,248,0.5);
+    text-transform: uppercase;
+}
+
+/* Idő (jobb) */
+.hud-right { text-align: right; }
+.time-real {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.25);
+    display: block;
+}
+.time-sub {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    display: block;
+    margin-top: 2px;
+}
+.date-real {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 1px;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ── Alsó sáv ─────────────────────────────────────────────────── */
+.hud-bottom {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 10px 20px 16px;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.72) 0%,
+        rgba(0,0,0,0.0)  100%
+    );
+}
+
+/* Info sorok (bal) */
+.hud-bl { display: flex; flex-direction: column; gap: 5px; }
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.info-icon  { font-size: 13px; color: rgba(255,255,255,0.45); }
+.info-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    width: 68px;
+}
+.info-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+/* Sebesség (közép) */
+.speed-block { text-align: center; }
+.speed-val {
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(56,189,248,0.4);
+    display: block;
+    letter-spacing: -1px;
+}
+.speed-unit {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.45);
+    display: block;
+    margin-top: 2px;
+}
+
+/* Agency + serial (jobb) */
+.hud-br { text-align: right; }
+.agency-block {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.75);
+}
+.agency-block i { font-size: 15px; color: #38bdf8; }
+.serial-block {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 4px;
+}
+
+/* ── Crosshair ────────────────────────────────────────────────── */
+.crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+}
+.ch-h {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px; height: 1px;
+    background: rgba(255,255,255,0.18);
+}
+.ch-v {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px; height: 30px;
+    background: rgba(255,255,255,0.18);
+}
+
+/* ── Noise flicker animáció (kamera zaj) ──────────────────────── */
+.dashcam-root::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    mix-blend-mode: overlay;
+    animation: noiseAnim 0.15s steps(2) infinite;
+}
+@keyframes noiseAnim {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(-1px, 1px); }
+    50%  { transform: translate(1px, -1px); }
+    75%  { transform: translate(-1px, -1px); }
+    100% { transform: translate(0, 0); }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-axondash</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="dashcam-root" class="dashcam-root hidden">
+
+    <!-- Scanline + vinyette overlay -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <!-- Kamera élek (sarokjelek) -->
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- ── Felső sáv ── -->
+    <div class="hud-top">
+        <div class="hud-left">
+            <div class="axon-logo">
+                <i class="hgi-stroke hgi-camera-01"></i>
+                <span class="axon-brand">AXON</span>
+                <span class="axon-sub">DASH</span>
+            </div>
+            <div class="rec-block">
+                <span class="rec-dot" id="rec-dot"></span>
+                <span class="rec-label">REC</span>
+            </div>
+        </div>
+        <div class="hud-center">
+            <span class="unit-label" id="unit-label">—</span>
+        </div>
+        <div class="hud-right">
+            <div class="time-block">
+                <span class="time-real" id="time-real">00:00:00</span>
+                <span class="time-sub">VALÓS IDŐ</span>
+            </div>
+            <div class="date-block">
+                <span class="date-real" id="date-real">0000-00-00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Alsó sáv ── -->
+    <div class="hud-bottom">
+        <div class="hud-bl">
+            <div class="info-row">
+                <i class="hgi-stroke hgi-clock-01 info-icon"></i>
+                <span class="info-label">JÁTÉKIDŐ</span>
+                <span class="info-val" id="game-time">00:00</span>
+            </div>
+            <div class="info-row">
+                <i class="hgi-stroke hgi-maps-location-01 info-icon"></i>
+                <span class="info-label">GPS</span>
+                <span class="info-val" id="gps-val">— / —</span>
+            </div>
+        </div>
+        <div class="hud-bc">
+            <div class="speed-block">
+                <span class="speed-val" id="speed-val">0</span>
+                <span class="speed-unit">km/h</span>
+            </div>
+        </div>
+        <div class="hud-br">
+            <div class="agency-block">
+                <i class="hgi-stroke hgi-police-badge-01"></i>
+                <span>LSPD</span>
+            </div>
+            <div class="serial-block">CAM-01 · FVG</div>
+        </div>
+    </div>
+
+    <!-- Középső crosshair (finom, nem zavaró) -->
+    <div class="crosshair">
+        <div class="ch-h"></div>
+        <div class="ch-v"></div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

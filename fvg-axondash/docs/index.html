@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fvg-axondash – Dokumentáció</title>
+    <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+    <style>
+        :root {
+            --bg:#0f1117; --surface:#181c27; --border:rgba(255,255,255,0.08);
+            --accent:#38bdf8; --red:#ef4444; --green:#22c55e;
+            --text:#e2e8f0; --muted:rgba(255,255,255,0.45); --radius:12px;
+            --mono:'JetBrains Mono','Fira Code',monospace;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.7;}
+        .container{max-width:940px;margin:0 auto;padding:48px 24px;}
+        h1{font-size:2rem;font-weight:800;margin-bottom:6px;}
+        h1 span{color:var(--accent);}
+        .tagline{color:var(--muted);margin-bottom:40px;font-size:.95rem;}
+        h2{font-size:1.15rem;font-weight:700;margin:40px 0 14px;padding-bottom:8px;
+           border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+        h2 i{color:var(--accent);font-size:1.1rem;}
+        p{color:rgba(255,255,255,.72);margin-bottom:12px;}
+        code{background:rgba(255,255,255,.07);padding:2px 7px;border-radius:5px;
+             font-family:var(--mono);font-size:.82em;color:#93c5fd;}
+        pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+            padding:20px 24px;overflow-x:auto;margin:14px 0 24px;}
+        pre code{background:none;padding:0;color:#e2e8f0;font-size:.84rem;line-height:1.8;}
+        .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.72rem;
+               font-weight:700;letter-spacing:.5px;vertical-align:middle;margin-left:8px;}
+        .badge-server{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+        .badge-client{background:rgba(96,165,250,.18);color:#93c5fd;border:1px solid rgba(96,165,250,.3);}
+        .badge-event {background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);}
+        .badge-config{background:rgba(250,204,21,.15);color:#fde047;border:1px solid rgba(250,204,21,.25);}
+        table{width:100%;border-collapse:collapse;margin:14px 0 24px;}
+        th{text-align:left;padding:10px 14px;background:var(--surface);color:var(--muted);
+           font-size:.78rem;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+        td{padding:10px 14px;border-bottom:1px solid var(--border);color:rgba(255,255,255,.75);font-size:.88rem;}
+        tr:last-child td{border-bottom:none;}
+        .demo-box{background:var(--surface);border:1px solid var(--border);
+                  border-radius:var(--radius);padding:24px;margin:16px 0 24px;}
+        button{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
+               border-radius:8px;border:1px solid var(--border);
+               background:rgba(255,255,255,.07);color:var(--text);font-size:.85rem;
+               cursor:pointer;margin:4px 4px 4px 0;transition:background .2s,transform .15s;}
+        button:hover{background:rgba(255,255,255,.13);transform:translateY(-1px);}
+        .demo-output{background:#0a0c12;border:1px solid var(--border);border-radius:8px;
+                     padding:14px 18px;font-family:var(--mono);font-size:.82rem;
+                     color:#4ade80;margin-top:14px;min-height:44px;line-height:1.8;}
+
+        /* Kamera előnézet */
+        .cam-preview {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #1a1c22;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin: 16px 0 24px;
+            font-family: 'Courier New', monospace;
+        }
+        .cam-bg {
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, #1a2030 0%, #0d1018 100%);
+        }
+        .cam-scanlines {
+            position: absolute; inset: 0; z-index: 1;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px,
+                rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+            );
+        }
+        .cam-vignette {
+            position: absolute; inset: 0; z-index: 2;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.65) 100%);
+        }
+        .cam-corner { position: absolute; width: 14px; height: 14px; z-index: 10; }
+        .cam-corner.tl { top:8px; left:8px; border-top:2px solid rgba(255,255,255,0.4); border-left:2px solid rgba(255,255,255,0.4); }
+        .cam-corner.tr { top:8px; right:8px; border-top:2px solid rgba(255,255,255,0.4); border-right:2px solid rgba(255,255,255,0.4); }
+        .cam-corner.bl { bottom:8px; left:8px; border-bottom:2px solid rgba(255,255,255,0.4); border-left:2px solid rgba(255,255,255,0.4); }
+        .cam-corner.br { bottom:8px; right:8px; border-bottom:2px solid rgba(255,255,255,0.4); border-right:2px solid rgba(255,255,255,0.4); }
+        .cam-top {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 9;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 10px 14px 8px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, transparent 100%);
+        }
+        .cam-logo { display:flex; align-items:center; gap:5px; }
+        .cam-logo i { font-size:14px; color:#38bdf8; }
+        .cam-brand { font-size:13px; font-weight:900; letter-spacing:3px; color:#fff; }
+        .cam-sub   { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,0.45); padding-top:3px; }
+        .cam-rec   { display:flex; align-items:center; gap:5px; margin-top:4px; }
+        .cam-rdot  { width:7px; height:7px; background:#ef4444; border-radius:50%; box-shadow:0 0 5px #ef4444; animation:recBlink 0.8s infinite; }
+        .cam-rlabel{ font-size:9px; font-weight:800; letter-spacing:2px; color:#ef4444; }
+        @keyframes recBlink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+        .cam-unit  { font-size:13px; font-weight:900; letter-spacing:4px; color:#fff; text-align:center; text-shadow:0 0 10px rgba(56,189,248,0.5); }
+        .cam-time-block { text-align:right; }
+        .cam-time  { font-size:17px; font-weight:900; color:#fff; letter-spacing:2px; display:block; }
+        .cam-tsub  { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,0.4); }
+        .cam-date  { font-size:9px; color:rgba(255,255,255,0.5); letter-spacing:1px; display:block; margin-top:3px; }
+        .cam-bottom {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 9;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: 8px 14px 10px;
+            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+        }
+        .cam-info-col { display:flex; flex-direction:column; gap:3px; }
+        .cam-info-row { display:flex; align-items:center; gap:5px; }
+        .cam-info-row i { font-size:10px; color:rgba(255,255,255,0.4); }
+        .cam-ilabel { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,0.38); width:52px; }
+        .cam-ival   { font-size:11px; font-weight:700; color:#fff; }
+        .cam-speed  { text-align:center; }
+        .cam-sv     { font-size:36px; font-weight:900; color:#fff; line-height:1; display:block; text-shadow:0 0 16px rgba(56,189,248,0.3); }
+        .cam-su     { font-size:8px; letter-spacing:3px; color:rgba(255,255,255,0.4); }
+        .cam-agency { text-align:right; }
+        .cam-agrow  { display:flex; align-items:center; justify-content:flex-end; gap:5px; font-size:11px; font-weight:800; letter-spacing:2px; color:rgba(255,255,255,0.7); }
+        .cam-agrow i{ font-size:12px; color:#38bdf8; }
+        .cam-serial { font-size:7px; letter-spacing:2px; color:rgba(255,255,255,0.28); margin-top:3px; }
+        .cam-crosshair { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5; }
+        .cam-ch-h { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:24px; height:1px; background:rgba(255,255,255,0.15); }
+        .cam-ch-v { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:1px; height:24px; background:rgba(255,255,255,0.15); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1><span>fvg</span>-axondash</h1>
+    <p class="tagline">Axon-stílusú fedélzeti kamera rendszer · csak rendvédelmi járművekhez · valós + játékidő overlay</p>
+
+    <!-- Előnézet -->
+    <h2><i class="hgi-stroke hgi-camera-01"></i> Kamera előnézet</h2>
+    <div class="cam-preview">
+        <div class="cam-bg"></div>
+        <div class="cam-scanlines"></div>
+        <div class="cam-vignette"></div>
+        <div class="cam-corner tl"></div>
+        <div class="cam-corner tr"></div>
+        <div class="cam-corner bl"></div>
+        <div class="cam-corner br"></div>
+        <!-- Top -->
+        <div class="cam-top">
+            <div>
+                <div class="cam-logo">
+                    <i class="hgi-stroke hgi-camera-01"></i>
+                    <span class="cam-brand">AXON</span>
+                    <span class="cam-sub">DASH</span>
+                </div>
+                <div class="cam-rec">
+                    <span class="cam-rdot"></span>
+                    <span class="cam-rlabel">REC</span>
+                </div>
+            </div>
+            <div class="cam-unit" id="doc-unit">ALPHA-4</div>
+            <div class="cam-time-block">
+                <span class="cam-time" id="doc-time">00:00:00</span>
+                <span class="cam-tsub">VALÓS IDŐ</span>
+                <span class="cam-date" id="doc-date">2026-02-21</span>
+            </div>
+        </div>
+        <!-- Bottom -->
+        <div class="cam-bottom">
+            <div class="cam-info-col">
+                <div class="cam-info-row">
+                    <i class="hgi-stroke hgi-clock-01"></i>
+                    <span class="cam-ilabel">JÁTÉKIDŐ</span>
+                    <span class="cam-ival" id="doc-gtime">14:30</span>
+                </div>
+                <div class="cam-info-row">
+                    <i class="hgi-stroke hgi-maps-location-01"></i>
+                    <span class="cam-ilabel">GPS</span>
+                    <span class="cam-ival">219 / -810</span>
+                </div>
+            </div>
+            <div class="cam-speed">
+                <span class="cam-sv" id="doc-speed">0</span>
+                <span class="cam-su">km/h</span>
+            </div>
+            <div class="cam-agency">
+                <div class="cam-agrow"><i class="hgi-stroke hgi-police-badge-01"></i>LSPD</div>
+                <div class="cam-serial">CAM-01 · FVG</div>
+            </div>
+        </div>
+        <!-- Crosshair -->
+        <div class="cam-crosshair">
+            <div class="cam-ch-h"></div>
+            <div class="cam-ch-v"></div>
+        </div>
+    </div>
+
+    <!-- Aktiválás -->
+    <h2><i class="hgi-stroke hgi-terminal"></i> Aktiválás</h2>
+    <p>A kamera a <code>/dashcam</code> paranccsal kapcsolható be és ki. Csak akkor működik, ha a játékos rendvédelmi járműben ül és jogosult jobban van.</p>
+    <table>
+        <tr><th>Feltétel</th><th>Ellenőrzés módja</th></tr>
+        <tr><td>Jogosult job</td><td><code>Config.AuthorizedJobs</code> lista</td></tr>
+        <tr><td>Jármű típusa</td><td><code>Config.EmergencyModels</code> hash-ellenőrzés</td></tr>
+        <tr><td>Vezető pozíció</td><td><code>GetPedInVehicleSeat(veh, -1) == ped</code></td></tr>
+        <tr><td>Kiszállás</td><td>Automatikus leállás (<code>StopOnExit = true</code>)</td></tr>
+    </table>
+
+    <!-- Overlay elemek -->
+    <h2><i class="hgi-stroke hgi-layers-01"></i> Overlay elemek</h2>
+    <table>
+        <tr><th>Elem</th><th>Forrás</th><th>Pozíció</th></tr>
+        <tr><td>AXON DASH logó</td><td>–</td><td>Bal felső</td></tr>
+        <tr><td>REC villogó</td><td>CSS animáció</td><td>Bal felső</td></tr>
+        <tr><td>Egységszám / callsign</td><td><code>fvg-police</code> export</td><td>Felső közép</td></tr>
+        <tr><td>Valós idő (ÓÓ:PP:MP)</td><td>JS <code>Date()</code> – 500ms</td><td>Jobb felső</td></tr>
+        <tr><td>Valós dátum</td><td>JS <code>Date()</code></td><td>Jobb felső</td></tr>
+        <tr><td>Játékbeli idő</td><td><code>GetClockHours/Minutes</code></td><td>Bal alsó</td></tr>
+        <tr><td>GPS koordináta</td><td><code>GetEntityCoords</code></td><td>Bal alsó</td></tr>
+        <tr><td>Sebesség</td><td><code>GetEntitySpeed * 3.6</code></td><td>Alsó közép</td></tr>
+        <tr><td>LSPD / agency felirat</td><td>Statikus</td><td>Jobb alsó</td></tr>
+    </table>
+
+    <!-- Effektek -->
+    <h2><i class="hgi-stroke hgi-image-01"></i> Kamera effektek</h2>
+    <table>
+        <tr><th>Effekt</th><th>Megvalósítás</th></tr>
+        <tr><td>Timecycle modifier</td><td><code>camera_security_BORED</code> – deszaturált, kontrasztos kép</td></tr>
+        <tr><td>Scanline overlay</td><td>CSS repeating-gradient + animáció</td></tr>
+        <tr><td>Vinyette</td><td>CSS radial-gradient (sarok sötétítés)</td></tr>
+        <tr><td>Kamera zaj (noise)</td><td>SVG feTurbulence animáció (<code>::after</code> pseudo)</td></tr>
+        <tr><td>Sarokjelek</td><td>4 × CSS <code>.corner</code> div</td></tr>
+        <tr><td>Crosshair</td><td>2 × 1px vonal (közép)</td></tr>
+    </table>
+
+    <!-- Konfiguráció -->
+    <h2><i class="hgi-stroke hgi-settings-01"></i> Konfiguráció <span class="badge badge-config">config.lua</span></h2>
+    <table>
+        <tr><th>Kulcs</th><th>Alapértéke</th><th>Leírás</th></tr>
+        <tr><td><code>AuthorizedJobs</code></td><td>police, sheriff…</td><td>Jogosult job-ok listája</td></tr>
+        <tr><td><code>Command</code></td><td>'dashcam'</td><td>Chat parancs neve</td></tr>
+        <tr><td><code>EmergencyModels</code></td><td>police, sheriff…</td><td>Engedélyezett jármű modellek</td></tr>
+        <tr><td><code>StopOnExit</code></td><td>true</td><td>Automatikus leállás kiszállásnál</td></tr>
+        <tr><td><code>SyncState</code></td><td>true</td><td>Szerver-oldali állapot szinkron</td></tr>
+        <tr><td><code>ShowSpeed</code></td><td>true</td><td>Sebesség megjelenítése</td></tr>
+        <tr><td><code>ShowGPS</code></td><td>true</td><td>GPS koordináta megjelenítése</td></tr>
+        <tr><td><code>ShowGameTime</code></td><td>true</td><td>Játékidő megjelenítése</td></tr>
+    </table>
+
+    <!-- Kliens exportok -->
+    <h2><i class="hgi-stroke hgi-code"></i> Kliens exportok <span class="badge badge-client">CLIENT</span></h2>
+    <table>
+        <tr><th>Export</th><th>Visszatérés</th><th>Leírás</th></tr>
+        <tr><td><code>IsActive()</code></td><td>boolean</td><td>A dashcam aktív-e jelenleg</td></tr>
+        <tr><td><code>ForceStart()</code></td><td>–</td><td>Kamera erőltetett indítása</td></tr>
+        <tr><td><code>ForceStop()</code></td><td>–</td><td>Kamera erőltetett leállítása</td></tr>
+        <tr><td><code>GetUnitLabel()</code></td><td>string</td><td>Aktuális egységszám / callsign</td></tr>
+    </table>
+
+    <!-- Integráció -->
+    <h2><i class="hgi-stroke hgi-plug-socket"></i> Integrációk</h2>
+    <table>
+        <tr><th>Script</th><th>Hogyan</th></tr>
+        <tr><td><code>fvg-police</code></td><td>Callsign lekérdezés: <code>exports['fvg-police']:GetOfficer(PlayerId())</code></td></tr>
+        <tr><td><code>fvg-playercore</code></td><td>Job-ellenőrzés: <code>PlayerLoaded</code> + <code>DataUpdated</code> event</td></tr>
+        <tr><td><code>fvg-notify</code></td><td>Be/ki értesítések szerver oldalon</td></tr>
+    </table>
+
+    <!-- Példa kódok -->
+    <h2><i class="hgi-stroke hgi-code-circle"></i> Példa – más scriptből</h2>
+    <pre><code>-- Dashcam állapot lekérdezése (pl. felvétel logolás)
+local active = exports['fvg-axondash']:IsActive()
+
+-- Kamera leállítása külső eseményből (pl. letartóztatás)
+exports['fvg-axondash']:ForceStop()
+
+-- Egységszám lekérdezése
+local unit = exports['fvg-axondash']:GetUnitLabel()
+print('Aktuális egység: ' .. unit)</code></pre>
+
+    <!-- Interaktív demo -->
+    <h2><i class="hgi-stroke hgi-test-tube"></i> Interaktív demo</h2>
+    <div class="demo-box">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <button onclick="demoToggle()"><i class="hgi-stroke hgi-camera-01" style="color:#38bdf8;"></i>Kamera toggle</button>
+            <button onclick="demoSpeed(80)"><i class="hgi-stroke hgi-dashboard-speed-02"></i>80 km/h</button>
+            <button onclick="demoSpeed(140)"><i class="hgi-stroke hgi-dashboard-speed-02" style="color:#ef4444;"></i>140 km/h</button>
+            <button onclick="demoUnit('BRAVO-7')"><i class="hgi-stroke hgi-user-shield-01"></i>Egység: BRAVO-7</button>
+            <button onclick="demoReset()"><i class="hgi-stroke hgi-refresh"></i>Reset</button>
+        </div>
+        <div class="demo-output" id="demo-out">Nyomj egy gombot...</div>
+    </div>
+
+    <h2><i class="hgi-stroke hgi-information-circle"></i> server.cfg sorrend</h2>
+    <pre><code>ensure fvg-playercore
+ensure fvg-police
+ensure fvg-notify
+ensure fvg-axondash</code></pre>
+
+</div>
+
+<script>
+    let camActive = false;
+    let simSpeed  = 0;
+    let simUnit   = 'ALPHA-4';
+
+    // Valós idő frissítés az előnézetben
+    setInterval(() => {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const s = String(now.getSeconds()).padStart(2,'0');
+        const el = document.getElementById('doc-time');
+        if (el) el.textContent = `${h}:${m}:${s}`;
+        const d = document.getElementById('doc-date');
+        if (d) d.textContent = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        // Játékidő szimuláció
+        const gt = document.getElementById('doc-gtime');
+        if (gt) {
+            const gh = (14 + Math.floor((now.getMinutes() + now.getSeconds()/60) / 2)) % 24;
+            gt.textContent = `${String(gh).padStart(2,'0')}:${String(now.getMinutes() % 60).padStart(2,'0')}`;
+        }
+    }, 500);
+
+    function out(msg) { document.getElementById('demo-out').innerHTML = msg; }
+
+    function demoToggle() {
+        camActive = !camActive;
+        out(camActive
+            ? '📹 <b>DashCam AKTÍV</b> – <code>exports[\'fvg-axondash\']:IsActive()</code> → <b>true</b>'
+            : '⏹ <b>DashCam LEÁLLT</b> – <code>exports[\'fvg-axondash\']:IsActive()</code> → <b>false</b>'
+        );
+        document.getElementById('doc-speed').textContent = camActive ? simSpeed : '—';
+        document.getElementById('doc-unit').textContent  = camActive ? simUnit : '—';
+    }
+    function demoSpeed(v) {
+        simSpeed = v;
+        document.getElementById('doc-speed').textContent = v;
+        out(`🚗 Sebesség frissítve: <b>${v} km/h</b> → NUI <code>update</code> üzenet küldve`);
+    }
+    function demoUnit(u) {
+        simUnit = u;
+        document.getElementById('doc-unit').textContent = u;
+        out(`🪪 Egységszám: <b>${u}</b> → <code>exports['fvg-axondash']:GetUnitLabel()</code> → "${u}"`);
+    }
+    function demoReset() {
+        camActive = false; simSpeed = 0; simUnit = 'ALPHA-4';
+        document.getElementById('doc-speed').textContent = '0';
+        document.getElementById('doc-unit').textContent  = 'ALPHA-4';
+        out('Nyomj egy gombot...');
+    }
+</script>
+</body>
+</html>
