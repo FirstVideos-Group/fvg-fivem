@@ -27,9 +27,10 @@ body {
     display: flex; align-items: center; justify-content: center; z-index: 9999;
 }
 
-/* ── PANEL ───────────────────────────────────────────────── */
+/* ── PANEL ─────────────────────────────────────────────── */
 #panel {
-    width: 580px; max-height: 88vh;
+    width: 580px;
+    max-height: 88vh;
     background: var(--bg-panel); border: 1px solid var(--border);
     border-radius: 16px; display: flex; flex-direction: column;
     overflow: hidden; box-shadow: 0 36px 90px rgba(0,0,0,0.75);
@@ -40,7 +41,7 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── FEJLÉC ──────────────────────────────────────────────── */
+/* ── FEJLÉC ─────────────────────────────────────────────── */
 .panel-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
@@ -73,21 +74,39 @@ body {
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(56,189,248,0.05); }
 .tab i { font-size: 14px; }
 
-/* ── PANEL BODY ──────────────────────────────────────────── */
-.panel-body { flex: 1; overflow: hidden; }
-.tab-content { display: none; height: 100%; overflow-y: auto; padding: 16px 20px; flex-direction: column; gap: 14px; }
+/* ── PANEL BODY ───────────────────────────────────────────── */
+/* JAVÍTÁS: flex: 1 + min-height: 0 hogy a tab-content ténylegesen kapjon magasságot */
+.panel-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+/* JAVÍTÁS: flex: 1 + min-height: 0 az active tab-content-re is */
+.tab-content {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 14px;
+}
 .tab-content.active { display: flex; }
 .tab-content::-webkit-scrollbar { width: 4px; }
 .tab-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+.tab-content::-webkit-scrollbar-track { background: transparent; }
 
-/* ══════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    SEGÉLY TAB
-══════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 
 /* Státusz kártya */
 .status-card {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 14px;
+    flex-shrink: 0;
 }
 .sc-icon {
     width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
@@ -107,7 +126,7 @@ body {
 /* Összefoglaló */
 .benefit-summary {
     display: flex; background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
+    border-radius: 12px; overflow: hidden; flex-shrink: 0;
 }
 .bs-item   { flex: 1; padding: 14px 16px; }
 .bs-divider{ width: 1px; background: var(--border); }
@@ -120,7 +139,7 @@ body {
     width: 100%; padding: 13px; border-radius: 10px; border: none;
     background: var(--success); color: #061a0e;
     font-size: 14px; font-weight: 800; cursor: pointer; font-family: var(--font);
-    transition: all 0.15s; letter-spacing: 0.02em;
+    transition: all 0.15s; letter-spacing: 0.02em; flex-shrink: 0;
 }
 .claim-btn:hover   { opacity: 0.85; }
 .claim-btn:disabled{
@@ -136,7 +155,7 @@ body {
 }
 
 /* Progress bar */
-.claims-progress { display: flex; flex-direction: column; gap: 7px; }
+.claims-progress { display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
 .cp-header {
     display: flex; justify-content: space-between;
     font-size: 11px; color: var(--text-m); font-weight: 600;
@@ -157,18 +176,25 @@ body {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 12px 14px; border-radius: 9px;
     background: rgba(56,189,248,0.05); border: 1px solid rgba(56,189,248,0.15);
-    font-size: 12px; color: var(--text-s); line-height: 1.6;
+    font-size: 12px; color: var(--text-s); line-height: 1.6; flex-shrink: 0;
 }
 .info-box i { font-size: 16px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
 
-/* ══════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    ÁLLÁSOK TAB
-══════════════════════════════════════════════════════════ */
-.jobs-grid { display: flex; flex-direction: column; gap: 10px; }
+══════════════════════════════════════════════════════ */
+/* JAVÍTÁS: jobs-grid flex-direction: column + padding alul hogy az utolsó elem ne essen ki */
+.jobs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 4px;
+}
 
 .job-card {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s;
+    flex-shrink: 0;
 }
 .job-card:hover { border-color: rgba(255,255,255,0.08); background: var(--bg-hover); }
 .job-card.full  { opacity: 0.5; cursor: not-allowed; }
@@ -205,9 +231,9 @@ body {
     padding: 3px 8px; border-radius: 5px;
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    NAPI FELADATOK TAB
-══════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 .tasks-header {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; background: var(--bg-card);
@@ -223,6 +249,7 @@ body {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 11px; padding: 14px 16px;
     display: flex; align-items: center; gap: 13px; transition: all 0.15s;
+    flex-shrink: 0;
 }
 .task-card.done {
     opacity: 0.55; border-left: 3px solid var(--success);
@@ -251,9 +278,9 @@ body {
 .task-btn:hover  { opacity: 0.8; }
 .task-btn.done   { background: transparent; border-color: transparent; color: var(--text-m); cursor: default; pointer-events: none; }
 
-/* ══════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    MODÁL – ÁLLÁS RÉSZLET
-══════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════ */
 .modal {
     position: fixed; inset: 0; z-index: 10000;
     display: flex; align-items: center; justify-content: center;
