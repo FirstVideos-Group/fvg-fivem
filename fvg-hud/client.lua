@@ -2,17 +2,14 @@
 -- ║          fvg-hud :: client core              ║
 -- ╚══════════════════════════════════════════════╝
 
--- Regisztrált modulok táblája: { id, tick, enabled }
-local _modules     = {}
-local _moduleIndex = {}   -- gyors keresés id alapján
-local _playerToggles = {} -- játékos egyéni beállításai (hudmenu-ból)
+local _modules       = {}
+local _moduleIndex   = {}
+local _playerToggles = {}
 
--- Natív HUD elrejtése
 DisplayHud(false)
 DisplayRadar(true)
 
 -- ── Modul regisztrátor ──────────────────────────────────────
--- Minden modules/*.lua fájl ezt hívja meg
 function RegisterModule(id, tickFn)
     if _moduleIndex[id] then return end
 
@@ -28,23 +25,15 @@ function RegisterModule(id, tickFn)
     table.insert(_modules, entry)
     _moduleIndex[id] = entry
 
-    -- Rendezés megjelenítési sorrend szerint
     table.sort(_modules, function(a, b) return a.order < b.order end)
 
-    -- Értesítés az NUI-nak az új modulról
-    SendNUIMessage({
-        action   = 'registerModule',
-        id       = id,
-        enabled  = true,
-        position = Config.Position
-    })
+    -- NUI-nak csak akkor küldjük, ha már init ment ki
+    -- (hudReady után a syncModules gondoskodik róla)
 end
 
--- Export: más scriptek is regisztrálhatnak modult
 exports('RegisterModule', RegisterModule)
 
 -- ── Érték frissítő ──────────────────────────────────────────
--- Modult hívja és NUI-ba küldi az adatot
 local function SendModuleUpdate(id, value, visible)
     SendNUIMessage({
         action  = 'updateModule',
@@ -54,7 +43,6 @@ local function SendModuleUpdate(id, value, visible)
     })
 end
 
--- Export: külső scriptek (fvg-needs, fvg-stress stb.) adatot küldhetnek
 exports('SetModuleValue', function(id, value, visible)
     if not _moduleIndex[id] then return end
     if not _moduleIndex[id].enabled then return end
@@ -62,7 +50,6 @@ exports('SetModuleValue', function(id, value, visible)
 end)
 
 -- ── Modul be-/kikapcsolás ───────────────────────────────────
--- Ezt a fvg-hudmenu fogja hívni
 exports('ToggleModule', function(id, state)
     local m = _moduleIndex[id]
     if not m then return end
@@ -75,15 +62,16 @@ exports('ToggleModule', function(id, state)
     })
 end)
 
--- Export: lekérdezi egy modul állapotát
 exports('GetModuleState', function(id)
     local m = _moduleIndex[id]
     if not m then return false end
     return m.enabled
 end)
 
--- ── NUI felé jelzi az összes elérhető modult ───────────────
-RegisterNetEvent('fvg-hud:client:Loaded', function()
+-- ── Összes modul szinkronizálása az NUI-val ─────────────────
+local function SyncModulesToNUI()
+    SendNUIMessage({ action = 'init', position = Config.Position })
+    Citizen.Wait(50) -- rövid várakozás hogy az init feldolgozódjon
     for _, m in ipairs(_modules) do
         SendNUIMessage({
             action   = 'registerModule',
@@ -92,17 +80,30 @@ RegisterNetEvent('fvg-hud:client:Loaded', function()
             position = Config.Position
         })
     end
+end
+
+-- ── NUI visszajelzések ──────────────────────────────────────
+RegisterNUICallback('hudReady', function(data, cb)
+    -- Teljes szinkronizálás: minden modult újraküldünk értékkel együtt
+    for _, m in ipairs(_modules) do
+        SendNUIMessage({
+            action   = 'registerModule',
+            id       = m.id,
+            enabled  = m.enabled,
+            position = Config.Position
+        })
+    end
+    cb('ok')
 end)
 
--- ── Fő tick: minden modul tick függvényét meghívja ──────────
+-- ── Fő tick ──────────────────────────────────────────────────
 Citizen.CreateThread(function()
-    -- Várunk amíg a játékos betölt
     while not NetworkIsPlayerActive(PlayerId()) do
         Citizen.Wait(500)
     end
 
-    -- Modulok inicializálása
-    SendNUIMessage({ action = 'init', position = Config.Position })
+    -- Player betöltött → szinkronizálunk
+    SyncModulesToNUI()
 
     while true do
         Citizen.Wait(Config.TickRate)
@@ -116,17 +117,4 @@ Citizen.CreateThread(function()
             end
         end
     end
-end)
-
--- ── NUI visszajelzések ──────────────────────────────────────
-RegisterNUICallback('hudReady', function(data, cb)
-    for _, m in ipairs(_modules) do
-        SendNUIMessage({
-            action   = 'registerModule',
-            id       = m.id,
-            enabled  = m.enabled,
-            position = Config.Position
-        })
-    end
-    cb('ok')
 end)
