@@ -28,7 +28,7 @@ CreateThread(function()
             `player_id`   INT          NOT NULL,
             `job_id`      VARCHAR(40)  NOT NULL,
             `applied_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            `status`      ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+            `status`      ENUM('pending','accepted','rejected','resigned') NOT NULL DEFAULT 'pending',
             PRIMARY KEY (`id`),
             KEY `idx_player` (`player_id`),
             KEY `idx_job`    (`job_id`),
@@ -252,28 +252,23 @@ exports('ApplyForJob', function(src, jobId)
     local player = exports['fvg-playercore']:GetPlayer(s)
     if not player then return false end
 
-    -- Ellenőrzés: csak munkanélküli jelentkezhet
-    -- Ha nincs metadata vagy a job nem 'unemployed' → már van állása
     local currentJob = player.metadata and player.metadata.job or Config.BenefitEligibleJob
     if currentJob ~= Config.BenefitEligibleJob then
         Notify(s, Config.Notifications.job_already, 'warning')
         return false
     end
 
-    -- Job megkeresése
     local jobDef = nil
     for _, j in ipairs(Config.Jobs) do
         if j.id == jobId then jobDef = j; break end
     end
     if not jobDef or not jobDef.open then return false end
 
-    -- Slot ellenőrzés
     if jobDef.slots > 0 and GetCurrentSlotCount(jobId) >= jobDef.slots then
         Notify(s, Config.Notifications.job_no_slots, 'error')
         return false
     end
 
-    -- Követelmény ellenőrzés
     local identity = exports['fvg-identity']:GetPlayerIdentity(s)
     local age      = identity and identity.age or 0
     if jobDef.requirements then
@@ -289,16 +284,10 @@ exports('ApplyForJob', function(src, jobId)
         end
     end
 
-    -- Job beállítása a metadata-ban
     exports['fvg-playercore']:SetPlayerData(s, 'job', jobId)
-
-    -- Azonnali DB mentés, hogy kilépés/újraindulás után se veszzen el
     exports['fvg-playercore']:SavePlayerNow(s)
-
-    -- Többi script értesítése a job változásról
     TriggerEvent('fvg-playercore:server:JobChanged', s, jobId, currentJob)
 
-    -- Segély adatok reset
     local data = unemploymentData[s]
     if data then
         data.claims_used = 0
@@ -311,7 +300,6 @@ exports('ApplyForJob', function(src, jobId)
         TriggerClientEvent('fvg-unemployment:client:SyncData', s, data)
     end
 
-    -- Jelentés logolása
     exports['fvg-database']:Insert(
         'INSERT INTO `fvg_job_applications` (`player_id`,`job_id`,`status`) VALUES (?,?,?)',
         { player.id, jobId, 'accepted' }
@@ -319,6 +307,38 @@ exports('ApplyForJob', function(src, jobId)
 
     Notify(s, Config.Notifications.job_applied .. jobDef.label, 'success')
     TriggerEvent('fvg-unemployment:server:JobApplied', s, jobId)
+    return true
+end)
+
+-- ── Munka leadás (resign) ─────────────────────────────────────
+exports('ResignJob', function(src)
+    local s      = tonumber(src)
+    local player = exports['fvg-playercore']:GetPlayer(s)
+    if not player then return false end
+
+    local currentJob = player.metadata and player.metadata.job or Config.BenefitEligibleJob
+
+    -- Ha már munkanélküli, nincs mit leadni
+    if currentJob == Config.BenefitEligibleJob then
+        Notify(s, 'Nincs aktív állásod, amit leadhatnál.', 'warning')
+        return false
+    end
+
+    -- Job visszaállítása unemployed-ra
+    exports['fvg-playercore']:SetPlayerData(s, 'job', Config.BenefitEligibleJob)
+    exports['fvg-playercore']:SavePlayerNow(s)
+    TriggerEvent('fvg-playercore:server:JobChanged', s, Config.BenefitEligibleJob, currentJob)
+
+    -- Felvétel logolása
+    exports['fvg-database']:Insert(
+        'INSERT INTO `fvg_job_applications` (`player_id`,`job_id`,`status`) VALUES (?,?,?)',
+        { player.id, currentJob, 'resigned' }
+    )
+
+    -- JobChanged handler gondoskodik az unemployment reset-ről,
+    -- de explicit is szinkronizálunk a kliensnek
+    TriggerClientEvent('fvg-unemployment:client:ResignConfirmed', s, currentJob)
+    TriggerEvent('fvg-unemployment:server:JobResigned', s, currentJob)
     return true
 end)
 
@@ -331,6 +351,8 @@ RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
     local data = unemploymentData[src]
     if not data then return end
 
+    local player        = exports['fvg-playercore']:GetPlayer(src)
+    local currentJob    = player and player.metadata and player.metadata.job or Config.BenefitEligibleJob
     local jobs          = exports['fvg-unemployment']:GetAvailableJobs(src)
     local canClaim, err = CanClaim(src)
 
@@ -345,16 +367,31 @@ RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
         end
     end
 
+    -- Jelenlegi állás label keresése a Config.Jobs-ból
+    local currentJobLabel = nil
+    if currentJob ~= Config.BenefitEligibleJob then
+        for _, j in ipairs(Config.Jobs) do
+            if j.id == currentJob then
+                currentJobLabel = j.label
+                currentJobLabel = j.label
+                break
+            end
+        end
+        if not currentJobLabel then currentJobLabel = currentJob end
+    end
+
     TriggerClientEvent('fvg-unemployment:client:OpenPanel', src, {
-        data          = data,
-        jobs          = jobs,
-        tasks         = Config.DailyTasks,
-        benefitAmount = Config.BenefitAmount,
-        maxClaims     = Config.BenefitMaxClaims,
-        cooldown      = Config.BenefitCooldown,
-        cooldownLeft  = cooldownLeft,
-        canClaim      = canClaim,
-        isUnemployed  = IsUnemployedPlayer(src),
+        data           = data,
+        jobs           = jobs,
+        tasks          = Config.DailyTasks,
+        benefitAmount  = Config.BenefitAmount,
+        maxClaims      = Config.BenefitMaxClaims,
+        cooldown       = Config.BenefitCooldown,
+        cooldownLeft   = cooldownLeft,
+        canClaim       = canClaim,
+        isUnemployed   = IsUnemployedPlayer(src),
+        currentJob     = currentJob,
+        currentJobLabel= currentJobLabel,
     })
 end)
 
@@ -364,6 +401,11 @@ end)
 
 RegisterNetEvent('fvg-unemployment:server:ApplyForJob', function(jobId)
     exports['fvg-unemployment']:ApplyForJob(source, jobId)
+end)
+
+-- Munka leadás net event
+RegisterNetEvent('fvg-unemployment:server:ResignJob', function()
+    exports['fvg-unemployment']:ResignJob(source)
 end)
 
 RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
@@ -415,7 +457,6 @@ RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
     end
 end)
 
--- Munkanélküliség visszaallítás (pl. kirúgáskor – más script hívja)
 AddEventHandler('fvg-playercore:server:JobChanged', function(src, newJob, oldJob)
     local data = unemploymentData[src]
     if not data then return end
@@ -429,6 +470,6 @@ AddEventHandler('fvg-playercore:server:JobChanged', function(src, newJob, oldJob
             { data.player_id }
         )
         TriggerClientEvent('fvg-unemployment:client:SyncData', src, data)
-        Notify(src, 'Munkanélküli segélyre válsz jogosultává.', 'info')
+        Notify(src, 'Munkanélküli segélyre váltál. A hivatal fogadja az igénylésedet.', 'info')
     end
 end)

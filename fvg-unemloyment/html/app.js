@@ -1,7 +1,7 @@
 const UE = (() => {
-    let payload       = null;
+    let payload          = null;
     let cooldownInterval = null;
-    let cooldownLeft  = 0;
+    let cooldownLeft     = 0;
 
     // ── NUI üzenet fogadás ──────────────────────────────────
     window.addEventListener('message', (e) => {
@@ -22,6 +22,11 @@ const UE = (() => {
                 renderTasks();
             }
         }
+        if (action === 'resignConfirmed') {
+            // A panel automatikusan újra megnyílik a kliens lua után (RequestOpen)
+            // itt csak a modalt zárjuk be ha még nyitva lenne
+            closeResignModal();
+        }
     });
 
     // ── Tab kezelés ──────────────────────────────────────────
@@ -37,7 +42,7 @@ const UE = (() => {
     // ── Segély tab renderelés ────────────────────────────────
     function renderBenefit() {
         if (!payload) return;
-        const { data, benefitAmount, maxClaims, cooldown, isUnemployed } = payload;
+        const { data, benefitAmount, maxClaims, isUnemployed, currentJob, currentJobLabel } = payload;
 
         // Státusz kártya
         const isEligible = data.eligible && isUnemployed;
@@ -50,6 +55,15 @@ const UE = (() => {
         badge.className   = 'sc-badge' + (isEligible ? '' : ' inactive');
         document.getElementById('sc-icon').querySelector('i').className =
             isUnemployed ? 'hgi-stroke hgi-user-circle' : 'hgi-stroke hgi-user-check-01';
+
+        // Aktív állás kártya – csak ha van munkája
+        const jobCard = document.getElementById('current-job-card');
+        if (!isUnemployed && currentJobLabel) {
+            document.getElementById('cjc-job-name').textContent = currentJobLabel;
+            jobCard.classList.remove('hidden');
+        } else {
+            jobCard.classList.add('hidden');
+        }
 
         // Összefoglaló
         document.getElementById('benefit-amount').textContent = '$' + benefitAmount;
@@ -118,18 +132,47 @@ const UE = (() => {
         fetch(`https://fvg-unemployment/claimBenefit`, { method: 'POST', body: JSON.stringify({}) });
     });
 
+    // ── Munka leadás gomb ────────────────────────────────────
+    document.getElementById('resign-btn').addEventListener('click', () => {
+        if (!payload || !payload.currentJobLabel) return;
+        document.getElementById('resign-job-name').textContent = payload.currentJobLabel;
+        document.getElementById('resign-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('resign-confirm-btn').addEventListener('click', () => {
+        fetch(`https://fvg-unemployment/resignJob`, { method: 'POST', body: JSON.stringify({}) });
+        closeResignModal();
+    });
+
+    function closeResignModal() {
+        document.getElementById('resign-modal').classList.add('hidden');
+    }
+
     // ── Állások tab renderelés ───────────────────────────────
     function renderJobs() {
         if (!payload) return;
         const grid = document.getElementById('jobs-grid');
         grid.innerHTML = '';
 
+        // Ha van aktív munkája, nem tud újat felvenni – info üzenet
+        if (!payload.isUnemployed) {
+            grid.innerHTML = `
+                <div class="jobs-employed-notice">
+                    <i class="hgi-stroke hgi-briefcase-02"></i>
+                    <div>
+                        <div class="jen-title">Jelenleg foglalkoztatott vagy</div>
+                        <div class="jen-sub">Új állásra csak munkanélküli státuszban jelentkezhetsz. Jelenlegi állásod a Segély fülön adhatod le.</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         (payload.jobs || []).forEach(job => {
             const card = document.createElement('div');
             card.className = 'job-card' + (job.isFull ? ' full' : '');
 
-            const applyColor = job.meetsReqs && !job.isFull ? job.color : '#64748b';
-            const applyBg    = job.meetsReqs && !job.isFull
+            const applyBg = job.meetsReqs && !job.isFull
                 ? `background:${job.color}18;border:1px solid ${job.color}33;color:${job.color}`
                 : `background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.2);color:#64748b`;
 
@@ -181,9 +224,7 @@ const UE = (() => {
             <div class="detail-row" style="border:none"><span class="detail-key">Leírás</span></div>
             <div style="font-size:12px;color:var(--text-s);line-height:1.6;padding:4px 0 10px">${job.description}</div>
             <div style="font-size:11px;font-weight:700;color:var(--text-m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Követelmények</div>
-            <div class="req-list">
-                ${buildReqList(job)}
-            </div>
+            <div class="req-list">${buildReqList(job)}</div>
         `;
 
         const footer = document.getElementById('jm-footer');
@@ -217,7 +258,7 @@ const UE = (() => {
         if (reqs.minAge) {
             lines.push(`
                 <div class="req-item">
-                    <i class="hgi-stroke hgi-${job.meetsReqs || reqs.minAge ? 'checkmark-circle-02 req-ok' : 'cancel-01 req-fail'}"></i>
+                    <i class="hgi-stroke hgi-${job.meetsReqs ? 'checkmark-circle-02 req-ok' : 'cancel-01 req-fail'}"></i>
                     <span>Minimum életkor: ${reqs.minAge} év</span>
                 </div>
             `);
@@ -244,9 +285,9 @@ const UE = (() => {
     // ── Napi feladatok renderelés ────────────────────────────
     function renderTasks() {
         if (!payload) return;
-        const list     = document.getElementById('tasks-list');
-        const tasksDone= payload.data.tasks_done || {};
-        list.innerHTML = '';
+        const list      = document.getElementById('tasks-list');
+        const tasksDone = payload.data.tasks_done || {};
+        list.innerHTML  = '';
 
         (payload.tasks || []).forEach(task => {
             const done = !!tasksDone[task.id];
@@ -286,10 +327,11 @@ const UE = (() => {
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            if (!document.getElementById('resign-modal').classList.contains('hidden')) { closeResignModal(); return; }
             if (!document.getElementById('job-modal').classList.contains('hidden')) { closeJobModal(); return; }
             close();
         }
     });
 
-    return { showJobDetail, closeJobModal };
+    return { showJobDetail, closeJobModal, closeResignModal };
 })();

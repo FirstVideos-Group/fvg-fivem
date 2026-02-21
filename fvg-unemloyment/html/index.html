@@ -56,6 +56,21 @@
                     <div class="sc-badge" id="sc-badge">AKTÍV</div>
                 </div>
 
+                <!-- Aktív állás kártya (csak ha van munkája) -->
+                <div class="current-job-card hidden" id="current-job-card">
+                    <div class="cjc-left">
+                        <i class="hgi-stroke hgi-briefcase-02 cjc-icon"></i>
+                        <div>
+                            <div class="cjc-label">Jelenlegi állás</div>
+                            <div class="cjc-job" id="cjc-job-name">–</div>
+                        </div>
+                    </div>
+                    <button class="resign-btn" id="resign-btn">
+                        <i class="hgi-stroke hgi-door-01"></i>
+                        Állás leadása
+                    </button>
+                </div>
+
                 <!-- Segély összefoglaló -->
                 <div class="benefit-summary">
                     <div class="bs-item">
@@ -135,6 +150,32 @@
             </div>
             <div class="modal-body" id="jm-body"></div>
             <div class="modal-footer" id="jm-footer"></div>
+        </div>
+    </div>
+
+    <!-- ── MEGERŐSÍTŐ MODAL (munka leadás) ──────────────────── -->
+    <div id="resign-modal" class="modal hidden">
+        <div class="modal-box confirm-box">
+            <div class="modal-header">
+                <i class="hgi-stroke hgi-alert-02" style="color:var(--warning)"></i>
+                <span>Állás leadása</span>
+                <button class="close-btn" onclick="UE.closeResignModal()">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-text">
+                    Biztosan leadod a(z) <strong id="resign-job-name"></strong> állást?
+                    Ezután munkanélküli státuszba kerülsz és újra jogosult leszel segélyre.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel-btn" onclick="UE.closeResignModal()">Mégsem</button>
+                <button class="modal-resign-confirm-btn" id="resign-confirm-btn">
+                    <i class="hgi-stroke hgi-door-01"></i>
+                    Igen, leadom
+                </button>
+            </div>
         </div>
     </div>
 
