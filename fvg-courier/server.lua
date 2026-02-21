@@ -5,7 +5,6 @@
 -- ── Migráció ───────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
-
     exports['fvg-database']:RegisterMigration('fvg_courier_stats', [[
         CREATE TABLE IF NOT EXISTS `fvg_courier_stats` (
             `player_id`          INT       NOT NULL,
@@ -24,7 +23,6 @@ CreateThread(function()
                 ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
-
     exports['fvg-database']:RegisterMigration('fvg_courier_deliveries', [[
         CREATE TABLE IF NOT EXISTS `fvg_courier_deliveries` (
             `id`           INT          NOT NULL AUTO_INCREMENT,
@@ -56,11 +54,24 @@ local function Notify(src, msg, ntype, title)
     })
 end
 
+-- FIX: GetPlayerData(src, 'job') használata GetPlayer helyett
+-- GetPlayer rekurzív loop-ot okozhat bizonyos FiveM event kontextusokban.
+-- GetPlayerData csak egy mezőt olvas a cache-ből, biztonságos.
 local function HasJob(src)
-    local player = exports['fvg-playercore']:GetPlayer(src)
-    if not player then return false end
-    local job = player.metadata and player.metadata.job or player.job
+    local ok, job = pcall(function()
+        return exports['fvg-playercore']:GetPlayerData(src, 'job')
+    end)
+    if not ok or not job then return false end
     return job == Config.RequiredJob
+end
+
+-- Teljes player objektum bizőnságos lekérése (EnsureStats-hoz)
+local function SafeGetPlayer(src)
+    local ok, player = pcall(function()
+        return exports['fvg-playercore']:GetPlayer(src)
+    end)
+    if not ok then return nil end
+    return player
 end
 
 local function GenRunId()
@@ -96,7 +107,7 @@ local function PickRandomSpots(n)
     return result
 end
 
--- FIX: lokális leaderboard lekérő – NEM hív exportot, nincs rekurzió
+-- Lokális leaderboard lekérő – nem hív exportot, nincs rekurzió
 local function FetchLeaderboard(limit)
     limit = math.min(tonumber(limit) or 10, 50)
     local rows = exports['fvg-database']:Query(
@@ -111,11 +122,11 @@ local function FetchLeaderboard(limit)
     return rows or {}
 end
 
--- FIX: ha playerStats[src] nil (pl. resource restart), DB-ből töltjük be
+-- Ha playerStats[src] nil (pl. resource restart), DB-ből tölti be
 local function EnsureStats(src)
     if playerStats[src] then return playerStats[src] end
 
-    local player = exports['fvg-playercore']:GetPlayer(src)
+    local player = SafeGetPlayer(src)
     if not player then return nil end
 
     local row = exports['fvg-database']:QuerySingle(
@@ -222,7 +233,6 @@ exports('GetPlayerStats', function(src)
     return playerStats[tonumber(src)]
 end)
 
--- FIX: FetchLeaderboard lokális függvényt hívja, nem saját exportját
 exports('GetLeaderboard', function(limit)
     return FetchLeaderboard(limit)
 end)
@@ -253,7 +263,6 @@ RegisterNetEvent('fvg-courier:server:ToggleDuty', function()
         Notify(src, 'Előbb fejezd be az aktív kört!', 'warning')
         return
     end
-    -- EnsureStats hogy biztosan meglegyen
     local stats = EnsureStats(src)
     TriggerClientEvent('fvg-courier:client:ToggleDuty', src, stats)
 end)
@@ -264,7 +273,6 @@ RegisterNetEvent('fvg-courier:server:RequestPanel', function()
     local stats     = EnsureStats(src)
     local levelData = GetLevelData(stats and stats.xp or 0)
     local nextLevel = GetNextLevel(stats and stats.xp or 0)
-    -- FIX: lokális FetchLeaderboard, nem export
     local lb        = FetchLeaderboard(10)
     TriggerClientEvent('fvg-courier:client:OpenPanel', src, {
         stats              = stats,
@@ -286,7 +294,6 @@ AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
         Notify(src, 'Már van aktív köröd!', 'warning'); return
     end
 
-    -- FIX: EnsureStats – ha nil, DB-ből tölti be, nem crash
     local stats = EnsureStats(src)
     if not stats then
         Notify(src, 'Nem sikerült betölteni az adataidat. Próbáld újra.', 'error')
@@ -352,7 +359,7 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
     local spot = run.spots[spotIdx]
     if not spot or spot.done then return end
 
-    local stats   = EnsureStats(src)
+    local stats = EnsureStats(src)
     if not stats then return end
 
     local reward  = math.floor(Config.BaseReward * (run.rewardMult or 1.0))
