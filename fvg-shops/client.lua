@@ -8,6 +8,9 @@ local shopBlips    = {}
 local shopNPCs     = {}
 local dynamicShops = {}   -- runtime regisztrált boltok
 
+-- inZone flag: [shopId] = bool - csak belépéskor küldjünk Notify-t
+local shopZone = {}
+
 -- ── Kliens exportok ───────────────────────────────────────────
 exports('IsShopOpen', function() return menuOpen end)
 
@@ -50,7 +53,7 @@ local function CreateBlip(shop)
     shopBlips[shop.id] = blip
 end
 
--- ── NPC spawn ─────────────────────────────────────────────────
+-- ── NPC spawn ──────────────────────────────────────────────────
 local function SpawnNPC(shop)
     if not shop.npc then return end
     local model = GetHashKey(shop.npc.model)
@@ -68,7 +71,7 @@ local function SpawnNPC(shop)
     shopNPCs[shop.id] = ped
 end
 
--- ── Inicializálás ────────────────────────────────────────────
+-- ── Inicializálás ─────────────────────────────────────────────
 CreateThread(function()
     for _, shop in ipairs(Config.Shops) do
         CreateBlip(shop)
@@ -76,14 +79,14 @@ CreateThread(function()
     end
 end)
 
--- ── Dinamikus bolt fogadás ────────────────────────────────────
+-- ── Dinamikus bolt fogadás ──────────────────────────────────────
 RegisterNetEvent('fvg-shops:client:RegisterShop', function(shop)
     dynamicShops[shop.id] = shop
     CreateBlip(shop)
     SpawnNPC(shop)
 end)
 
--- ── Interakció thread ─────────────────────────────────────────
+-- ── Interakció thread ───────────────────────────────────────────
 CreateThread(function()
     while true do
         local sleep  = 1000
@@ -107,16 +110,25 @@ CreateThread(function()
                     false, true, 2, nil, nil, false
                 )
                 if dist < Config.ShopRadius then
-                    exports['fvg-notify']:Notify({
-                        type='info',
-                        message='[E] ' .. shop.label .. ' megnyitása',
-                        duration=600, static=true
-                    })
+                    -- Csak egyszer küldjük a hint-et belépéskor
+                    if not shopZone[shop.id] then
+                        shopZone[shop.id] = true
+                        exports['fvg-notify']:Notify({
+                            type    = 'info',
+                            message = '[E] ' .. shop.label .. ' megnyitása',
+                            duration = 3500,
+                            static   = false,
+                        })
+                    end
                     if IsControlJustPressed(0, 38) and not menuOpen then
                         currentShop = shop.id
                         TriggerServerEvent('fvg-shops:server:RequestShop', shop.id)
                     end
+                else
+                    shopZone[shop.id] = false
                 end
+            else
+                shopZone[shop.id] = false
             end
         end
         Wait(sleep)
@@ -131,7 +143,7 @@ RegisterNetEvent('fvg-shops:client:OpenShop', function(data)
     SendNUIMessage({ action = 'open', payload = data })
 end)
 
--- ── Készlet frissítés ─────────────────────────────────────────
+-- ── Készlet frissítés ─────────────────────────────────────────────
 RegisterNetEvent('fvg-shops:client:StockUpdate', function(shopId, itemName, newStock)
     if shopId == currentShop then
         SendNUIMessage({ action = 'stockUpdate', item = itemName, stock = newStock })
@@ -144,9 +156,8 @@ RegisterNetEvent('fvg-shops:client:StockSync', function(shopId, stockMap)
     end
 end)
 
--- ── Vásárlás visszajelzés ─────────────────────────────────────
+-- ── Vásárlás visszajelzés ─────────────────────────────────────────
 RegisterNetEvent('fvg-shops:client:PurchaseSuccess', function(data)
-    -- Animáció
     if Config.UseAnimation then
         local p = PlayerPedId()
         RequestAnimDict(Config.BuyAnim.dict)
@@ -194,4 +205,5 @@ AddEventHandler('onResourceStop', function(res)
     end
     menuOpen    = false
     currentShop = nil
+    shopZone    = {}
 end)

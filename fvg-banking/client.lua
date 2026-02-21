@@ -8,6 +8,11 @@ local menuOpen      = false
 local bankBlips     = {}
 local atmProps      = {}
 
+-- inZone flag-ek: csak egyszer küldjünk Notify-t belépéskor
+-- [index] = bool  (bankok számindex szerint, ATM obj handle szerint)
+local bankZone = {}
+local atmZone  = {}
+
 -- ── Kliens exportok ───────────────────────────────────────────
 exports('GetLocalBalance', function(accType)
     local acc = localAccounts[accType or 'checking']
@@ -43,7 +48,7 @@ RegisterNetEvent('fvg-banking:client:OpenPanel', function(data)
     SendNUIMessage({ action = 'open', payload = data })
 end)
 
--- ── Bank blipek és markerek ───────────────────────────────────
+-- ── Bank blipek és markerek ──────────────────────────────────
 CreateThread(function()
     for _, bank in ipairs(Config.BankLocations) do
         local blip = AddBlipForCoord(bank.coords.x, bank.coords.y, bank.coords.z)
@@ -58,7 +63,7 @@ CreateThread(function()
     end
 end)
 
--- ── ATM propok ────────────────────────────────────────────────
+-- ── ATM propok ──────────────────────────────────────────────
 CreateThread(function()
     for _, atm in ipairs(Config.ATMLocations) do
         local model = GetHashKey(atm.model)
@@ -75,7 +80,7 @@ CreateThread(function()
     end
 end)
 
--- ── Interakciós thread ────────────────────────────────────────
+-- ── Interakciós thread ─────────────────────────────────────────
 CreateThread(function()
     while true do
         local sleep  = 1000
@@ -83,7 +88,7 @@ CreateThread(function()
         local coords = GetEntityCoords(ped)
 
         -- Bank fiókok
-        for _, bank in ipairs(Config.BankLocations) do
+        for i, bank in ipairs(Config.BankLocations) do
             local dist = #(coords - vector3(bank.coords.x, bank.coords.y, bank.coords.z))
             if dist < 30.0 then
                 sleep = 0
@@ -95,31 +100,46 @@ CreateThread(function()
                     false, true, 2, nil, nil, false
                 )
                 if dist < Config.BankRadius then
-                    exports['fvg-notify']:Notify({
-                        type='info', message='[E] ' .. bank.label .. ' megnyitása',
-                        duration=600, static=true
-                    })
+                    -- Csak egyszer küldjük a hint-et belépéskor
+                    if not bankZone[i] then
+                        bankZone[i] = true
+                        exports['fvg-notify']:Notify({
+                            type='info', message='[E] ' .. bank.label .. ' megnyitása',
+                            duration=3500, static=false
+                        })
+                    end
                     if IsControlJustPressed(0, 38) and not menuOpen then
                         TriggerServerEvent('fvg-banking:server:RequestPanel', 'full')
                     end
+                else
+                    bankZone[i] = false
                 end
+            else
+                bankZone[i] = false
             end
         end
 
         -- ATM-ek
-        for _, atm in ipairs(atmProps) do
+        for j, atm in ipairs(atmProps) do
             local dist = #(coords - vector3(atm.coords.x, atm.coords.y, atm.coords.z))
             if dist < 3.0 then
                 sleep = 0
                 if dist < Config.ATMRadius then
-                    exports['fvg-notify']:Notify({
-                        type='info', message='[E] ATM megnyitása',
-                        duration=600, static=true
-                    })
+                    if not atmZone[j] then
+                        atmZone[j] = true
+                        exports['fvg-notify']:Notify({
+                            type='info', message='[E] ATM megnyitása',
+                            duration=3500, static=false
+                        })
+                    end
                     if IsControlJustPressed(0, 38) and not menuOpen then
                         TriggerServerEvent('fvg-banking:server:RequestPanel', 'atm')
                     end
+                else
+                    atmZone[j] = false
                 end
+            else
+                atmZone[j] = false
             end
         end
 
@@ -174,6 +194,8 @@ AddEventHandler('onResourceStop', function(res)
     for _, atm in ipairs(atmProps) do
         if DoesEntityExist(atm.obj) then DeleteObject(atm.obj) end
     end
-    menuOpen    = false
+    menuOpen      = false
+    bankZone      = {}
+    atmZone       = {}
     localAccounts = { checking = { balance = 0 }, savings = { balance = 0 } }
 end)

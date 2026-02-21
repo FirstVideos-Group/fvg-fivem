@@ -2,10 +2,13 @@
 -- ║       fvg-unemployment :: client             ║
 -- ╚══════════════════════════════════════════════╝
 
-local localData   = {}
-local menuOpen    = false
-local officeBlip  = nil
+local localData     = {}
+local menuOpen      = false
+local officeBlip    = nil
 local cooldownTimer = nil
+
+-- inZone flag: csak egyszer küldjünk Notify-t belépéskor
+local officeZone = false
 
 -- ── Kliens exportok ───────────────────────────────────────────
 
@@ -33,7 +36,7 @@ RegisterNetEvent('fvg-unemployment:client:OpenPanel', function(payload)
     SendNUIMessage({ action = 'open', payload = payload })
 end)
 
--- ── Iroda blip ───────────────────────────────────────────────
+-- ── Iroda blip ──────────────────────────────────────────────
 CreateThread(function()
     if not Config.OfficeLocation.blip then return end
     officeBlip = AddBlipForCoord(
@@ -74,24 +77,28 @@ CreateThread(function()
             end
 
             if dist < 1.8 then
-                -- Hint szöveg
-                exports['fvg-notify']:Notify({
-                    type     = 'info',
-                    message  = '[E] Munkaügyi Hivatal megnyitása',
-                    duration = 600,
-                    static   = true,
-                })
+                -- Csak egyszer küldjük a hint-et belépéskor
+                if not officeZone then
+                    officeZone = true
+                    exports['fvg-notify']:Notify({
+                        type     = 'info',
+                        message  = '[E] Munkaügyi Hivatal megnyitása',
+                        duration = 3500,
+                        static   = false,
+                    })
+                end
 
-                -- E gomb
                 if IsControlJustPressed(0, 38) then
                     if not menuOpen then
                         TriggerServerEvent('fvg-unemployment:server:RequestOpen')
-
-                        -- Location task automatikus teljesítés
                         TriggerServerEvent('fvg-unemployment:server:CheckTask', 'visit_office')
                     end
                 end
+            else
+                officeZone = false
             end
+        else
+            officeZone = false
         end
 
         Wait(sleep)
@@ -140,6 +147,7 @@ AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     SetNuiFocus(false, false)
     if officeBlip then RemoveBlip(officeBlip) end
-    menuOpen  = false
-    localData = {}
+    menuOpen    = false
+    localData   = {}
+    officeZone  = false
 end)
