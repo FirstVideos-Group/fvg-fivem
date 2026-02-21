@@ -28,7 +28,7 @@ local function SetupCamera(ped)
     )
     creatorCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(creatorCam, camPos.x, camPos.y, camPos.z)
-    SetCamPointAtCoord(creatorCam, pos.x, pos.y, pos.z + 0.5)
+    PointCamAtCoord(creatorCam, pos.x, pos.y, pos.z + 0.5)
     SetCamFov(creatorCam, Config.CamFOV)
     RenderScriptCams(true, true, 1000, true, false)
 end
