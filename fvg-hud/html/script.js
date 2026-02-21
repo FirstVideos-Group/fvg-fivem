@@ -16,8 +16,85 @@ const MODULE_DEFS = {
     stress:  { label: 'Stressz', icon: 'hgi-stroke hgi-mental-health',        low: 70 },
 };
 
-// Tárolt modul elemek
 const moduleEls = {};
+
+// ── Dispatch alert widget elem ────────────────────────────────
+let dispatchEl = null;
+
+function getOrCreateDispatchEl() {
+    if (dispatchEl) return dispatchEl;
+    const el = document.createElement('div');
+    el.id        = 'fvg-dispatch-hud';
+    el.className = 'fvg-dispatch-hud hidden';
+    // A dispatch widget a többi modul ELŐTT jelenik meg (teteje)
+    root.insertBefore(el, root.firstChild);
+    dispatchEl = el;
+    return el;
+}
+
+function updateDispatchHud(alert) {
+    const el = getOrCreateDispatchEl();
+
+    if (!alert) {
+        el.classList.add('hidden');
+        return;
+    }
+
+    const units     = alert.units || [];
+    const unitCount = units.length;
+    const color     = alert.color || '#38bdf8';
+    const icon      = alert.icon  || 'hgi-stroke hgi-radio-02';
+
+    // Prioritás szín
+    const prioColors = { 1: '#64748b', 2: '#38bdf8', 3: '#f59e0b', 4: '#ef4444' };
+    const prioLabels = { 1: 'ALACSONY', 2: 'KÖZEPES', 3: 'MAGAS', 4: 'KRITIKUS' };
+    const prioClr    = prioColors[alert.priority] || '#38bdf8';
+    const prioLbl    = prioLabels[alert.priority] || 'AKTÍV';
+
+    el.style.setProperty('--dispatch-clr', color);
+    el.style.setProperty('--dispatch-prio', prioClr);
+
+    el.innerHTML = `
+        <div class="fdh-header">
+            <i class="fdh-icon ${icon}"></i>
+            <div class="fdh-title-block">
+                <span class="fdh-title">${escapeHtml(alert.title)}</span>
+                <span class="fdh-id">${escapeHtml(alert.id)}</span>
+            </div>
+            <span class="fdh-prio">${prioLbl}</span>
+        </div>
+        <div class="fdh-row">
+            <i class="hgi-stroke hgi-location-01"></i>
+            <span>${escapeHtml(alert.street || 'Ismeretlen helyszín')}</span>
+        </div>
+        <div class="fdh-row">
+            <i class="hgi-stroke hgi-clock-01"></i>
+            <span>${escapeHtml(alert.createdAt || '–')}</span>
+        </div>
+        <div class="fdh-row">
+            <i class="hgi-stroke hgi-user-group"></i>
+            <span>${unitCount} egység csatlakozva</span>
+        </div>
+        <div class="fdh-row fdh-caller">
+            <i class="hgi-stroke hgi-user-circle"></i>
+            <span>${escapeHtml(alert.callerName || 'Ismeretlen')}</span>
+        </div>
+    `;
+
+    el.classList.remove('hidden');
+    // Belépő animáció újrajátszás
+    el.classList.remove('fdh-enter');
+    void el.offsetWidth;
+    el.classList.add('fdh-enter');
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+}
 
 // ── Modul elem létrehozása ─────────────────────────────────
 function createModuleEl(id) {
@@ -27,7 +104,6 @@ function createModuleEl(id) {
     el.id        = 'fvg-mod-' + id;
     el.className = `fvg-hud-module fvg-mod-${id} hidden`;
 
-    // Belépési irány pozíció szerint
     const enterClass = currentPosition.includes('right') ? 'enter-right' : 'enter-left';
 
     el.innerHTML = `
@@ -44,7 +120,6 @@ function createModuleEl(id) {
     root.appendChild(el);
     moduleEls[id] = el;
 
-    // Belépési animáció rövid késéssel
     requestAnimationFrame(() => {
         el.classList.add(enterClass);
         setTimeout(() => el.classList.remove(enterClass), 400);
@@ -61,7 +136,6 @@ function updateModule(id, value, visible) {
     const def = MODULE_DEFS[id] || { low: 20 };
     const pct = Math.max(0, Math.min(100, Math.round(value)));
 
-    // Sáv
     const bar = document.getElementById('fvg-bar-' + id);
     if (bar) {
         bar.style.width = pct + '%';
@@ -72,11 +146,9 @@ function updateModule(id, value, visible) {
         }
     }
 
-    // Érték szöveg
     const val = document.getElementById('fvg-val-' + id);
     if (val) val.textContent = pct + '%';
 
-    // Láthatóság (animált)
     if (visible) {
         el.classList.remove('hidden');
     } else {
@@ -93,7 +165,6 @@ window.addEventListener('message', function(e) {
 
         case 'init':
             if (d.position) setPosition(d.position);
-            // Jelzi hogy készen vagyunk
             fetch(`https://${GetParentResourceName()}/hudReady`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -104,9 +175,6 @@ window.addEventListener('message', function(e) {
         case 'registerModule':
             if (!moduleEls[d.id]) createModuleEl(d.id);
             if (d.position) setPosition(d.position);
-
-            // Ha enabled, akkor rögtön jelenítsük meg egy alapértékkel,
-            // különben hidden marad, amíg nem jön updateModule.
             if (d.enabled) {
                 updateModule(d.id, 100, true);
             } else {
@@ -131,6 +199,11 @@ window.addEventListener('message', function(e) {
 
         case 'setPosition':
             setPosition(d.position);
+            break;
+
+        // ── Dispatch riasztás widget ──────────────────────
+        case 'dispatchAlert':
+            updateDispatchHud(d.alert || null);
             break;
     }
 });

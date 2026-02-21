@@ -86,11 +86,9 @@ end)
 -- ═══════════════════════════════════════════════════════════════
 
 exports('CreateAlert', function(data)
-    -- data = { type, priority, title, message, coords, callerSrc?, callerName?, icon?, template? }
     if not data or not data.type or not data.coords then return nil end
     if not Config.AlertTypes[data.type] then return nil end
 
-    -- Max riasztás ellenőrzés
     local count = 0
     for _, a in pairs(activeAlerts) do if not a.closed then count = count + 1 end end
     if count >= Config.MaxActiveAlerts then return nil end
@@ -98,7 +96,6 @@ exports('CreateAlert', function(data)
     local id   = GenAlertId()
     local prio = math.max(1, math.min(4, tonumber(data.priority) or 2))
 
-    -- Caller neve
     local callerName = data.callerName or 'Ismeretlen'
     if data.callerSrc then
         local identity = exports['fvg-identity']:GetPlayerIdentity(data.callerSrc)
@@ -109,7 +106,6 @@ exports('CreateAlert', function(data)
         end
     end
 
-    -- Template felülírás
     local icon = data.icon
     if data.template and Config.Templates[data.template] then
         local tpl = Config.Templates[data.template]
@@ -137,13 +133,8 @@ exports('CreateAlert', function(data)
     }
 
     activeAlerts[id] = alert
-
-    -- Broadcast
     BroadcastToEligible(data.type, 'fvg-dispatch:client:NewAlert', AlertToTable(alert))
-
-    -- Esemény kiváltás
     TriggerEvent('fvg-dispatch:server:AlertCreated', id, AlertToTable(alert))
-
     return id
 end)
 
@@ -157,7 +148,6 @@ exports('GetActiveAlerts', function(src)
             end
         end
     end
-    -- Rendezés: priority desc
     table.sort(result, function(a, b) return a.priority > b.priority end)
     return result
 end)
@@ -188,7 +178,6 @@ exports('AttachUnit', function(alertId, src)
         and (identity.firstname .. ' ' .. identity.lastname)
         or GetPlayerName(s)
 
-    -- Duplikáció ellenőrzés
     for _, u in ipairs(activeAlerts[alertId].units) do
         if u.src == s then return false end
     end
@@ -202,6 +191,10 @@ exports('AttachUnit', function(alertId, src)
 
     local alert = activeAlerts[alertId]
     BroadcastToEligible(alert.type, 'fvg-dispatch:client:AlertUpdated', AlertToTable(alert))
+
+    -- HUD szinkron: csak az érintett egységnek
+    TriggerClientEvent('fvg-dispatch:client:MyUnitAttached', s, AlertToTable(alert))
+
     TriggerEvent('fvg-dispatch:server:UnitAttached', alertId, s)
     return true
 end)
@@ -217,6 +210,10 @@ exports('DetachUnit', function(alertId, src)
 
     local alert = activeAlerts[alertId]
     BroadcastToEligible(alert.type, 'fvg-dispatch:client:AlertUpdated', AlertToTable(alert))
+
+    -- HUD szinkron: elrejtés az érintett egységnél
+    TriggerClientEvent('fvg-dispatch:client:MyUnitDetached', s, alertId)
+
     TriggerEvent('fvg-dispatch:server:UnitDetached', alertId, s)
     return true
 end)
@@ -225,7 +222,6 @@ end)
 --  NET EVENTS
 -- ═══════════════════════════════════════════════════════════════
 
--- Dispatch panel megnyitás kérés
 RegisterNetEvent('fvg-dispatch:server:RequestOpen', function()
     local src     = source
     local job     = GetJobOf(src)
@@ -249,12 +245,10 @@ RegisterNetEvent('fvg-dispatch:server:RequestOpen', function()
     })
 end)
 
--- Riasztás létrehozás kliienstől (pl. kézi hívás)
 RegisterNetEvent('fvg-dispatch:server:CreateAlert', function(data)
     local src      = source
     data.callerSrc = src
 
-    -- Koordináta keresés, ha nincs megadva
     if not data.coords then
         TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, data)
         return
@@ -268,7 +262,6 @@ RegisterNetEvent('fvg-dispatch:server:CreateAlert', function(data)
     end
 end)
 
--- Koordináta visszaküldés (kliens visszaküldi)
 RegisterNetEvent('fvg-dispatch:server:CreateAlertWithCoords', function(data, coords, street)
     local src      = source
     data.callerSrc = src
@@ -283,7 +276,6 @@ RegisterNetEvent('fvg-dispatch:server:CreateAlertWithCoords', function(data, coo
     end
 end)
 
--- Riasztás lezárás kliienstől
 RegisterNetEvent('fvg-dispatch:server:CloseAlert', function(alertId)
     local src = source
     local job = GetJobOf(src)
@@ -295,7 +287,6 @@ RegisterNetEvent('fvg-dispatch:server:CloseAlert', function(alertId)
     exports['fvg-dispatch']:CloseAlert(alertId, GetPlayerName(src))
 end)
 
--- Egység csatlakozás riasztáshoz
 RegisterNetEvent('fvg-dispatch:server:AttachUnit', function(alertId)
     local src = source
     local ok  = exports['fvg-dispatch']:AttachUnit(alertId, src)
@@ -306,13 +297,11 @@ RegisterNetEvent('fvg-dispatch:server:AttachUnit', function(alertId)
     end
 end)
 
--- Egység lecsatolás
 RegisterNetEvent('fvg-dispatch:server:DetachUnit', function(alertId)
     local src = source
     exports['fvg-dispatch']:DetachUnit(alertId, src)
 end)
 
--- Pánikgomb
 RegisterNetEvent('fvg-dispatch:server:PanicButton', function()
     local src = source
     TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, {
@@ -323,12 +312,10 @@ RegisterNetEvent('fvg-dispatch:server:PanicButton', function()
     })
 end)
 
--- Integrált riasztás más scriptektől
 AddEventHandler('fvg-dispatch:server:Alert', function(data)
     exports['fvg-dispatch']:CreateAlert(data)
 end)
 
--- fvg-idcard körözés figyelés
 AddEventHandler('fvg-idcard:server:WantedChanged', function(src, level, reason)
     if level >= 2 then
         TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, {

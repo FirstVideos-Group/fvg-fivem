@@ -2,9 +2,23 @@
 -- ║         fvg-dispatch :: client               ║
 -- ╚══════════════════════════════════════════════╝
 
-local localAlerts  = {}
-local activeBlips  = {}   -- [alertId] = blipHandle
-local menuOpen     = false
+local localAlerts   = {}
+local activeBlips   = {}   -- [alertId] = blipHandle
+local menuOpen      = false
+
+-- Az egység jelenleg melyik riasztáshoz csatlakozva (src-oldalon tárolt)
+-- A HUD-ot ez vezérli
+local myActiveAlert = nil   -- alert táblázat vagy nil
+
+-- ── HUD szinkron ─────────────────────────────────────────────
+local function SyncDispatchHud(alert)
+    -- Elküldi a fvg-hud-nak az aktív riasztás adatait
+    -- Ha alert == nil, elrejti a widgetet
+    SendNUIMessage({
+        action = 'dispatchAlert',
+        alert  = alert,  -- nil = rejtés
+    })
+end
 
 -- ── Kliens exportok ───────────────────────────────────────────
 
@@ -15,6 +29,10 @@ end)
 
 exports('GetLocalAlerts', function()
     return localAlerts
+end)
+
+exports('GetMyActiveAlert', function()
+    return myActiveAlert
 end)
 
 -- ── Panel megnyitás ──────────────────────────────────────────
@@ -66,6 +84,13 @@ end)
 -- ── Riasztás frissítés ────────────────────────────────────────
 RegisterNetEvent('fvg-dispatch:client:AlertUpdated', function(alert)
     localAlerts[alert.id] = alert
+
+    -- Ha a saját aktív riasztásunk frissült, szinkronizáljuk a HUD-ot
+    if myActiveAlert and myActiveAlert.id == alert.id then
+        myActiveAlert = alert
+        SyncDispatchHud(alert)
+    end
+
     if menuOpen then
         SendNUIMessage({ action = 'updateAlert', alert = alert })
     end
@@ -77,8 +102,34 @@ RegisterNetEvent('fvg-dispatch:client:AlertClosed', function(data)
         localAlerts[data.id].closed = true
     end
     RemoveAlertBlip(data.id)
+
+    -- Ha a saját aktív riasztásunkat zárták le → HUD elrejtés
+    if myActiveAlert and myActiveAlert.id == data.id then
+        myActiveAlert = nil
+        SyncDispatchHud(nil)
+        exports['fvg-notify']:Notify({
+            type    = 'info',
+            title   = 'Riasztás lezárva',
+            message = 'A(z) [' .. data.id .. '] riasztás lezárásra került.',
+            duration = 5000,
+        })
+    end
+
     if menuOpen then
         SendNUIMessage({ action = 'closeAlert', id = data.id })
+    end
+end)
+
+-- ── Saját csatlakozás / lecsatolás HUD szinkron (szerver küldi) ──
+RegisterNetEvent('fvg-dispatch:client:MyUnitAttached', function(alert)
+    myActiveAlert = alert
+    SyncDispatchHud(alert)
+end)
+
+RegisterNetEvent('fvg-dispatch:client:MyUnitDetached', function(alertId)
+    if myActiveAlert and myActiveAlert.id == alertId then
+        myActiveAlert = nil
+        SyncDispatchHud(nil)
     end
 end)
 
@@ -87,7 +138,6 @@ RegisterNetEvent('fvg-dispatch:client:GetCoordsAndCreate', function(alertData)
     local ped    = PlayerPedId()
     local coords = GetEntityCoords(ped)
 
-    -- Utcanév lekérés
     local streetHash, crossHash = GetStreetNameAtCoord(coords.x, coords.y, coords.z)
     local streetName = GetStreetNameFromHashKey(streetHash)
     if crossHash ~= 0 then
@@ -118,7 +168,6 @@ function CreateAlertBlip(alert)
     AddTextComponentString('[' .. alert.id .. '] ' .. alert.title)
     EndTextCommandSetBlipName(blip)
 
-    -- Magas prioritásnál villogás
     local prioData = Config.Priorities[alert.priority] or {}
     if prioData.pulse then
         ShowHeadingIndicatorOnBlip(blip, true)
@@ -126,7 +175,6 @@ function CreateAlertBlip(alert)
 
     activeBlips[alert.id] = blip
 
-    -- Timeout
     if Config.BlipTimeout > 0 then
         SetTimeout(Config.BlipTimeout * 1000, function()
             RemoveAlertBlip(alert.id)
@@ -186,7 +234,6 @@ end, false)
 
 RegisterKeyMapping('dispatch', 'Dispatch panel megnyitása', 'keyboard', 'F6')
 
--- Pánikgomb
 RegisterCommand(Config.PanicButtonCmd, function()
     TriggerServerEvent('fvg-dispatch:server:PanicButton')
     exports['fvg-notify']:Notify({
@@ -201,6 +248,8 @@ AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     SetNuiFocus(false, false)
     for id, _ in pairs(activeBlips) do RemoveAlertBlip(id) end
-    localAlerts = {}
-    menuOpen    = false
+    localAlerts   = {}
+    menuOpen      = false
+    myActiveAlert = nil
+    SyncDispatchHud(nil)
 end)
