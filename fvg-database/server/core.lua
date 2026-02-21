@@ -186,51 +186,61 @@ exports('GetOrCreatePlayer', function(source, defaultData)
     local identifier = GetIdentifier(source)
     if not identifier then return nil end
 
-    local existing = MySQL.single.await(
+    local ok, existing = pcall(MySQL.single.await,
         'SELECT * FROM `fvg_players` WHERE `identifier` = ?',
         { identifier }
     )
 
+    if not ok then
+        DB_Log('error', 'GetOrCreatePlayer SELECT hiba: %s', tostring(existing))
+        return nil
+    end
+
     if existing then
         if existing.metadata then
-            local ok, decoded = pcall(json.decode, existing.metadata)
-            existing.metadata = ok and decoded or {}
+            local dok, decoded = pcall(json.decode, existing.metadata)
+            existing.metadata = dok and decoded or {}
         end
+        existing.isNew = false
         CacheSet(identifier, existing)
-        return existing, false   -- false = nem új játékos
+        return existing
     end
 
     -- Új játékos létrehozása
     local data     = defaultData or {}
     local name     = GetPlayerName(source) or 'Unknown'
     local metadata = json.encode(data.metadata or {})
+    local now      = os.date('%Y-%m-%d %H:%M:%S')
 
-    local newId = MySQL.insert.await(
-        'INSERT INTO `fvg_players` (`identifier`, `name`, `firstname`, `lastname`, `sex`, `dob`, `metadata`) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        {
-            identifier,
-            name,
-            data.firstname or '',
-            data.lastname  or '',
-            data.sex       or 0,
-            data.dob       or '',
-            metadata
-        }
+    local insOk, newId = pcall(MySQL.insert.await,
+        'INSERT INTO `fvg_players` (`identifier`, `name`, `firstname`, `lastname`, `sex`, `dob`, `metadata`, `created_at`, `last_seen`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        { identifier, name, data.firstname or '', data.lastname or '', data.sex or 0, data.dob or '', metadata, now, now }
     )
 
-    local newRow = MySQL.single.await(
+    if not insOk or not newId then
+        DB_Log('error', 'GetOrCreatePlayer INSERT hiba: %s', tostring(newId))
+        return nil
+    end
+
+    local selOk, newRow = pcall(MySQL.single.await,
         'SELECT * FROM `fvg_players` WHERE `id` = ?',
         { newId }
     )
 
-    if newRow and newRow.metadata then
-        local ok, decoded = pcall(json.decode, newRow.metadata)
-        newRow.metadata = ok and decoded or {}
+    if not selOk or not newRow then
+        DB_Log('error', 'GetOrCreatePlayer post-INSERT SELECT hiba: %s', tostring(newRow))
+        return nil
     end
 
+    if newRow.metadata then
+        local dok, decoded = pcall(json.decode, newRow.metadata)
+        newRow.metadata = dok and decoded or {}
+    end
+
+    newRow.isNew = true
     CacheSet(identifier, newRow)
     DB_Log('info', 'Új játékos létrehozva: %s (ID: %d)', identifier, newId)
-    return newRow, true   -- true = új játékos
+    return newRow
 end)
 
 -- ── Játékos mentése ───────────────────────────────────────────
