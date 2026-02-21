@@ -166,7 +166,7 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
         metadata    = DeepMerge(Config.DefaultMetadata, result.metadata or {}),
         loaded      = false,
         source      = src,
-        isNew       = (result.created_at == result.last_seen)
+        isNew       = result.isNew or false,
     }
 
     deferrals.done()
