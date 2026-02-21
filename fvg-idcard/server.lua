@@ -6,17 +6,17 @@
 CreateThread(function()
     Wait(200)
 
-    -- Engedélyek tábla
+    -- JAVÍTÁS: TIMESTAMP DEFAULT NULL → DATETIME (MySQL strict mód kompatibilitás)
     exports['fvg-database']:RegisterMigration('fvg_licenses', [[
         CREATE TABLE IF NOT EXISTS `fvg_licenses` (
-            `id`          INT          NOT NULL AUTO_INCREMENT,
-            `player_id`   INT          NOT NULL,
-            `license_type`VARCHAR(40)  NOT NULL,
-            `categories`  VARCHAR(100)          DEFAULT NULL,
-            `issued_by`   VARCHAR(60)           DEFAULT 'Los Santos Önkormányzat',
-            `issued_at`   TIMESTAMP    NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-            `expires_at`  TIMESTAMP             DEFAULT NULL,
-            `suspended`   TINYINT(1)   NOT NULL  DEFAULT 0,
+            `id`           INT          NOT NULL AUTO_INCREMENT,
+            `player_id`    INT          NOT NULL,
+            `license_type` VARCHAR(40)  NOT NULL,
+            `categories`   VARCHAR(100)          DEFAULT NULL,
+            `issued_by`    VARCHAR(60)           DEFAULT 'Los Santos Önkormányzat',
+            `issued_at`    DATETIME     NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+            `expires_at`   DATETIME              DEFAULT NULL,
+            `suspended`    TINYINT(1)   NOT NULL  DEFAULT 0,
             PRIMARY KEY (`id`),
             KEY `idx_player`  (`player_id`),
             KEY `idx_type`    (`license_type`),
@@ -32,7 +32,7 @@ CreateThread(function()
             `level`       TINYINT      NOT NULL DEFAULT 0,
             `reason`      TEXT                  DEFAULT NULL,
             `issued_by`   VARCHAR(60)           DEFAULT NULL,
-            `updated_at`  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+            `updated_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                 ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`player_id`),
             CONSTRAINT `fk_wanted_player`
@@ -41,7 +41,7 @@ CreateThread(function()
     ]])
 end)
 
--- ── Szerver cache ─────────────────────────────────────────────
+-- ── Szerver cache ───────────────────────────────────────────────
 -- [src] = { licenses = { [type] = { ... } }, wanted = { level, reason } }
 local playerCards = {}
 
@@ -238,10 +238,10 @@ RegisterNetEvent('fvg-idcard:server:OpenOwnCard', function()
     local data = GetCardData(src)
     if not data then return end
     TriggerClientEvent('fvg-idcard:client:OpenCard', src, {
-        data     = data,
-        owner    = true,
-        cardTypes= Config.CardTypes,
-        wantedLvls=Config.WantedLevels,
+        data      = data,
+        owner     = true,
+        cardTypes = Config.CardTypes,
+        wantedLvls= Config.WantedLevels,
     })
 end)
 
@@ -259,7 +259,7 @@ RegisterNetEvent('fvg-idcard:server:ShowCardTo', function(targetSrc)
         wantedLvls= Config.WantedLevels,
     })
 
-    -- Küldőt is értesítjük
+    -- Küldőt is értesítünk
     TriggerClientEvent('fvg-notify:client:Notify', src, {
         type    = 'success',
         message = 'Igazolvány felmutatva: ' .. GetPlayerName(targetSrc)
@@ -270,8 +270,8 @@ end)
 
 -- Legközelebbi játékosnak mutatás
 RegisterNetEvent('fvg-idcard:server:ShowToNearest', function()
-    local src    = source
-    local data   = GetCardData(src)
+    local src  = source
+    local data = GetCardData(src)
     if not data then return end
 
     TriggerClientEvent('fvg-idcard:client:FindNearestAndShow', src, Config.ShowDistance)
@@ -299,7 +299,7 @@ RegisterNetEvent('fvg-idcard:server:CheckPlayerCard', function(targetSrc)
     })
 end)
 
--- Engedély felfüggesztés (rendőrség/admin)
+-- Engedély ferfüggesztés (rendőrség/admin)
 RegisterNetEvent('fvg-idcard:server:SuspendLicense', function(targetSrc, licenseType, state)
     local src = source
     if not HasAdminPerm(src) then return end
@@ -315,7 +315,7 @@ RegisterNetEvent('fvg-idcard:server:SuspendLicense', function(targetSrc, license
     playerCards[targetSrc].licenses[licenseType].suspended = state
     TriggerClientEvent('fvg-idcard:client:SyncCard', targetSrc, playerCards[targetSrc])
 
-    local msg = state and 'Engedély felfüggesztve.' or 'Engedély visszaállítva.'
+    local msg = state and 'Engedély ferfüggesztve.' or 'Engedély visszaallítva.'
     TriggerClientEvent('fvg-notify:client:Notify', targetSrc, { type = state and 'error' or 'success', message = msg })
     TriggerClientEvent('fvg-notify:client:Notify', src, { type = 'success', message = msg })
 end)
