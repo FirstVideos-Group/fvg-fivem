@@ -10,17 +10,15 @@ local onDutyCount   = 0
 local moduleList    = {}
 
 -- ── Modul betöltés (automatikus) ─────────────────────────────
--- A modules/*/server.lua-k betöltésekor regisztrálják magukat
 function RegisterModule(id, def)
     if not Config.Modules[id] or not Config.Modules[id].enabled then return end
     moduleList[id] = def
     print(('[fvg-police] Modul betöltve: %s'):format(id))
 end
 
--- ── DB migráció ───────────────────────────────────────────────
+-- ── DB migráció ─────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
-
     exports['fvg-database']:RegisterMigration('fvg_officers', [[
         CREATE TABLE IF NOT EXISTS `fvg_officers` (
             `id`           INT         NOT NULL AUTO_INCREMENT,
@@ -39,7 +37,6 @@ CreateThread(function()
                 ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ]])
-
     exports['fvg-database']:RegisterMigration('fvg_officer_logs', [[
         CREATE TABLE IF NOT EXISTS `fvg_officer_logs` (
             `id`         INT         NOT NULL AUTO_INCREMENT,
@@ -67,41 +64,86 @@ local function Log(officerId, logType, detail)
     )
 end
 
--- ── Betöltés ─────────────────────────────────────────────────
-AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
+-- ── Segédfüggvény: officer cache feltöltése DB adatból ──────────
+-- Használható PlayerLoaded-ből és job váltáskor is
+local function LoadOfficer(src, player)
+    -- FIX: csak akkor töltünk be, ha a játékos jobja 'police'
+    local job = player.metadata and player.metadata.job or 'unemployed'
+    if job ~= 'police' then return end
+
     local row = exports['fvg-database']:QuerySingle(
         'SELECT * FROM `fvg_officers` WHERE `player_id`=? AND `status`=?',
         { player.id, 'active' }
     )
-    if row then
-        local rank = Config.GetRank(row.grade)
-        officers[src] = {
-            id           = row.id,
-            identifier   = row.identifier,
-            playerId     = player.id,
-            firstname    = player.firstname,
-            lastname     = player.lastname,
-            grade        = row.grade,
-            rankName     = rank and rank.name or 'recruit',
-            rankLabel    = rank and rank.label or 'Újonc',
-            callsign     = row.callsign,
-            hireDate     = row.hire_date,
-            totalSalary  = row.total_salary,
-            duty         = false,
-            unit         = nil,
-        }
-    end
+    if not row then return end
+
+    local rank = Config.GetRank(row.grade)
+    officers[src] = {
+        id          = row.id,
+        identifier  = row.identifier,
+        playerId    = player.id,
+        firstname   = player.firstname,
+        lastname    = player.lastname,
+        grade       = row.grade,
+        rankName    = rank and rank.name  or 'recruit',
+        rankLabel   = rank and rank.label or 'Újnc',
+        callsign    = row.callsign,
+        hireDate    = row.hire_date,
+        totalSalary = row.total_salary,
+        duty        = false,
+        unit        = nil,
+    }
+    print(('[fvg-police] Officer betöltve: %s %s (src: %d)'):format(
+        player.firstname, player.lastname, src))
+end
+
+-- ── Betöltés ───────────────────────────────────────────────
+AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
+    LoadOfficer(src, player)
 end)
 
 AddEventHandler('fvg-playercore:server:PlayerUnloaded', function(src, _)
-    if officers[src] then
-        -- Duty log
-        if officers[src].duty then
-            Log(officers[src].id, 'duty_end', 'disconnect')
+    local off = officers[src]
+    if off then
+        if off.duty then
+            Log(off.id, 'duty_end', 'disconnect')
+            onDutyCount = math.max(0, onDutyCount - 1)
         end
         officers[src] = nil
-        onDutyCount   = math.max(0, onDutyCount - 1)
         TriggerClientEvent('fvg-police:client:OfficerLeft', -1, src)
+    end
+end)
+
+-- ── FIX: Job váltás figyelese (fvg-admin SetJob → SetPlayerData) ────
+-- Ha a játékos jobja változik, szükséges az officer cache frissítése
+AddEventHandler('fvg-playercore:server:PlayerDataChanged', function(src, key, value)
+    if key ~= 'job' then return end
+
+    if value == 'police' then
+        -- Job 'police'-ra váltott: betöltjük az officer rekordot
+        if not officers[src] then
+            local player = exports['fvg-playercore']:GetPlayer(src)
+            if player then
+                LoadOfficer(src, player)
+                if officers[src] then
+                    Notify(src, 'Rendőrként léptél be a rendszerbe.', 'info', '🚔')
+                end
+            end
+        end
+    else
+        -- Job más munkara váltott: officer cache törlése
+        local off = officers[src]
+        if off then
+            if off.duty then
+                -- Duty-ból autómatikusan kiléptetjük
+                onDutyCount = math.max(0, onDutyCount - 1)
+                Log(off.id, 'duty_end', 'job_changed')
+                TriggerClientEvent('fvg-police:client:DutyChanged', src, false)
+            end
+            officers[src] = nil
+            Notify(src, 'Többé nem vagy rendőr.', 'warning')
+            TriggerClientEvent('fvg-police:client:OfficerLeft', -1, src)
+        end
     end
 end)
 
@@ -120,9 +162,7 @@ end)
 exports('GetOnDutyOfficers', function()
     local result = {}
     for src, off in pairs(officers) do
-        if off.duty then
-            result[src] = off
-        end
+        if off.duty then result[src] = off end
     end
     return result
 end)
@@ -153,7 +193,7 @@ exports('SetOfficerRank', function(src, grade)
         { grade, off.id }
     )
     Log(off.id, 'rank_change', 'grade → ' .. grade)
-    TriggerClientEvent('fvg-police:client:RankUpdate', src, { grade=grade, rankLabel=rank.label })
+    TriggerClientEvent('fvg-police:client:RankUpdate', src, { grade = grade, rankLabel = rank.label })
     Notify(src, 'Rang módosítva: ' .. rank.label, 'success')
     return true
 end)
@@ -183,53 +223,46 @@ RegisterNetEvent('fvg-police:server:ToggleDuty', function()
     if off.duty then
         onDutyCount = onDutyCount + 1
         Log(off.id, 'duty_start', os.date('%Y-%m-%d %H:%M:%S'))
-        Notify(src, 'Szolgálatba léptél. Üdv, ' .. off.rankLabel .. ' ' .. off.lastname .. '!', 'success', '🚔')
+        Notify(src, 'Szolgálatba léptél. Üldv, ' .. off.rankLabel .. ' ' .. off.lastname .. '!', 'success', '🚔')
     else
         onDutyCount = math.max(0, onDutyCount - 1)
-        -- Egység elhagyás
-        if off.unit then
-            TriggerEvent('fvg-police:server:LeaveUnit', src)
-        end
+        if off.unit then TriggerEvent('fvg-police:server:LeaveUnit', src) end
         Log(off.id, 'duty_end', os.date('%Y-%m-%d %H:%M:%S'))
         Notify(src, 'Szolgálatból kiléptél.', 'info')
     end
 
     TriggerClientEvent('fvg-police:client:DutyChanged', src, off.duty)
     TriggerClientEvent('fvg-police:client:OfficerUpdate', -1, src, {
-        duty     = off.duty,
-        rankLabel= off.rankLabel,
-        callsign = off.callsign,
-        firstname= off.firstname,
-        lastname = off.lastname,
+        duty      = off.duty,
+        rankLabel = off.rankLabel,
+        callsign  = off.callsign,
+        firstname = off.firstname,
+        lastname  = off.lastname,
     })
 end)
 
--- ── Menü megnyitás kérés ──────────────────────────────────────
+-- ── Menü megnyitás kérés ────────────────────────────────────
 RegisterNetEvent('fvg-police:server:RequestMenu', function(stationId)
     local src = source
     local off = officers[src]
     if not off then Notify(src, 'Nem vagy rendőr.', 'error'); return end
 
-    local rank      = Config.GetRank(off.grade)
-    local modulesCfg= {}
+    local modulesCfg = {}
     for id, mod in pairs(Config.Modules) do
         if mod.enabled then
             table.insert(modulesCfg, {
-                id    = id,
-                label = mod.label,
-                icon  = mod.icon,
-                -- Modul-specifikus jogosultság ellenőrzés
+                id      = id,
+                label   = mod.label,
+                icon    = mod.icon,
                 allowed = (moduleList[id] and moduleList[id].checkAccess)
-                    and moduleList[id].checkAccess(off)
-                    or true,
+                    and moduleList[id].checkAccess(off) or true,
             })
         end
     end
-    -- Sorrendezés a Config.Modules megjelenési sorrendje szerint
     table.sort(modulesCfg, function(a, b) return a.id < b.id end)
 
     TriggerClientEvent('fvg-police:client:OpenMenu', src, {
-        officer   = {
+        officer = {
             grade     = off.grade,
             rankLabel = off.rankLabel,
             rankName  = off.rankName,
@@ -240,10 +273,10 @@ RegisterNetEvent('fvg-police:server:RequestMenu', function(stationId)
             unit      = off.unit,
             hireDate  = off.hireDate,
         },
-        modules   = modulesCfg,
-        stationId = stationId,
-        ranks     = Config.Ranks,
-        onDuty    = onDutyCount,
+        modules        = modulesCfg,
+        stationId      = stationId,
+        ranks          = Config.Ranks,
+        onDuty         = onDutyCount,
         maxOfficers    = Config.MaxOfficers,
         vehicles       = Config.Vehicles,
         classLabels    = Config.VehicleClassLabels,
@@ -251,11 +284,10 @@ RegisterNetEvent('fvg-police:server:RequestMenu', function(stationId)
         fineCategories = Config.FineCategories,
         csLocations    = Config.Locations.community_service,
         maxPrison      = Config.Prison.maxTime,
-
     })
 end)
 
--- ── Pánik gomb ─────────────────────────────────────────────────
+-- ── Pánik gomb ──────────────────────────────────────────────
 RegisterNetEvent('fvg-police:server:Panic', function(coords)
     local src = source
     local off = officers[src]
@@ -265,7 +297,6 @@ RegisterNetEvent('fvg-police:server:Panic', function(coords)
         off.firstname, off.lastname, off.callsign or '??',
         coords.x, coords.y, coords.z
     )
-    -- Értesítés összes on-duty rendőrnek
     for s, o in pairs(officers) do
         if o.duty and s ~= src then
             Notify(s, msg, 'error', '🚨 Pánik')
@@ -274,7 +305,7 @@ RegisterNetEvent('fvg-police:server:Panic', function(coords)
     Log(off.id, 'panic', ('%.1f,%.1f,%.1f'):format(coords.x, coords.y, coords.z))
 end)
 
--- ── Fizetés ciklus ─────────────────────────────────────────────
+-- ── Fizetés ciklus ────────────────────────────────────────────
 CreateThread(function()
     while true do
         Wait(Config.SalaryInterval * 1000)
@@ -297,7 +328,7 @@ CreateThread(function()
     end
 end)
 
--- ── Admin parancsok ────────────────────────────────────────────
+-- ── Admin parancsok ──────────────────────────────────────────
 RegisterCommand('police_hire', function(src, args)
     if not exports['fvg-admin']:IsAdmin(src) then return end
     local targetSrc = tonumber(args[1])
@@ -307,31 +338,32 @@ RegisterCommand('police_hire', function(src, args)
     local player = exports['fvg-playercore']:GetPlayer(targetSrc)
     if not player then Notify(src, 'Játékos nem found.', 'error'); return end
 
-    -- Ellenőrzés: már rendőr-e?
     local existing = exports['fvg-database']:QuerySingle(
         'SELECT `id` FROM `fvg_officers` WHERE `player_id`=?', { player.id }
     )
-    if existing then
-        Notify(src, 'Már rendőr ez a játékos.', 'warning'); return
-    end
+    if existing then Notify(src, 'Már rendőr ez a játékos.', 'warning'); return end
 
-    exports['fvg-database']:Insert(
+    local newId = exports['fvg-database']:Insert(
         'INSERT INTO `fvg_officers` (`player_id`,`identifier`,`grade`) VALUES (?,?,?)',
         { player.id, player.identifier, grade }
     )
 
+    -- Job beállítás playercore-ban is
+    exports['fvg-playercore']:SetPlayerData(targetSrc, 'job', 'police')
+    exports['fvg-playercore']:SavePlayerNow(targetSrc)
+
     local rank = Config.GetRank(grade)
     officers[targetSrc] = {
-        id        = exports['fvg-database']:QuerySingle('SELECT LAST_INSERT_ID() AS id', {}).id,
-        identifier= player.identifier,
-        playerId  = player.id,
-        firstname = player.firstname,
-        lastname  = player.lastname,
-        grade     = grade,
-        rankName  = rank.name,
-        rankLabel = rank.label,
-        duty      = false,
-        unit      = nil,
+        id          = newId,
+        identifier  = player.identifier,
+        playerId    = player.id,
+        firstname   = player.firstname,
+        lastname    = player.lastname,
+        grade       = grade,
+        rankName    = rank.name,
+        rankLabel   = rank.label,
+        duty        = false,
+        unit        = nil,
     }
     Notify(src, player.firstname .. ' ' .. player.lastname .. ' felvéve rendőrnek (' .. rank.label .. ').', 'success')
     Notify(targetSrc, 'Rendőrnek felvettél! Rang: ' .. rank.label, 'success', '🚔')
@@ -356,6 +388,10 @@ RegisterCommand('police_fire', function(src, args)
     exports['fvg-database']:Execute(
         'UPDATE `fvg_officers` SET `status`=? WHERE `id`=?', { 'fired', off.id }
     )
+    -- Job visszaállítás unemployed-re
+    exports['fvg-playercore']:SetPlayerData(targetSrc, 'job', 'unemployed')
+    exports['fvg-playercore']:SavePlayerNow(targetSrc)
+
     officers[targetSrc] = nil
     Notify(targetSrc, 'Eltávolítottak a rendőrségről.', 'error')
     Notify(src, 'Eltávolítva.', 'success')
