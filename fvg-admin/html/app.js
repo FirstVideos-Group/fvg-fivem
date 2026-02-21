@@ -12,6 +12,7 @@ const App = (() => {
         banDurations: [],
         permissions: {},
         banList: [],
+        jobs: [],
         noclipOn: false,
     };
 
@@ -21,6 +22,7 @@ const App = (() => {
         if (action === 'open') {
             state = { ...state, ...data };
             state.players  = data.playerList || [];
+            state.jobs     = data.jobs || [];
             state.noclipOn = false;
             renderAll();
             document.getElementById('overlay').classList.remove('hidden');
@@ -116,13 +118,19 @@ const App = (() => {
         const col = document.getElementById('player-detail');
         if (!p) { col.innerHTML = '<div class="no-selection"><i class="hgi-stroke hgi-user-circle"></i><span>Játékos nem található</span></div>'; return; }
 
-        const fullName = (p.firstname + ' ' + p.lastname).trim() || p.name;
-        const food     = p.needs ? Math.round(p.needs.food)  : 100;
-        const water    = p.needs ? Math.round(p.needs.water) : 100;
-        const stress   = p.stress != null ? Math.round(p.stress) : 0;
+        const fullName  = (p.firstname + ' ' + p.lastname).trim() || p.name;
+        const food      = p.needs ? Math.round(p.needs.food)  : 100;
+        const water     = p.needs ? Math.round(p.needs.water) : 100;
+        const stress    = p.stress != null ? Math.round(p.stress) : 0;
+        const currentJob = p.job || 'unemployed';
         const stressColor = stress < 26 ? '#22c55e' : stress < 51 ? '#3b82f6' : stress < 76 ? '#f59e0b' : '#ef4444';
         const foodColor   = food  > 30 ? '#22c55e' : food  > 10 ? '#f59e0b' : '#ef4444';
         const waterColor  = water > 30 ? '#22c55e' : water > 10 ? '#f59e0b' : '#ef4444';
+
+        // Job dropdown opciók generálása
+        const jobOptions = (state.jobs || []).map(j =>
+            `<option value="${j.job}" ${j.job === currentJob ? 'selected' : ''}>${j.label}</option>`
+        ).join('');
 
         col.innerHTML = `
             <!-- Info fejléc -->
@@ -196,7 +204,7 @@ const App = (() => {
                 </div>
             </div>
 
-            <!-- Karakter adatok -->
+            <!-- Karakter szerkesztés -->
             <div class="action-section">
                 <div class="action-section-title">Karakter szerkesztés</div>
                 <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px">
@@ -210,6 +218,25 @@ const App = (() => {
                     </div>
                     <button class="action-btn accent full" style="margin-top:4px" onclick="App.savePlayerInfo(${src})">
                         <i class="hgi-stroke hgi-floppy-disk"></i>Adatok mentése
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job váltás -->
+            <div class="action-section">
+                <div class="action-section-title">Munka beállítása</div>
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px">
+                    <div class="edit-row" style="margin-bottom:12px">
+                        <label style="display:flex;align-items:center;gap:6px">
+                            <i class="hgi-stroke hgi-briefcase-01" style="font-size:14px;color:var(--accent)"></i>
+                            Jelenlegi munka
+                        </label>
+                        <select class="edit-input" id="job-select-${src}">
+                            ${jobOptions}
+                        </select>
+                    </div>
+                    <button class="action-btn accent full" onclick="App.setJobModal(${src})">
+                        <i class="hgi-stroke hgi-briefcase-01"></i>Munka megváltoztatása
                     </button>
                 </div>
             </div>
@@ -376,6 +403,31 @@ const App = (() => {
         );
     }
 
+    function setJobModal(src) {
+        const p   = state.players.find(pl => pl.source === src);
+        const sel = document.getElementById('job-select-' + src);
+        const job = sel ? sel.value : 'unemployed';
+        const jobLabel = (state.jobs.find(j => j.job === job) || {}).label || job;
+        const fullName = p ? ((p.firstname + ' ' + p.lastname).trim() || p.name) : src;
+        showModal(`Munka váltás – ${fullName}`,
+            `<p style="font-size:13px;color:var(--text-s)">
+                Biztosan megváltoztatod <strong>${fullName}</strong> munkáját erre:<br>
+                <span style="color:var(--accent);font-weight:600">${jobLabel}</span>
+             </p>`,
+            [
+                { label: '<i class="hgi-stroke hgi-cancel-01"></i>Mégsem', cls: '', fn: closeModal },
+                { label: '<i class="hgi-stroke hgi-briefcase-01"></i>Beállítás', cls: 'accent', fn: () => {
+                    fetch(`https://fvg-admin/setJob`, { method: 'POST', body: JSON.stringify({ src, job }) });
+                    // Lokális state frissítés – a detail panel is frissül
+                    const idx = state.players.findIndex(pl => pl.source === src);
+                    if (idx !== -1) state.players[idx].job = job;
+                    closeModal();
+                    renderPlayerDetail(src);
+                }}
+            ]
+        );
+    }
+
     // ── Nyilvános akció metódusok ────────────────────────────
 
     function revive(src) {
@@ -447,7 +499,7 @@ const App = (() => {
         applyValues, savePlayerInfo, spawnVehicle,
         deleteVehicle, fixVehicle, setTime, announce,
         toggleNoclip, getBanList, filterBans, unban,
-        kickModal, banModal, freezeModal, godmodeModal,
+        kickModal, banModal, freezeModal, godmodeModal, setJobModal,
         closeModal,
     };
 })();

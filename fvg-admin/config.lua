@@ -1,16 +1,13 @@
 Config = {}
 
 -- ── ACE jogosultság szintek ───────────────────────────────────
--- A FiveM ACE rendszerrel integrált szerepkörök
--- server.cfg-ben: add_ace identifier.license:xxx fvg.admin allow
 Config.Permissions = {
-    superadmin = 'fvg.superadmin',   -- teljes hozzáférés
-    admin      = 'fvg.admin',        -- teljes hozzáférés (ban kivételével)
-    moderator  = 'fvg.moderator',    -- kick, teleport, freeze
+    superadmin = 'fvg.superadmin',
+    admin      = 'fvg.admin',
+    moderator  = 'fvg.moderator',
 }
 
 -- ── Funkció jogosultságok ─────────────────────────────────────
--- Melyik szerepkör milyen funkciókat érhet el
 Config.FunctionPerms = {
     kick        = { 'moderator', 'admin', 'superadmin' },
     ban         = { 'admin', 'superadmin' },
@@ -27,6 +24,18 @@ Config.FunctionPerms = {
     deleteveh   = { 'admin', 'superadmin' },
     noclip      = { 'admin', 'superadmin' },
     announce    = { 'admin', 'superadmin' },
+    setjob      = { 'admin', 'superadmin' },
+}
+
+-- ── Job lista ─────────────────────────────────────────────────
+-- Az admin menüből kiválasztható munkák
+Config.Jobs = {
+    { job = 'unemployed', label = 'Munkanélküli' },
+    { job = 'courier',    label = 'Futár'        },
+    { job = 'police',     label = 'Rendőr'       },
+    { job = 'ems',        label = 'Mentős'       },
+    { job = 'mechanic',   label = 'Szerelő'      },
+    { job = 'taxi',       label = 'Taxis'        },
 }
 
 -- ── Ban rendszer ──────────────────────────────────────────────

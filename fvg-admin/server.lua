@@ -98,7 +98,6 @@ RegisterNetEvent('fvg-admin:server:OpenMenu', function()
         return
     end
 
-    -- Online játékosok listája
     local playerList = {}
     for _, pid in ipairs(GetPlayers()) do
         local pidNum = tonumber(pid)
@@ -112,6 +111,7 @@ RegisterNetEvent('fvg-admin:server:OpenMenu', function()
             identifier= p and p.identifier or '',
             ping      = ping,
             role      = GetAdminRole(pidNum) or 'player',
+            job       = p and p.metadata and p.metadata.job or 'unemployed',
             stress    = exports['fvg-stress']:GetPlayerStress(pidNum),
             needs     = exports['fvg-needs']:GetPlayerNeeds(pidNum),
         })
@@ -124,6 +124,7 @@ RegisterNetEvent('fvg-admin:server:OpenMenu', function()
         vehicles    = Config.VehicleCategories,
         banDurations= Config.BanDurations,
         permissions = Config.FunctionPerms,
+        jobs        = Config.Jobs,
     })
 end)
 
@@ -144,6 +145,7 @@ RegisterNetEvent('fvg-admin:server:RefreshPlayers', function()
             identifier= p and p.identifier or '',
             ping      = GetPlayerPing(pidNum),
             role      = GetAdminRole(pidNum) or 'player',
+            job       = p and p.metadata and p.metadata.job or 'unemployed',
             stress    = exports['fvg-stress']:GetPlayerStress(pidNum),
             needs     = exports['fvg-needs']:GetPlayerNeeds(pidNum),
         })
@@ -178,7 +180,6 @@ RegisterNetEvent('fvg-admin:server:BanPlayer', function(targetSrc, reason, minut
     local expiresAt  = nil
 
     if not permanent then
-        -- SQL dátum kiszámítása
         expiresAt = os.date('%Y-%m-%d %H:%M:%S', os.time() + minutes * 60)
     end
 
@@ -187,8 +188,7 @@ RegisterNetEvent('fvg-admin:server:BanPlayer', function(targetSrc, reason, minut
         { identifier, name, reason, adminId, expiresAt, permanent and 1 or 0 }
     )
 
-    local kickMsg = 'Ki vagy tiltva. Ok: ' .. reason
-    DropPlayer(targetSrc, kickMsg)
+    DropPlayer(targetSrc, 'Ki vagy tiltva. Ok: ' .. reason)
     AdminLog(src, 'ban', targetSrc, { reason = reason, minutes = minutes })
     Notify(src, name .. ' kitiltva.', 'success')
 end)
@@ -197,7 +197,6 @@ end)
 RegisterNetEvent('fvg-admin:server:UnbanPlayer', function(identifier)
     local src = source
     if not HasPerm(src, 'ban') then return end
-
     exports['fvg-database']:Execute(
         'DELETE FROM `fvg_bans` WHERE `identifier` = ?',
         { identifier }
@@ -276,15 +275,52 @@ RegisterNetEvent('fvg-admin:server:SetPlayerInfo', function(targetSrc, data)
     if not HasPerm(src, 'admin') then return end
     local p = exports['fvg-playercore']:GetPlayer(targetSrc)
     if not p then return end
-
-    -- Memória frissítés
     if data.firstname then p.firstname = data.firstname end
     if data.lastname  then p.lastname  = data.lastname  end
-
-    -- DB mentés
     exports['fvg-database']:SavePlayer(targetSrc, data)
     Notify(src, 'Játékos adatai frissítve.', 'success')
     Notify(targetSrc, 'Admin módosította az adataidat.', 'warning')
+end)
+
+-- ── Job váltás ────────────────────────────────────────────────
+-- SetPlayerData-t használ (playercore export) – metadata.job frissítés + kliens sync
+RegisterNetEvent('fvg-admin:server:SetJob', function(targetSrc, job)
+    local src = source
+    if not HasPerm(src, 'setjob') then
+        Notify(src, 'Nincs jogosultságod job váltáshoz.', 'error')
+        return
+    end
+
+    -- Job validáció – csak Config.Jobs-ban szereplő job engedélyezett
+    local valid = false
+    local jobLabel = job
+    for _, j in ipairs(Config.Jobs) do
+        if j.job == job then
+            valid    = true
+            jobLabel = j.label
+            break
+        end
+    end
+
+    if not valid then
+        Notify(src, 'Érvénytelen job: ' .. tostring(job), 'error')
+        return
+    end
+
+    local p = exports['fvg-playercore']:GetPlayer(targetSrc)
+    if not p then
+        Notify(src, 'Játékos nem található.', 'error')
+        return
+    end
+
+    -- metadata.job frissítés + kliens szinkron a SetPlayerData exporton át
+    exports['fvg-playercore']:SetPlayerData(targetSrc, 'job', job)
+    -- Mentés DB-be
+    exports['fvg-playercore']:SavePlayerNow(targetSrc)
+
+    AdminLog(src, 'set_job', targetSrc, { job = job })
+    Notify(src, (p.firstname .. ' ' .. p.lastname) .. ' munkája módosítva: ' .. jobLabel, 'success')
+    Notify(targetSrc, 'Az admin megváltoztatta a munkádat: ' .. jobLabel, 'info')
 end)
 
 -- ══════════════════════════════════════════════════════════════
@@ -336,18 +372,15 @@ RegisterNetEvent('fvg-admin:server:Announce', function(message)
     AdminLog(src, 'announce', nil, message)
 end)
 
--- ── Noclip engedélyezés ───────────────────────────────────────
 RegisterNetEvent('fvg-admin:server:SetNoclip', function(state)
     local src = source
     if not HasPerm(src, 'noclip') then return end
     TriggerClientEvent('fvg-admin:client:SetNoclip', src, state)
 end)
 
--- ── Ban lista lekérdezése ─────────────────────────────────────
 RegisterNetEvent('fvg-admin:server:GetBanList', function()
     local src = source
     if not HasPerm(src, 'ban') then return end
-
     local bans = exports['fvg-database']:Query(
         'SELECT * FROM `fvg_bans` WHERE `permanent` = 1 OR `expires_at` > NOW() ORDER BY `created_at` DESC LIMIT 100',
         {}
