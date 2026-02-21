@@ -6,16 +6,17 @@
 CreateThread(function()
     Wait(200)
 
+    -- JAVÍTÁS: TIMESTAMP DEFAULT NULL → DATETIME (MySQL strict mód kompatibilitás)
     exports['fvg-database']:RegisterMigration('fvg_unemployment', [[
         CREATE TABLE IF NOT EXISTS `fvg_unemployment` (
-            `player_id`      INT       NOT NULL,
+            `player_id`      INT        NOT NULL,
             `eligible`       TINYINT(1) NOT NULL DEFAULT 1,
-            `claims_used`    TINYINT   NOT NULL DEFAULT 0,
-            `last_claim`     TIMESTAMP          DEFAULT NULL,
-            `tasks_done`     LONGTEXT           DEFAULT NULL,
-            `registered_at`  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            `updated_at`     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                                ON UPDATE CURRENT_TIMESTAMP,
+            `claims_used`    TINYINT    NOT NULL DEFAULT 0,
+            `last_claim`     DATETIME            DEFAULT NULL,
+            `tasks_done`     LONGTEXT            DEFAULT NULL,
+            `registered_at`  DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at`     DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                 ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`player_id`),
             CONSTRAINT `fk_unemp_player`
                 FOREIGN KEY (`player_id`) REFERENCES `fvg_players`(`id`)
@@ -28,7 +29,7 @@ CreateThread(function()
             `id`          INT          NOT NULL AUTO_INCREMENT,
             `player_id`   INT          NOT NULL,
             `job_id`      VARCHAR(40)  NOT NULL,
-            `applied_at`  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `applied_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
             `status`      ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
             PRIMARY KEY (`id`),
             KEY `idx_player` (`player_id`),
@@ -53,17 +54,23 @@ local function Notify(src, msg, ntype)
     })
 end
 
+-- JAVÍTÁS: player.job → player.metadata.job (job a metadata JSON-ben van)
 local function IsUnemployedPlayer(src)
     local player = exports['fvg-playercore']:GetPlayer(src)
-    return player and player.job == Config.BenefitEligibleJob
+    return player and player.metadata and player.metadata.job == Config.BenefitEligibleJob
 end
 
+-- JAVÍTÁS: SQL-alapú lekérdezés helyett online játékos cache-ből számolunk
+-- (a job a metadata JSON-ben van, nem önálló oszlopban az fvg_players táblában)
 local function GetCurrentSlotCount(jobId)
-    local row = exports['fvg-database']:QuerySingle(
-        "SELECT COUNT(*) as cnt FROM `fvg_players` WHERE `job` = ?",
-        { jobId }
-    )
-    return row and row.cnt or 0
+    local count = 0
+    for _, src in ipairs(GetPlayers()) do
+        local p = exports['fvg-playercore']:GetPlayer(tonumber(src))
+        if p and p.metadata and p.metadata.job == jobId then
+            count = count + 1
+        end
+    end
+    return count
 end
 
 local function GetPlayerTasksDone(src)
@@ -87,11 +94,11 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
 
     if row then
         unemploymentData[src] = {
-            player_id  = player.id,
-            eligible   = row.eligible == 1,
-            claims_used= row.claims_used,
-            last_claim = row.last_claim,
-            tasks_done = tasksDone,
+            player_id   = player.id,
+            eligible    = row.eligible == 1,
+            claims_used = row.claims_used,
+            last_claim  = row.last_claim,
+            tasks_done  = tasksDone,
         }
     else
         -- Első belépés: insertálás
@@ -100,11 +107,11 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
             { player.id }
         )
         unemploymentData[src] = {
-            player_id  = player.id,
-            eligible   = true,
-            claims_used= 0,
-            last_claim = nil,
-            tasks_done = {},
+            player_id   = player.id,
+            eligible    = true,
+            claims_used = 0,
+            last_claim  = nil,
+            tasks_done  = {},
         }
     end
 
@@ -234,19 +241,19 @@ exports('GetAvailableJobs', function(src)
             end
 
             table.insert(result, {
-                id          = job.id,
-                label       = job.label,
-                description = job.description,
-                salary      = job.salary,
-                icon        = job.icon,
-                color       = job.color,
-                requirements= job.requirements,
-                reqDetails  = reqDetails,
-                slots       = job.slots,
-                currentSlots= currentSlots,
-                isFull      = isFull,
-                meetsReqs   = meetsReqs,
-                open        = job.open,
+                id           = job.id,
+                label        = job.label,
+                description  = job.description,
+                salary       = job.salary,
+                icon         = job.icon,
+                color        = job.color,
+                requirements = job.requirements,
+                reqDetails   = reqDetails,
+                slots        = job.slots,
+                currentSlots = currentSlots,
+                isFull       = isFull,
+                meetsReqs    = meetsReqs,
+                open         = job.open,
             })
         end
     end
@@ -258,8 +265,8 @@ exports('ApplyForJob', function(src, jobId)
     local player = exports['fvg-playercore']:GetPlayer(s)
     if not player then return false end
 
-    -- Már van állása?
-    if player.job ~= Config.BenefitEligibleJob then
+    -- JAVÍTÁS: player.job → player.metadata.job
+    if player.metadata and player.metadata.job ~= Config.BenefitEligibleJob then
         Notify(s, Config.Notifications.job_already, 'warning')
         return false
     end
@@ -330,7 +337,7 @@ RegisterNetEvent('fvg-unemployment:server:RequestOpen', function()
     local data = unemploymentData[src]
     if not data then return end
 
-    local jobs    = exports['fvg-unemployment']:GetAvailableJobs(src)
+    local jobs          = exports['fvg-unemployment']:GetAvailableJobs(src)
     local canClaim, err = CanClaim(src)
 
     -- Cooldown másodperc visszaadása
@@ -394,7 +401,8 @@ RegisterNetEvent('fvg-unemployment:server:CheckTask', function(taskId)
 
     elseif taskDef.type == 'cash' then
         local player = exports['fvg-playercore']:GetPlayer(src)
-        completed    = player and (player.cash or 0) >= taskDef.amount
+        -- JAVÍTÁS: player.cash → player.metadata.cash
+        completed    = player and (player.metadata and player.metadata.cash or 0) >= taskDef.amount
     end
 
     if completed then
