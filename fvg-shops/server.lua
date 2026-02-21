@@ -2,7 +2,7 @@
 -- ║         fvg-shops :: server                  ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Migráció ─────────────────────────────────────────────────
+-- ── Migráció ─────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
 
@@ -37,11 +37,11 @@ CreateThread(function()
     ]])
 end)
 
--- ── Cache ─────────────────────────────────────────────────────
+-- ── Cache ───────────────────────────────────────────────────
 -- shopId → { itemName → stock }
-local stockCache = {}
+local stockCache    = {}
 -- id → shopConfig
-local shopRegistry = {}
+local shopRegistry  = {}
 
 -- ── Segédfüggvények ───────────────────────────────────────────
 local function Notify(src, msg, ntype, title)
@@ -69,8 +69,6 @@ local function InitStock(shop)
     for _, cat in ipairs(shop.categories) do
         for _, item in ipairs(Config.Items) do
             if item.category == cat and item.stock ~= nil then
-                local key = shop.id .. '|' .. item.item
-                -- DB-ből töltsük be, ha van
                 local row = exports['fvg-database']:QuerySingle(
                     'SELECT `stock` FROM `fvg_shop_stock` WHERE `shop_id`=? AND `item`=?',
                     { shop.id, item.item }
@@ -78,7 +76,6 @@ local function InitStock(shop)
                 if row then
                     stockCache[shop.id][item.item] = row.stock
                 else
-                    -- Első indítás: feltöltjük alapértékre
                     stockCache[shop.id][item.item] = item.stock
                     exports['fvg-database']:Insert(
                         'INSERT INTO `fvg_shop_stock` (`shop_id`,`item`,`stock`) VALUES (?,?,?)',
@@ -90,7 +87,7 @@ local function InitStock(shop)
     end
 end
 
--- ── Shop regisztráció ─────────────────────────────────────────
+-- ── Shop regisztráció ───────────────────────────────────────────
 local function RegisterShopInternal(shop)
     shopRegistry[shop.id] = shop
     InitStock(shop)
@@ -104,7 +101,7 @@ CreateThread(function()
     print('[fvg-shops] ' .. #Config.Shops .. ' bolt betöltve.')
 end)
 
--- ── Készlet regenerálás ───────────────────────────────────────
+-- ── Készlet regenerálás ───────────────────────────────────────────
 CreateThread(function()
     if not Config.UseStock then return end
     while true do
@@ -115,8 +112,7 @@ CreateThread(function()
                 for itemName, currentStock in pairs(items) do
                     local itemDef = GetItemDef(itemName)
                     if itemDef and itemDef.stock ~= nil then
-                        local maxStock  = itemDef.stock
-                        local newStock  = math.min(currentStock + Config.StockRegenAmount, maxStock)
+                        local newStock = math.min(currentStock + Config.StockRegenAmount, itemDef.stock)
                         if newStock ~= currentStock then
                             stockCache[shopId][itemName] = newStock
                             exports['fvg-database']:Execute(
@@ -158,7 +154,7 @@ exports('GetItemStock', function(shopId, itemName)
     if not Config.UseStock then return 999 end
     local s = stockCache[shopId]
     if not s then return 0 end
-    if s[itemName] == nil then return 999 end -- végtelen
+    if s[itemName] == nil then return 999 end
     return s[itemName]
 end)
 
@@ -175,7 +171,6 @@ end)
 
 exports('AddShopItem', function(shopId, itemDef)
     if not itemDef or not itemDef.item then return false end
-    -- Dinamikusan hozzáad egy terméket (nem perzisztens, csak runtime)
     table.insert(Config.Items, itemDef)
     TriggerEvent('fvg-shops:server:ItemAdded', shopId, itemDef)
     return true
@@ -193,7 +188,6 @@ exports('RemoveShopItem', function(shopId, itemName)
 end)
 
 exports('ProcessPurchase', function(src, shopId, itemName, quantity, paymentMethod)
-    -- Külső script is tud vásárlást indítani
     TriggerEvent('fvg-shops:server:Buy', src, shopId, itemName, quantity, paymentMethod)
 end)
 
@@ -207,16 +201,15 @@ RegisterNetEvent('fvg-shops:server:RequestShop', function(shopId)
     local shop = GetShopDef(shopId)
     if not shop then return end
 
-    -- Job ellenőrzés
+    -- JAVÍTÁS: player.job → player.metadata.job
     if shop.requiredJob then
         local player = exports['fvg-playercore']:GetPlayer(src)
-        if not player or player.job ~= shop.requiredJob then
+        if not player or (player.metadata and player.metadata.job or nil) ~= shop.requiredJob then
             Notify(src, 'Ehhez a bolthoz szükséges: ' .. shop.requiredJob, 'error')
             return
         end
     end
 
-    -- Licensz ellenőrzés
     if shop.requiredLicense then
         local hasLicense = exports['fvg-idcard']:HasLicense(src, shop.requiredLicense)
         if not hasLicense then
@@ -225,12 +218,10 @@ RegisterNetEvent('fvg-shops:server:RequestShop', function(shopId)
         end
     end
 
-    -- Összeállítjuk a terméklistát a bolt kategóriái alapján
     local items = {}
     for _, item in ipairs(Config.Items) do
         for _, cat in ipairs(shop.categories) do
             if item.category == cat then
-                -- Item licensz ellenőrzés
                 local show = true
                 if item.requiredLicense then
                     show = exports['fvg-idcard']:HasLicense(src, item.requiredLicense)
@@ -238,14 +229,14 @@ RegisterNetEvent('fvg-shops:server:RequestShop', function(shopId)
                 if show then
                     local stockVal = exports['fvg-shops']:GetItemStock(shopId, item.item)
                     table.insert(items, {
-                        item          = item.item,
-                        label         = item.label,
-                        price         = item.price,
-                        category      = item.category,
-                        stock         = stockVal,
-                        maxPerPurchase= item.maxPerPurchase,
-                        icon          = item.icon,
-                        description   = item.description,
+                        item           = item.item,
+                        label          = item.label,
+                        price          = item.price,
+                        category       = item.category,
+                        stock          = stockVal,
+                        maxPerPurchase = item.maxPerPurchase,
+                        icon           = item.icon,
+                        description    = item.description,
                     })
                 end
                 break
@@ -253,14 +244,14 @@ RegisterNetEvent('fvg-shops:server:RequestShop', function(shopId)
         end
     end
 
-    -- Banking adatok a fizetési módhoz
     local bankBal = 0
     local cashBal = 0
     if shop.paymentMethod ~= 'cash' then
         bankBal = exports['fvg-banking']:GetBalance(src, 'checking')
     end
+    -- JAVÍTÁS: player.cash → player.metadata.cash
     local player = exports['fvg-playercore']:GetPlayer(src)
-    if player then cashBal = player.cash or 0 end
+    if player then cashBal = (player.metadata and player.metadata.cash or 0) end
 
     TriggerClientEvent('fvg-shops:client:OpenShop', src, {
         shopId        = shopId,
@@ -274,7 +265,7 @@ RegisterNetEvent('fvg-shops:server:RequestShop', function(shopId)
     })
 end)
 
--- Vásárlás
+-- Vásárlás (external hook - üres, csak placeholder)
 AddEventHandler('fvg-shops:server:Buy', function(srcOverride, shopIdOvr, itemOvr, qtyOvr, pmOvr)
     local isExternal = srcOverride ~= nil
 end)
@@ -300,7 +291,6 @@ AddEventHandler('fvg-shops:server:Buy', function(src, shopId, itemName, quantity
         Notify(src, 'Maximum ' .. itemDef.maxPerPurchase .. ' db vásárolható egyszerre.', 'warning'); return
     end
 
-    -- Készlet ellenőrzés
     if Config.UseStock and itemDef.stock ~= nil then
         local currentStock = exports['fvg-shops']:GetItemStock(shopId, itemName)
         if currentStock < quantity then
@@ -308,23 +298,22 @@ AddEventHandler('fvg-shops:server:Buy', function(src, shopId, itemName, quantity
         end
     end
 
-    local totalPrice = itemDef.price * quantity
-    paymentMethod    = paymentMethod or shop.paymentMethod or Config.DefaultPaymentMethod
+    local totalPrice  = itemDef.price * quantity
+    paymentMethod     = paymentMethod or shop.paymentMethod or Config.DefaultPaymentMethod
 
-    -- Fizetés feldolgozás
     local player = exports['fvg-playercore']:GetPlayer(src)
     if not player then return end
 
-    if paymentMethod == 'cash' or paymentMethod == 'both' then
-        if paymentMethod == 'both' and (player.cash or 0) < totalPrice then
-            -- Fallback bankra
-            paymentMethod = 'bank'
-        end
+    -- JAVÍTÁS: player.cash → player.metadata.cash
+    local playerCash = player.metadata and player.metadata.cash or 0
+
+    if paymentMethod == 'both' and playerCash < totalPrice then
+        paymentMethod = 'bank'
     end
 
     local paid = false
     if paymentMethod == 'cash' then
-        if (player.cash or 0) < totalPrice then
+        if playerCash < totalPrice then
             Notify(src, 'Nincs elég készpénzed. Szükséges: $' .. totalPrice, 'error'); return
         end
         exports['fvg-playercore']:RemoveCash(src, totalPrice)
@@ -342,20 +331,16 @@ AddEventHandler('fvg-shops:server:Buy', function(src, shopId, itemName, quantity
 
     if not paid then return end
 
-    -- Tárgy hozzáadás
     for i = 1, quantity do
         exports['fvg-inventory']:AddItem(src, itemName, 1)
     end
 
-    -- Készlet csökkentés
     if Config.UseStock and itemDef.stock ~= nil then
         local newStock = exports['fvg-shops']:GetItemStock(shopId, itemName) - quantity
         exports['fvg-shops']:SetItemStock(shopId, itemName, newStock)
-        -- Kliens frissítés
         TriggerClientEvent('fvg-shops:client:StockUpdate', src, shopId, itemName, newStock)
     end
 
-    -- DB log
     local playerId = player.id or 0
     exports['fvg-database']:Insert(
         [[INSERT INTO `fvg_shop_transactions`
@@ -364,7 +349,6 @@ AddEventHandler('fvg-shops:server:Buy', function(src, shopId, itemName, quantity
         { playerId, shopId, itemName, quantity, itemDef.price, totalPrice, paymentMethod }
     )
 
-    -- Visszajelzés
     TriggerClientEvent('fvg-shops:client:PurchaseSuccess', src, {
         item      = itemName,
         label     = itemDef.label,

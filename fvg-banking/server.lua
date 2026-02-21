@@ -2,7 +2,7 @@
 -- ║         fvg-banking :: server                ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Migráció ─────────────────────────────────────────────────
+-- ── Migráció ─────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
 
@@ -17,8 +17,8 @@ CreateThread(function()
             `updated_at`   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                 ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`),
-            UNIQUE KEY `uq_iban`       (`iban`),
-            UNIQUE KEY `uq_player_type`(`player_id`,`type`),
+            UNIQUE KEY `uq_iban`        (`iban`),
+            UNIQUE KEY `uq_player_type` (`player_id`,`type`),
             CONSTRAINT `fk_bank_player`
                 FOREIGN KEY (`player_id`) REFERENCES `fvg_players`(`id`)
                 ON DELETE CASCADE
@@ -27,14 +27,14 @@ CreateThread(function()
 
     exports['fvg-database']:RegisterMigration('fvg_transactions', [[
         CREATE TABLE IF NOT EXISTS `fvg_transactions` (
-            `id`           INT          NOT NULL AUTO_INCREMENT,
-            `account_id`   INT          NOT NULL,
-            `type`         VARCHAR(20)  NOT NULL DEFAULT 'other',
-            `amount`       BIGINT       NOT NULL,
-            `balance_after`BIGINT       NOT NULL,
-            `description`  VARCHAR(120)          DEFAULT NULL,
-            `ref_player_id`INT                   DEFAULT NULL,
-            `created_at`   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `id`            INT          NOT NULL AUTO_INCREMENT,
+            `account_id`    INT          NOT NULL,
+            `type`          VARCHAR(20)  NOT NULL DEFAULT 'other',
+            `amount`        BIGINT       NOT NULL,
+            `balance_after` BIGINT       NOT NULL,
+            `description`   VARCHAR(120)          DEFAULT NULL,
+            `ref_player_id` INT                   DEFAULT NULL,
+            `created_at`    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (`id`),
             KEY `idx_account` (`account_id`),
             KEY `idx_type`    (`type`),
@@ -45,7 +45,7 @@ CreateThread(function()
     ]])
 end)
 
--- ── Cache ─────────────────────────────────────────────────────
+-- ── Cache ───────────────────────────────────────────────────
 -- [src] = { player_id, checking={id,balance,iban}, savings={id,balance,iban} }
 local playerAccounts = {}
 
@@ -89,11 +89,12 @@ local function SyncClient(src)
         checking = p.checking,
         savings  = p.savings,
     })
-    -- fvg-playercore cash szinkron
+    -- JAVÍTÁS: player.cash → player.metadata.cash
     if Config.SyncCashWithPlayercore then
         local player = exports['fvg-playercore']:GetPlayer(src)
         if player then
-            TriggerClientEvent('fvg-banking:client:SyncCash', src, player.cash or 0)
+            TriggerClientEvent('fvg-banking:client:SyncCash', src,
+                player.metadata and player.metadata.cash or 0)
         end
     end
 end
@@ -118,7 +119,6 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
         end
     end
 
-    -- Checking számla létrehozás ha nincs
     if not accounts.checking then
         local iban = GenIBAN()
         local id   = exports['fvg-database']:Insert(
@@ -129,7 +129,6 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
         LogTransaction(id, 'other', Config.DefaultBalance, Config.DefaultBalance, 'Számla nyitás', nil)
     end
 
-    -- Savings számla létrehozás ha nincs
     if not accounts.savings then
         local iban = GenIBAN()
         local id   = exports['fvg-database']:Insert(
@@ -162,8 +161,8 @@ exports('HasSufficientFunds', function(src, amount, accType)
 end)
 
 exports('AddBalance', function(src, amount, accType, description, txType)
-    local s      = tonumber(src)
-    local acc    = GetAccount(s, accType or 'checking')
+    local s   = tonumber(src)
+    local acc = GetAccount(s, accType or 'checking')
     if not acc then return false end
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return false end
@@ -203,9 +202,9 @@ exports('RemoveBalance', function(src, amount, accType, description, txType)
 end)
 
 exports('Transfer', function(fromSrc, toSrc, amount, description)
-    local fS     = tonumber(fromSrc)
-    local tS     = tonumber(toSrc)
-    amount       = math.floor(tonumber(amount) or 0)
+    local fS   = tonumber(fromSrc)
+    local tS   = tonumber(toSrc)
+    amount     = math.floor(tonumber(amount) or 0)
 
     if amount < Config.TransferMinAmount then return false, 'too_small' end
     if amount > Config.TransferMaxAmount then return false, 'too_large' end
@@ -216,10 +215,8 @@ exports('Transfer', function(fromSrc, toSrc, amount, description)
     if fromAcc.balance < amount then return false, 'insufficient_funds' end
     if fS == tS then return false, 'same_account' end
 
-    -- Tranzakciós díj
     local fee = Config.TransferFee > 0 and math.floor(amount * Config.TransferFee / 100) or 0
 
-    -- Küldő
     local fromNew = fromAcc.balance - amount - fee
     fromAcc.balance = fromNew
     exports['fvg-database']:Execute(
@@ -229,7 +226,6 @@ exports('Transfer', function(fromSrc, toSrc, amount, description)
     LogTransaction(fromAcc.id, 'transfer', -(amount + fee), fromNew,
         description or 'Átutalás', playerAccounts[tS] and playerAccounts[tS].player_id)
 
-    -- Fogadó
     local toNew = math.min(toAcc.balance + amount, Config.MaxBankBalance)
     toAcc.balance = toNew
     exports['fvg-database']:Execute(
@@ -281,7 +277,6 @@ exports('CreateTransaction', function(src, txType, amount, description, refSrc)
     local s   = tonumber(src)
     local acc = GetAccount(s, 'checking')
     if not acc then return false end
-
     local refId = refSrc and playerAccounts[tonumber(refSrc)] and playerAccounts[tonumber(refSrc)].player_id or nil
     LogTransaction(acc.id, txType or 'other', amount, acc.balance, description, refId)
     return true
@@ -293,8 +288,8 @@ end)
 
 -- Panel megnyitás kérés
 RegisterNetEvent('fvg-banking:server:RequestPanel', function(mode)
-    local src  = source
-    local p    = playerAccounts[src]
+    local src = source
+    local p   = playerAccounts[src]
     if not p then return end
 
     local txChecking = exports['fvg-banking']:GetTransactions(src, 'checking', 20)
@@ -304,30 +299,31 @@ RegisterNetEvent('fvg-banking:server:RequestPanel', function(mode)
     TriggerClientEvent('fvg-banking:client:OpenPanel', src, {
         accounts     = { checking = p.checking, savings = p.savings },
         transactions = { checking = txChecking, savings = txSavings },
-        cash         = player and player.cash or 0,
+        -- JAVÍTÁS: player.cash → player.metadata.cash
+        cash         = player and (player.metadata and player.metadata.cash or 0) or 0,
         txTypes      = Config.TxTypes,
-        mode         = mode or 'full',   -- 'full' | 'atm'
+        mode         = mode or 'full',
         limits       = {
-            atmWithdraw  = Config.ATMWithdrawLimit,
-            transferMax  = Config.TransferMaxAmount,
-            transferMin  = Config.TransferMinAmount,
-            transferFee  = Config.TransferFee,
-            maxCash      = Config.MaxCashOnHand,
+            atmWithdraw = Config.ATMWithdrawLimit,
+            transferMax = Config.TransferMaxAmount,
+            transferMin = Config.TransferMinAmount,
+            transferFee = Config.TransferFee,
+            maxCash     = Config.MaxCashOnHand,
         },
     })
 end)
 
 -- Befizetés (bank / ATM)
 RegisterNetEvent('fvg-banking:server:Deposit', function(amount, accType)
-    local src    = source
-    amount       = math.floor(tonumber(amount) or 0)
-    accType      = accType or 'checking'
+    local src = source
+    amount    = math.floor(tonumber(amount) or 0)
+    accType   = accType or 'checking'
 
     if amount <= 0 then Notify(src, 'Érvénytelen összeg.', 'error'); return end
 
-    -- Készpénz levonás
+    -- JAVÍTÁS: player.cash → player.metadata.cash
     local player = exports['fvg-playercore']:GetPlayer(src)
-    if not player or (player.cash or 0) < amount then
+    if not player or (player.metadata and player.metadata.cash or 0) < amount then
         Notify(src, 'Nincs elég készpénzed.', 'error'); return
     end
 
@@ -348,10 +344,10 @@ RegisterNetEvent('fvg-banking:server:Withdraw', function(amount, accType, isATM)
         Notify(src, 'ATM limit: $' .. Config.ATMWithdrawLimit .. ' / alkalom.', 'warning'); return
     end
 
-    -- Készpénz limit
+    -- JAVÍTÁS: player.cash → player.metadata.cash
     local player = exports['fvg-playercore']:GetPlayer(src)
     if player then
-        local currentCash = player.cash or 0
+        local currentCash = player.metadata and player.metadata.cash or 0
         if currentCash + amount > Config.MaxCashOnHand then
             Notify(src, 'Túl sok készpénz van nálad. Max: $' .. Config.MaxCashOnHand, 'warning')
             return
@@ -368,14 +364,13 @@ end)
 
 -- Átutalás
 RegisterNetEvent('fvg-banking:server:Transfer', function(targetIdentifier, amount, description)
-    local src  = source
-    amount     = math.floor(tonumber(amount) or 0)
+    local src = source
+    amount    = math.floor(tonumber(amount) or 0)
 
     if amount < Config.TransferMinAmount then
         Notify(src, 'Minimum átutalás: $' .. Config.TransferMinAmount, 'error'); return
     end
 
-    -- Célszemély keresés online játékosok között (IBAN vagy ID alapján)
     local targetSrc = nil
     for _, pid in ipairs(GetPlayers()) do
         local s = tonumber(pid)
@@ -385,14 +380,12 @@ RegisterNetEvent('fvg-banking:server:Transfer', function(targetIdentifier, amoun
         end
     end
 
-    -- Ha offline: DB alapú
     if not targetSrc then
         local row = exports['fvg-banking']:GetAccountByIdentifier(targetIdentifier)
         if not row then
             Notify(src, 'Ismeretlen bankszámlaszám: ' .. targetIdentifier, 'error'); return
         end
 
-        -- Offline átutalás
         local fromAcc = GetAccount(src, 'checking')
         if not fromAcc or fromAcc.balance < amount then
             Notify(src, 'Nincs elég egyenleg.', 'error'); return
@@ -406,7 +399,6 @@ RegisterNetEvent('fvg-banking:server:Transfer', function(targetIdentifier, amoun
         )
         LogTransaction(fromAcc.id, 'transfer', -amount, newBal,
             description or 'Átutalás (offline)', row.player_id)
-        -- Fogadó egyenleg frissítés DB-ben
         local newTarget = math.min(row.balance + amount, Config.MaxBankBalance)
         exports['fvg-database']:Execute(
             'UPDATE `fvg_bank_accounts` SET `balance`=? WHERE `id`=?',
@@ -429,7 +421,7 @@ RegisterNetEvent('fvg-banking:server:Transfer', function(targetIdentifier, amoun
             insufficient_funds = 'Nincs elég egyenleg.',
             too_large          = 'Túl nagy összeg. Max: $' .. Config.TransferMaxAmount,
             too_small          = 'Túl kis összeg. Min: $' .. Config.TransferMinAmount,
-            same_account       = 'Saját magadnak nem utalhatsz.',
+            same_account       = 'Saját magadnak nem utalhatš.',
             account_not_found  = 'Számlaszám nem található.',
         }
         Notify(src, msgs[err] or 'Ismeretlen hiba.', 'error')
