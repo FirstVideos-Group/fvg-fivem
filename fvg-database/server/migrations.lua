@@ -105,7 +105,18 @@ end
 
 -- Induláskor futtatjuk
 CreateThread(function()
-    -- Kis várakozás hogy az oxmysql csatlakozzon
-    Wait(500)
+    -- Várunk az oxmysql ready eventre, nem fixált időre
+    local ready = false
+    AddEventHandler('onDatabaseConnected', function()
+        ready = true
+    end)
+    
+    -- Fallback: max 10 másodpercet várunk
+    local timeout = 0
+    while not ready and timeout < 100 do
+        Wait(100)
+        timeout = timeout + 1
+    end
+    
     RunMigrations()
 end)
