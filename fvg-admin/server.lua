@@ -21,7 +21,7 @@ CreateThread(function()
     ]])
 end)
 
--- ── Segédfüggvények ───────────────────────────────────────────
+-- ── Segédfüggvények ─────────────────────────────────────────────
 
 local function GetAdminRole(src)
     if IsPlayerAceAllowed(src, Config.Permissions.superadmin) then return 'superadmin' end
@@ -63,7 +63,26 @@ local function Notify(src, msg, ntype)
     TriggerClientEvent('fvg-notify:client:Notify', src, { type = ntype or 'info', message = msg })
 end
 
--- ── Ban csatlakozáskor ellenőrzés ─────────────────────────────
+-- ══════════════════════════════════════════════════════════════
+--  EXPORTOK – más resource-ok használhatják
+-- ══════════════════════════════════════════════════════════════
+
+-- IsAdmin: true ha a játékosnak bármilyen admin jogosultsága van
+exports('IsAdmin', function(src)
+    return GetAdminRole(tonumber(src)) ~= nil
+end)
+
+-- GetAdminRole: visszaadja a szerepet (superadmin/admin/moderator) vagy nil
+exports('GetAdminRole', function(src)
+    return GetAdminRole(tonumber(src))
+end)
+
+-- HasPermission: egy adott funkcióra van-e jogosultság
+exports('HasPermission', function(src, action)
+    return HasPerm(tonumber(src), action)
+end)
+
+-- ── Ban csatlakozáskor ellenőrzés ──────────────────────────────
 AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     local src        = source
     deferrals.defer()
@@ -89,12 +108,12 @@ AddEventHandler('playerConnecting', function(name, setKickReason, deferrals)
     deferrals.done()
 end)
 
--- ── Admin menü megnyitás ─────────────────────────────────────
+-- ── Admin menü megnyitás ──────────────────────────────────────
 RegisterNetEvent('fvg-admin:server:OpenMenu', function()
     local src  = source
     local role = GetAdminRole(src)
     if not role then
-        Notify(src, 'Nincs jogosultságod az admin menühöz.', 'error')
+        Notify(src, 'Nincs jogosultságod az admin menühez.', 'error')
         return
     end
 
@@ -155,10 +174,9 @@ RegisterNetEvent('fvg-admin:server:RefreshPlayers', function()
 end)
 
 -- ══════════════════════════════════════════════════════════════
---  JÁTÉKOS AKCIÓK
+--  JÁTÉKOS AKCÍK
 -- ══════════════════════════════════════════════════════════════
 
--- Kick
 RegisterNetEvent('fvg-admin:server:KickPlayer', function(targetSrc, reason)
     local src = source
     if not HasPerm(src, 'kick') then return end
@@ -168,7 +186,6 @@ RegisterNetEvent('fvg-admin:server:KickPlayer', function(targetSrc, reason)
     Notify(src, GetPlayerName(targetSrc) .. ' kirúgva: ' .. reason, 'success')
 end)
 
--- Ban
 RegisterNetEvent('fvg-admin:server:BanPlayer', function(targetSrc, reason, minutes)
     local src = source
     if not HasPerm(src, 'ban') then return end
@@ -193,7 +210,6 @@ RegisterNetEvent('fvg-admin:server:BanPlayer', function(targetSrc, reason, minut
     Notify(src, name .. ' kitiltva.', 'success')
 end)
 
--- Unban
 RegisterNetEvent('fvg-admin:server:UnbanPlayer', function(identifier)
     local src = source
     if not HasPerm(src, 'ban') then return end
@@ -205,7 +221,6 @@ RegisterNetEvent('fvg-admin:server:UnbanPlayer', function(identifier)
     Notify(src, 'Ban feloldva: ' .. identifier, 'success')
 end)
 
--- Revive
 RegisterNetEvent('fvg-admin:server:RevivePlayer', function(targetSrc)
     local src = source
     if not HasPerm(src, 'revive') then return end
@@ -213,7 +228,6 @@ RegisterNetEvent('fvg-admin:server:RevivePlayer', function(targetSrc)
     AdminLog(src, 'revive', targetSrc, nil)
 end)
 
--- Freeze
 RegisterNetEvent('fvg-admin:server:FreezePlayer', function(targetSrc, state)
     local src = source
     if not HasPerm(src, 'freeze') then return end
@@ -221,28 +235,24 @@ RegisterNetEvent('fvg-admin:server:FreezePlayer', function(targetSrc, state)
     AdminLog(src, state and 'freeze' or 'unfreeze', targetSrc, nil)
 end)
 
--- Teleport to player
 RegisterNetEvent('fvg-admin:server:TeleportTo', function(targetSrc)
     local src = source
     if not HasPerm(src, 'teleport') then return end
     TriggerClientEvent('fvg-admin:client:TeleportToPlayer', src, targetSrc)
 end)
 
--- Teleport player to me
 RegisterNetEvent('fvg-admin:server:TeleportToMe', function(targetSrc)
     local src = source
     if not HasPerm(src, 'teleport') then return end
     TriggerClientEvent('fvg-admin:client:TeleportToMe', targetSrc, src)
 end)
 
--- Spectate
 RegisterNetEvent('fvg-admin:server:SpectatePlayer', function(targetSrc)
     local src = source
     if not HasPerm(src, 'spectate') then return end
     TriggerClientEvent('fvg-admin:client:StartSpectate', src, targetSrc)
 end)
 
--- Godmode
 RegisterNetEvent('fvg-admin:server:SetGodmode', function(targetSrc, state)
     local src = source
     if not HasPerm(src, 'godmode') then return end
@@ -250,7 +260,6 @@ RegisterNetEvent('fvg-admin:server:SetGodmode', function(targetSrc, state)
     AdminLog(src, state and 'godmode_on' or 'godmode_off', targetSrc, nil)
 end)
 
--- Needs beállítás
 RegisterNetEvent('fvg-admin:server:SetNeeds', function(targetSrc, food, water)
     local src = source
     if not HasPerm(src, 'setneeds') then return end
@@ -260,7 +269,6 @@ RegisterNetEvent('fvg-admin:server:SetNeeds', function(targetSrc, food, water)
     Notify(src, 'Needs beállítva.', 'success')
 end)
 
--- Stressz beállítás
 RegisterNetEvent('fvg-admin:server:SetStress', function(targetSrc, value)
     local src = source
     if not HasPerm(src, 'setstress') then return end
@@ -269,7 +277,6 @@ RegisterNetEvent('fvg-admin:server:SetStress', function(targetSrc, value)
     Notify(src, 'Stressz beállítva: ' .. value .. '%', 'success')
 end)
 
--- Karakter adatok módosítása
 RegisterNetEvent('fvg-admin:server:SetPlayerInfo', function(targetSrc, data)
     local src = source
     if not HasPerm(src, 'admin') then return end
@@ -282,8 +289,7 @@ RegisterNetEvent('fvg-admin:server:SetPlayerInfo', function(targetSrc, data)
     Notify(targetSrc, 'Admin módosította az adataidat.', 'warning')
 end)
 
--- ── Job váltás ────────────────────────────────────────────────
--- SetPlayerData-t használ (playercore export) – metadata.job frissítés + kliens sync
+-- ── Job váltás ───────────────────────────────────────────────────
 RegisterNetEvent('fvg-admin:server:SetJob', function(targetSrc, job)
     local src = source
     if not HasPerm(src, 'setjob') then
@@ -291,7 +297,6 @@ RegisterNetEvent('fvg-admin:server:SetJob', function(targetSrc, job)
         return
     end
 
-    -- Job validáció – csak Config.Jobs-ban szereplő job engedélyezett
     local valid = false
     local jobLabel = job
     for _, j in ipairs(Config.Jobs) do
@@ -313,9 +318,7 @@ RegisterNetEvent('fvg-admin:server:SetJob', function(targetSrc, job)
         return
     end
 
-    -- metadata.job frissítés + kliens szinkron a SetPlayerData exporton át
     exports['fvg-playercore']:SetPlayerData(targetSrc, 'job', job)
-    -- Mentés DB-be
     exports['fvg-playercore']:SavePlayerNow(targetSrc)
 
     AdminLog(src, 'set_job', targetSrc, { job = job })
@@ -324,7 +327,7 @@ RegisterNetEvent('fvg-admin:server:SetJob', function(targetSrc, job)
 end)
 
 -- ══════════════════════════════════════════════════════════════
---  JÁRMŰ AKCIÓK
+--  JÁRMŰ AKCÍK
 -- ══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-admin:server:SpawnVehicle', function(model)
@@ -347,7 +350,7 @@ RegisterNetEvent('fvg-admin:server:FixVehicle', function()
 end)
 
 -- ══════════════════════════════════════════════════════════════
---  SZERVER AKCIÓK
+--  SZERVER AKCÍK
 -- ══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-admin:server:SetWeather', function(weather)
@@ -386,4 +389,16 @@ RegisterNetEvent('fvg-admin:server:GetBanList', function()
         {}
     )
     TriggerClientEvent('fvg-admin:client:ReceiveBanList', src, bans or {})
+end)
+
+RegisterNetEvent('fvg-admin:server:GetCoords', function(targetSrc)
+    -- szerver oldali relay: koordináta kérés továbbítása
+end)
+
+RegisterNetEvent('fvg-admin:server:SendCoords', function(requesterSrc, coords, heading)
+    TriggerClientEvent('fvg-admin:client:ReceiveCoords', requesterSrc, coords, heading)
+end)
+
+RegisterNetEvent('fvg-admin:server:GetAdminCoords', function(adminSrc)
+    -- admin koordinátájának lekérése relay
 end)
