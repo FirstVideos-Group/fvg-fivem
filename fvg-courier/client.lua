@@ -2,20 +2,24 @@
 -- ║         fvg-courier :: client                ║
 -- ╚══════════════════════════════════════════════╝
 
-local onDuty        = false
-local activeRun     = nil   -- { runId, spots, currentIdx, timeLimit, totalReward }
-local runTimer      = nil
-local timeLeft      = 0
-local courierVeh    = nil
-local depotBlip     = nil
-local deliveryBlip  = nil
-local menuOpen      = false
+local onDuty       = false
+local activeRun    = nil
+local runTimer     = nil
+local timeLeft     = 0
+local courierVeh   = nil
+local depotBlip    = nil
+local deliveryBlip = nil
+local menuOpen     = false
 
--- ── Kliens exportok ───────────────────────────────────────────
-exports('IsOnDuty', function() return onDuty end)
-exports('GetLocalDelivery', function() return activeRun end)
+-- Notification throttle: csak akkor küld üzenetet ha még nem volt kijelezve
+local _lastDepotHint    = ''
+local _lastDeliveryHint = ''
 
--- ── Depot blip ────────────────────────────────────────────────
+-- ── Kliens exportok ───────────────────────────────────────
+exports('IsOnDuty',        function() return onDuty    end)
+exports('GetLocalDelivery',function() return activeRun end)
+
+-- ── Depot blip ──────────────────────────────────────────
 CreateThread(function()
     depotBlip = AddBlipForCoord(
         Config.DepotLocation.coords.x,
@@ -31,7 +35,7 @@ CreateThread(function()
     EndTextCommandSetBlipName(depotBlip)
 end)
 
--- ── Depot marker és interakció ────────────────────────────────
+-- ── Depot marker és interakció ───────────────────────────
 CreateThread(function()
     while true do
         local sleep  = 1000
@@ -51,10 +55,20 @@ CreateThread(function()
             )
 
             if dist < 2.0 then
+                -- FIX: csak ha változott a hint szöveg, küldünk ertesitést
                 local hint = onDuty
-                    and (activeRun and '[E] Futár panel  [G] Kör lemondása' or '[E] Futár panel  [F] Kör indítása')
-                    or '[E] Munkába lépés'
-                exports['fvg-notify']:Notify({ type='info', message=hint, duration=600, static=true })
+                    and (activeRun
+                        and '[E] Futár panel  [G] Kör lemondása'
+                        or  '[E] Futár panel  [F] Kör indítása')
+                    or  '[E] Munkába lépés'
+
+                if hint ~= _lastDepotHint then
+                    _lastDepotHint = hint
+                    exports['fvg-notify']:Notify({
+                        type = 'info', message = hint,
+                        duration = 4000, static = true
+                    })
+                end
 
                 if IsControlJustPressed(0, 38) then -- E
                     if not onDuty then
@@ -74,19 +88,23 @@ CreateThread(function()
                     TriggerServerEvent('fvg-courier:server:CancelRun')
                     CleanupRun()
                 end
+            else
+                -- Kiléptünk a 2.0m zomból, reseteljük
+                _lastDepotHint = ''
             end
         end
+
         Wait(sleep)
     end
 end)
 
--- ── Kézbesítési pont marker ───────────────────────────────────
+-- ── Kézbesítési pont marker ──────────────────────────────
 CreateThread(function()
     while true do
         local sleep = 500
         if activeRun then
             sleep = 0
-            local spot   = activeRun.spots[activeRun.currentIdx]
+            local spot = activeRun.spots[activeRun.currentIdx]
             if spot and not spot.done then
                 local ped    = PlayerPedId()
                 local coords = GetEntityCoords(ped)
@@ -101,14 +119,21 @@ CreateThread(function()
                 )
 
                 if dist < Config.DeliveryRadius then
-                    exports['fvg-notify']:Notify({
-                        type='info', message='[E] Csomag kézbesítése – ' .. spot.label,
-                        duration=600, static=true
-                    })
+                    -- FIX: csak ha változott a hint (pl. új spot)
+                    local hint = '[E] Csomag kézbesítése – ' .. spot.label
+                    if hint ~= _lastDeliveryHint then
+                        _lastDeliveryHint = hint
+                        exports['fvg-notify']:Notify({
+                            type = 'info', message = hint,
+                            duration = 4000, static = true
+                        })
+                    end
 
                     if IsControlJustPressed(0, 38) then
                         DeliverPackage()
                     end
+                else
+                    _lastDeliveryHint = ''
                 end
             end
         end
@@ -116,7 +141,7 @@ CreateThread(function()
     end
 end)
 
--- ── Időmérő ──────────────────────────────────────────────────
+-- ── Időmérő ────────────────────────────────────────────────
 function StartRunTimer(limit)
     timeLeft = limit
     if runTimer then return end
@@ -134,14 +159,15 @@ function StartRunTimer(limit)
     end)
 end
 
--- ── Kézbesítési animáció ──────────────────────────────────────
+-- ── Kézbesítési animáció ───────────────────────────────────
 function DeliverPackage()
     if not activeRun then return end
-    local spotIdx      = activeRun.currentIdx
-    local spot         = activeRun.spots[spotIdx]
-    local deliveryStart= GetGameTimer()
+    local spotIdx = activeRun.currentIdx
+    local spot    = activeRun.spots[spotIdx]
 
-    -- Animáció
+    -- Hint reset, hogy új kézbesítési pontnál újra megjelenjen
+    _lastDeliveryHint = ''
+
     local ped = PlayerPedId()
     RequestAnimDict(Config.DeliveryAnim.dict)
     while not HasAnimDictLoaded(Config.DeliveryAnim.dict) do Wait(10) end
@@ -150,16 +176,14 @@ function DeliverPackage()
     Wait(Config.DeliveryAnim.duration)
     ClearPedTasks(ped)
 
-    local deliveryTime = math.floor((GetGameTimer() - deliveryStart) / 1000)
-    -- Tényleges idő = timeLimit - timeLeft
     local totalDeliveryTime = Config.DeliveryTimeLimit - timeLeft
-
     TriggerServerEvent('fvg-courier:server:DeliverPackage', spotIdx, totalDeliveryTime)
 end
 
--- ── Cleanup ───────────────────────────────────────────────────
+-- ── Cleanup ───────────────────────────────────────────────
 function CleanupRun()
-    activeRun = nil
+    activeRun         = nil
+    _lastDeliveryHint = ''
     if runTimer then runTimer = nil end
     RemoveDeliveryBlip()
     SendNUIMessage({ action = 'runEnded' })
@@ -185,7 +209,7 @@ function RemoveDeliveryBlip()
     end
 end
 
--- ── Jármű spawn ───────────────────────────────────────────────
+-- ── Jármű spawn ─────────────────────────────────────────────
 function SpawnCourierVehicle(cb)
     local depot  = Config.DepotLocation.coords
     local offset = Config.CourierVehicle.spawnOffset
@@ -193,7 +217,7 @@ function SpawnCourierVehicle(cb)
     local spawnY = depot.y + offset.y
     local spawnZ = depot.z + offset.z
 
-    local model  = GetHashKey(Config.CourierVehicle.model)
+    local model = GetHashKey(Config.CourierVehicle.model)
     RequestModel(model)
     while not HasModelLoaded(model) do Wait(10) end
 
@@ -202,7 +226,6 @@ function SpawnCourierVehicle(cb)
     SetVehicleNumberPlateText(veh, Config.CourierVehicle.plate)
     SetEntityAsMissionEntity(veh, true, true)
     courierVeh = veh
-
     SetModelAsNoLongerNeeded(model)
     if cb then cb(veh) end
 end
@@ -215,20 +238,23 @@ function DeleteCourierVehicle()
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 --  SZERVER EVENTEK FOGADÁSA
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-courier:client:ToggleDuty', function(stats)
     onDuty = not onDuty
+    -- Hint reset hogy újra megjelenjen a megfelelő szöveg
+    _lastDepotHint = ''
 
     if onDuty then
-        -- Jármű spawn
         SpawnCourierVehicle(function(veh)
             local ped = PlayerPedId()
             TaskWarpPedIntoVehicle(ped, veh, -1)
         end)
-        exports['fvg-notify']:Notify({ type='success', message='Munkába léptél! Menj a depot-hoz egy kör indításához.', title='🚴 Futár' })
+        exports['fvg-notify']:Notify({
+            type='success', message='Munkába léptél! Menj a depot-hoz egy kör indításához.', title='🚴 Futár'
+        })
         SendNUIMessage({ action = 'setDuty', onDuty=true, stats=stats })
     else
         if Config.DeleteVehicleOnDutyEnd then DeleteCourierVehicle() end
@@ -239,32 +265,27 @@ end)
 
 RegisterNetEvent('fvg-courier:client:RunStarted', function(data)
     activeRun = data
+    _lastDepotHint    = ''
+    _lastDeliveryHint = ''
     local firstSpot = data.spots[1]
     SetDeliveryBlip(firstSpot)
     StartRunTimer(data.timeLimit)
-
     SendNUIMessage({ action = 'runStarted', data = data })
     exports['fvg-notify']:Notify({
         type='warning', title='📦 Kör indult',
-        message='Első helyszín: ' .. firstSpot.label
+        message='Első hely: ' .. firstSpot.label
     })
 end)
 
 RegisterNetEvent('fvg-courier:client:PackageDelivered', function(data)
-    -- Lokális frissítés
     if activeRun then
         activeRun.spots[data.spotIdx].done = true
         activeRun.currentIdx               = data.nextIdx
         activeRun.totalReward              = data.totalReward
     end
-
-    -- Blip frissítés
+    _lastDeliveryHint = ''
     SetDeliveryBlip(data.nextSpot)
-
-    -- UI frissítés
     SendNUIMessage({ action = 'packageDelivered', data = data })
-
-    -- Értesítés
     local bonusText = ''
     for _, b in ipairs(data.bonuses or {}) do
         bonusText = bonusText .. ' ' .. b.label .. ' +$' .. b.amount
@@ -278,7 +299,6 @@ end)
 RegisterNetEvent('fvg-courier:client:RunCompleted', function(data)
     CleanupRun()
     SendNUIMessage({ action = 'runCompleted', data = data })
-    -- Részletes összefoglaló panel
     Wait(500)
     TriggerServerEvent('fvg-courier:server:RequestPanel')
 end)
@@ -302,7 +322,7 @@ RegisterNetEvent('fvg-courier:client:OpenPanel', function(data)
     SendNUIMessage({ action = 'openPanel', data = data })
 end)
 
--- ── NUI Callbacks ─────────────────────────────────────────────
+-- ── NUI Callbacks ─────────────────────────────────────────
 RegisterNUICallback('close', function(_, cb)
     menuOpen = false
     SetNuiFocus(false, false)
@@ -330,7 +350,7 @@ RegisterNUICallback('setWaypoint', function(data, cb)
     cb('ok')
 end)
 
--- ── Parancs ───────────────────────────────────────────────────
+-- ── Parancs ─────────────────────────────────────────────────
 RegisterCommand('courier', function()
     if not onDuty then return end
     TriggerServerEvent('fvg-courier:server:RequestPanel')
@@ -338,14 +358,14 @@ end, false)
 
 RegisterKeyMapping('courier', 'Futár panel megnyitása', 'keyboard', 'F5')
 
--- ── Cleanup ───────────────────────────────────────────────────
+-- ── Cleanup ─────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     SetNuiFocus(false, false)
     RemoveDeliveryBlip()
     if depotBlip then RemoveBlip(depotBlip) end
     DeleteCourierVehicle()
-    onDuty   = false
-    activeRun= nil
-    menuOpen = false
+    onDuty    = false
+    activeRun = nil
+    menuOpen  = false
 end)

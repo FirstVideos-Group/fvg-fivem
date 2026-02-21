@@ -2,7 +2,7 @@
 -- ║         fvg-courier :: server                ║
 -- ╚══════════════════════════════════════════════╝
 
--- ── Migráció ─────────────────────────────────────────────────
+-- ── Migráció ───────────────────────────────────────────────
 CreateThread(function()
     Wait(200)
 
@@ -42,13 +42,11 @@ CreateThread(function()
     ]])
 end)
 
--- ── Cache ─────────────────────────────────────────────────────
--- [src] = { player_id, xp, level, total_deliveries, total_runs, perfect_runs, streak, total_earned }
-local playerStats   = {}
--- [src] = { runId, spots=[{label,coords,done,startedAt}], currentIdx, totalReward, isPerfect, dbId }
-local activeRuns    = {}
+-- ── Cache ──────────────────────────────────────────────────
+local playerStats = {}
+local activeRuns  = {}
 
--- ── Segédfüggvények ───────────────────────────────────────────
+-- ── Segédfüggvények ─────────────────────────────────────────────
 
 local function Notify(src, msg, ntype, title)
     TriggerClientEvent('fvg-notify:client:Notify', src, {
@@ -58,9 +56,12 @@ local function Notify(src, msg, ntype, title)
     })
 end
 
+-- FIX: metadata.job használata player.job helyett
 local function HasJob(src)
     local player = exports['fvg-playercore']:GetPlayer(src)
-    return player and player.job == Config.RequiredJob
+    if not player then return false end
+    local job = player.metadata and player.metadata.job or player.job
+    return job == Config.RequiredJob
 end
 
 local function GenRunId()
@@ -70,9 +71,7 @@ end
 local function GetLevelData(xp)
     local current = Config.Levels[1]
     for _, lvl in ipairs(Config.Levels) do
-        if xp >= lvl.xpRequired then
-            current = lvl
-        end
+        if xp >= lvl.xpRequired then current = lvl end
     end
     return current
 end
@@ -88,8 +87,6 @@ local function PickRandomSpots(n)
     local pool   = {}
     local result = {}
     for _, s in ipairs(Config.DeliverySpots) do table.insert(pool, s) end
-
-    -- Fisher-Yates shuffle
     for i = #pool, 2, -1 do
         local j = math.random(1, i)
         pool[i], pool[j] = pool[j], pool[i]
@@ -131,7 +128,6 @@ AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
 end)
 
 AddEventHandler('fvg-playercore:server:PlayerUnloaded', function(src, _)
-    -- Ha fut egy kör, töröljük
     if activeRuns[src] then
         TriggerClientEvent('fvg-courier:client:RunCancelled', src, { reason = 'disconnect' })
         activeRuns[src] = nil
@@ -139,7 +135,7 @@ AddEventHandler('fvg-playercore:server:PlayerUnloaded', function(src, _)
     playerStats[src] = nil
 end)
 
--- ── XP + Szint mentés ────────────────────────────────────────
+-- ── XP + Szint mentés ───────────────────────────────────────────
 local function SaveStats(src)
     local s = playerStats[src]
     if not s then return end
@@ -160,14 +156,13 @@ local function AddXP(src, amount)
     local newLevel = GetLevelData(s.xp)
     if newLevel.level > s.level then
         s.level = newLevel.level
-        Notify(src, 'Szint ugrás! → ' .. newLevel.label, 'success', '🚀 Szint emelkedés')
         TriggerClientEvent('fvg-courier:client:LevelUp', src, newLevel)
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 --  EXPORTOK
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 
 exports('GetActiveDelivery', function(src)
     return activeRuns[tonumber(src)]
@@ -203,51 +198,43 @@ exports('CancelDelivery', function(src)
     end
 end)
 
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 --  NET EVENTS
--- ═══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
 
--- Szolgálat indítás / leállítás (depot-nál)
 RegisterNetEvent('fvg-courier:server:ToggleDuty', function()
-    local src    = source
+    local src = source
     if not HasJob(src) then
         Notify(src, 'Futár munkához kell a pozíció.', 'error')
         return
     end
-
-    -- Ha már fut kör, nem lehet kilépni
     if activeRuns[src] then
         Notify(src, 'Előbb fejezd be az aktív kört!', 'warning')
         return
     end
-
     TriggerClientEvent('fvg-courier:client:ToggleDuty', src, playerStats[src])
 end)
 
--- Panel megnyitás
 RegisterNetEvent('fvg-courier:server:RequestPanel', function()
-    local src   = source
+    local src = source
     if not HasJob(src) then return end
-
     local stats     = playerStats[src]
     local levelData = GetLevelData(stats and stats.xp or 0)
     local nextLevel = GetNextLevel(stats and stats.xp or 0)
     local lb        = exports['fvg-courier']:GetLeaderboard(10)
-
     TriggerClientEvent('fvg-courier:client:OpenPanel', src, {
-        stats       = stats,
-        levelData   = levelData,
-        nextLevel   = nextLevel,
-        leaderboard = lb,
-        levels      = Config.Levels,
-        activeRun   = activeRuns[src],
-        baseReward  = Config.BaseReward,
-        timeBonus   = Config.TimeBonus,
+        stats              = stats,
+        levelData          = levelData,
+        nextLevel          = nextLevel,
+        leaderboard        = lb,
+        levels             = Config.Levels,
+        activeRun          = activeRuns[src],
+        baseReward         = Config.BaseReward,
+        timeBonus          = Config.TimeBonus,
         timeBonusThreshold = Config.TimeBonusThreshold,
     })
 end)
 
--- Kör indítás
 AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
     local src = srcOverride or source
     if not HasJob(src) then return end
@@ -255,12 +242,11 @@ AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
         Notify(src, 'Már van aktív köröd!', 'warning'); return
     end
 
-    local spots  = PickRandomSpots(Config.PackagesPerRun)
-    local runId  = GenRunId()
-    local stats  = playerStats[src]
-    local lvlData= GetLevelData(stats and stats.xp or 0)
+    local spots   = PickRandomSpots(Config.PackagesPerRun)
+    local runId   = GenRunId()
+    local stats   = playerStats[src]
+    local lvlData = GetLevelData(stats and stats.xp or 0)
 
-    -- DB sor
     local dbId = exports['fvg-database']:Insert(
         'INSERT INTO `fvg_courier_deliveries` (`player_id`,`run_id`,`spots_total`) VALUES (?,?,?)',
         { stats.player_id, runId, #spots }
@@ -277,7 +263,6 @@ AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
         startedAt  = os.time(),
     }
 
-    -- Inventory: csomagok adása
     if Config.UseInventoryPackages then
         for i = 1, #spots do
             exports['fvg-inventory']:AddItem(src, Config.PackageItem, 1)
@@ -292,7 +277,6 @@ AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
         totalReward= 0,
     })
 
-    -- fvg-dispatch értesítés
     if Config.UseDispatch then
         TriggerClientEvent('fvg-dispatch:client:GetCoordsAndCreate', src, {
             type     = 'all',
@@ -309,7 +293,6 @@ RegisterNetEvent('fvg-courier:server:StartRun', function()
     TriggerEvent('fvg-courier:server:StartRun', source)
 end)
 
--- Csomag kézbesítés
 RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, deliveryTime)
     local src = source
     local run = activeRuns[src]
@@ -319,13 +302,11 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
     local spot = run.spots[spotIdx]
     if not spot or spot.done then return end
 
-    -- Jutalom számítás
-    local stats    = playerStats[src]
-    local lvlData  = GetLevelData(stats and stats.xp or 0)
-    local reward   = math.floor(Config.BaseReward * (run.rewardMult or 1.0))
-    local bonuses  = {}
+    local stats   = playerStats[src]
+    local lvlData = GetLevelData(stats and stats.xp or 0)
+    local reward  = math.floor(Config.BaseReward * (run.rewardMult or 1.0))
+    local bonuses = {}
 
-    -- Időbónusz
     if deliveryTime and deliveryTime <= Config.TimeBonusThreshold then
         local timeB = math.floor(Config.TimeBonus * (run.rewardMult or 1.0))
         reward      = reward + timeB
@@ -334,22 +315,19 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
         run.isPerfect = false
     end
 
-    -- Sorozatbónusz
     if stats.streak > 0 and stats.streak % 5 == 0 then
         local streakB = Config.StreakBonus * math.floor(stats.streak / 5)
         reward        = reward + streakB
         table.insert(bonuses, { label = '🔥 Sorozat x' .. stats.streak, amount = streakB })
     end
 
-    run.totalReward             = run.totalReward + reward
-    run.spots[spotIdx].done     = true
+    run.totalReward         = run.totalReward + reward
+    run.spots[spotIdx].done = true
 
-    -- Inventory: csomag levonás
     if Config.UseInventoryPackages then
         exports['fvg-inventory']:RemoveItem(src, Config.PackageItem, 1)
     end
 
-    -- Következő spot vagy kör vége
     local nextIdx = spotIdx + 1
     local hasNext = nextIdx <= #run.spots
 
@@ -364,36 +342,29 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
             totalReward= run.totalReward,
         })
     else
-        -- Kör vége
         local totalReward = run.totalReward
-
-        -- Tökéletes kör bónusz
         if run.isPerfect then
             local perfB = math.floor(Config.PerfectRunBonus * (run.rewardMult or 1.0))
             totalReward = totalReward + perfB
             table.insert(bonuses, { label = '⭐ Tökéletes kör', amount = perfB })
         end
 
-        -- XP
         local xpGained = Config.XPPerDelivery * #run.spots
         if run.isPerfect then xpGained = xpGained + (Config.XPStreak * #run.spots) end
         AddXP(src, xpGained)
 
-        -- Stats frissítés
         stats.total_deliveries = stats.total_deliveries + #run.spots
         stats.total_runs       = stats.total_runs + 1
         stats.total_earned     = stats.total_earned + totalReward
         stats.streak           = stats.streak + 1
         if run.isPerfect then stats.perfect_runs = stats.perfect_runs + 1 end
 
-        -- Pénz kifizetés
         if Config.UseBanking then
             exports['fvg-banking']:AddBalance(src, totalReward)
         else
             exports['fvg-playercore']:AddCash(src, totalReward)
         end
 
-        -- DB frissítés
         exports['fvg-database']:Execute(
             'UPDATE `fvg_courier_deliveries` SET `spots_done`=?,`reward`=?,`finished_at`=NOW(),`perfect`=? WHERE `id`=?',
             { #run.spots, totalReward, run.isPerfect and 1 or 0, run.dbId }
@@ -413,17 +384,14 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
         activeRuns[src] = nil
     end
 
-    -- Stats DB mentés
     SaveStats(src)
 end)
 
--- Időtúllépés
 RegisterNetEvent('fvg-courier:server:RunTimeout', function()
     local src = source
     local run = activeRuns[src]
     if not run then return end
 
-    -- Maradt csomagok törlése
     if Config.UseInventoryPackages then
         local remaining = 0
         for _, s in ipairs(run.spots) do if not s.done then remaining = remaining + 1 end end
@@ -432,7 +400,6 @@ RegisterNetEvent('fvg-courier:server:RunTimeout', function()
         end
     end
 
-    -- Részleges jutalom kifizetése ami megvolt
     if run.totalReward > 0 then
         if Config.UseBanking then
             exports['fvg-banking']:AddBalance(src, run.totalReward)
@@ -452,7 +419,6 @@ RegisterNetEvent('fvg-courier:server:RunTimeout', function()
     TriggerEvent('fvg-courier:server:RunTimedOut', src)
 end)
 
--- Kör lemondás
 RegisterNetEvent('fvg-courier:server:CancelRun', function()
     local src = source
     local run = activeRuns[src]
@@ -470,5 +436,5 @@ RegisterNetEvent('fvg-courier:server:CancelRun', function()
     if stats then stats.streak = 0; SaveStats(src) end
 
     activeRuns[src] = nil
-    Notify(src, 'Kör lemondva. Sorozat nullázva.', 'warning')
+    Notify(src, 'Kör lemondása. Sorozat nullázva.', 'warning')
 end)
