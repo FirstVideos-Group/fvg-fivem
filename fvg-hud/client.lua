@@ -4,14 +4,13 @@
 
 local _modules       = {}
 local _moduleIndex   = {}
-local _playerToggles = {}
-local _hudInitDone   = false   -- NUI init elküldve-e már
+local _hudReady      = false   -- NUI betöltött-e már
 local _isRunning     = false   -- fő tick thread fut-e már
 
 DisplayHud(false)
 DisplayRadar(true)
 
--- ── Modul regisztrátor ───────────────────────────────────────────
+-- ── Modul regisztrátor ─────────────────────────────────────────
 function RegisterModule(id, tickFn)
     if _moduleIndex[id] then return end
 
@@ -23,96 +22,78 @@ function RegisterModule(id, tickFn)
         tick    = tickFn,
         enabled = true,
         order   = cfg.order or 99,
-        value   = nil,   -- utolsó ismert érték, hudReady-nél visszaküldjük
+        value   = nil,
+        visible = true,
     }
     table.insert(_modules, entry)
     _moduleIndex[id] = entry
-
     table.sort(_modules, function(a, b) return a.order < b.order end)
 end
 
 exports('RegisterModule', RegisterModule)
 
--- ── Érték frissítő ────────────────────────────────────────────────
-local function SendModuleUpdate(id, value, visible)
-    SendNUIMessage({
-        action  = 'updateModule',
-        id      = id,
-        value   = value,
-        visible = visible
-    })
-end
+-- ── Érték frissítő (csak cached értéket ment, NUI-t NEM küld) ─────
+-- A tényleges NUI küldés a tick végén, batch SendNUIMessage-ként
+local pendingUpdates = {}
 
 exports('SetModuleValue', function(id, value, visible)
     local m = _moduleIndex[id]
     if not m or not m.enabled then return end
-    m.value = value   -- elmentjük, hogy hudReady után is vissza tudjuk küldeni
-    SendModuleUpdate(id, value, visible)
+    -- csak elmentjük, a tick-ciklus végén SendHudBatch() küldi el
+    m.value   = value
+    m.visible = visible
+    pendingUpdates[id] = true
 end)
 
--- ── Modul be-/kikapcsolás ─────────────────────────────────────────
+-- ── Modul be-/kikapcsolás ──────────────────────────────────────
 exports('ToggleModule', function(id, state)
     local m = _moduleIndex[id]
     if not m then return end
     m.enabled = state
-    _playerToggles[id] = state
-    SendNUIMessage({
-        action  = 'toggleModule',
-        id      = id,
-        enabled = state
-    })
+    if _hudReady then
+        SendNUIMessage({ action = 'toggleModule', id = id, enabled = state })
+    end
 end)
 
 exports('GetModuleState', function(id)
     local m = _moduleIndex[id]
-    if not m then return false end
-    return m.enabled
+    return m and m.enabled or false
 end)
 
--- ── Összes modul szinkronizálása az NUI-val ─────────────────────────
-local function SyncModulesToNUI()
-    _hudInitDone = true
+-- ── Batch NUI küldés (1 üzenetben minden pending érték) ─────────
+local function SendHudBatch()
+    if not _hudReady then return end
+    local updates = {}
+    for id, _ in pairs(pendingUpdates) do
+        local m = _moduleIndex[id]
+        if m and m.value ~= nil then
+            table.insert(updates, { id = id, value = m.value, visible = m.visible })
+        end
+    end
+    pendingUpdates = {}
+    if #updates == 0 then return end
+    SendNUIMessage({ action = 'batchUpdate', updates = updates })
+end
+
+-- ── NUI struktúra inicializálása (csak egyszer) ─────────────────
+local function InitNUI()
+    -- 1. init üzenet (pozíció)
     SendNUIMessage({ action = 'init', position = Config.Position })
-    Citizen.Wait(80)  -- NUI-nak idő az init feldolgozására
+    Citizen.Wait(100)
+    -- 2. modulok regisztrálása – értéket NEM küldünk, csak struktúrát
     for _, m in ipairs(_modules) do
         SendNUIMessage({
             action   = 'registerModule',
             id       = m.id,
             enabled  = m.enabled,
-            position = Config.Position
+            position = Config.Position,
         })
-        -- Ha van már ismert érték (pl. restart után), azonnal elküldjük
-        if m.value ~= nil then
-            Citizen.Wait(10)
-            SendModuleUpdate(m.id, m.value, true)
-        end
     end
+    -- 3. NUI-t ready-nek jelölünk, tick majd küld valós értékeket
+    _hudReady = true
 end
 
--- ── NUI visszajelzések ───────────────────────────────────────────
--- A NUI jelzi hogy betöltött / újraindulás után újra kész
-RegisterNUICallback('hudReady', function(data, cb)
-    -- Teljes újraszinkronizálás: modul struktúра és értékek is
-    Citizen.CreateThread(function()
-        SendNUIMessage({ action = 'init', position = Config.Position })
-        Citizen.Wait(80)
-        for _, m in ipairs(_modules) do
-            SendNUIMessage({
-                action   = 'registerModule',
-                id       = m.id,
-                enabled  = m.enabled,
-                position = Config.Position
-            })
-            if m.value ~= nil then
-                Citizen.Wait(10)
-                SendModuleUpdate(m.id, m.value, true)
-            end
-        end
-    end)
-    cb('ok')
-end)
-
--- ── Fő tick indítása (csak egyszer) ────────────────────────────────
+-- ── Fő tick (modulok futtatása + batch flush) ───────────────────
 local function StartHudTick()
     if _isRunning then return end
     _isRunning = true
@@ -120,6 +101,7 @@ local function StartHudTick()
     Citizen.CreateThread(function()
         while true do
             Citizen.Wait(Config.TickRate)
+            if not _hudReady then goto continue end
             local ped = PlayerPedId()
             if DoesEntityExist(ped) then
                 for _, m in ipairs(_modules) do
@@ -127,59 +109,65 @@ local function StartHudTick()
                         m.tick(ped)
                     end
                 end
+                -- Egy tick = egy batch NUI üzenet (nem N darab)
+                SendHudBatch()
             end
+            ::continue::
         end
     end)
 end
 
--- ── Init: első betöltés ─────────────────────────────────────────────
+-- ── NUI visszajelzés: NUI újraindult (pl. F8 refresh, resource restart)
+RegisterNUICallback('hudReady', function(data, cb)
+    -- NUI-t nem jelöljük ready-nek amíg az InitNUI le nem futott
+    -- Megjegyzés: ezt a tickből NEM hívjuk, így nincs loop
+    _hudReady = false
+    Citizen.CreateThread(function()
+        InitNUI()
+    end)
+    cb('ok')
+end)
+
+-- ── Első betöltés ──────────────────────────────────────────────
 Citizen.CreateThread(function()
-    -- Várunk amig a hálózat aktiv és a playercore betöltötte a játékost
     while not NetworkIsPlayerActive(PlayerId()) do
         Citizen.Wait(500)
     end
-
-    -- Extra várakozás hogy a modules/*.lua mind regisztrálva legyen
-    -- (a fxmanifest client.lua előtt tölt, de biztonság kedvéért)
     Citizen.Wait(300)
-
-    SyncModulesToNUI()
+    InitNUI()
     StartHudTick()
 end)
 
--- ── PlayerLoaded event: playercore restart után is szinkronizál ────────
--- Ez a legfontosabb: ha a playercore restart-ol, a HUD-ot újra be kell
--- sync-elni mert az NUI nem kapott adatot a betöltés során
-AddEventHandler('fvg-playercore:client:PlayerLoaded', function(playerData)
-    -- Várunk egy kicsit hogy a NUI biztosan betöltött
+-- ── PlayerLoaded (playercore restart után is inicializál) ────────
+AddEventHandler('fvg-playercore:client:PlayerLoaded', function()
     Citizen.CreateThread(function()
-        Citizen.Wait(500)
-        SyncModulesToNUI()
-        StartHudTick()   -- ha még nem futna
+        _hudReady = false
+        Citizen.Wait(600)
+        InitNUI()
+        StartHudTick()
     end)
 end)
 
--- ── Resource restart: HUD újrainicializálása ────────────────────────
--- Ha maga a fvg-hud restart-ol, az NUI újraindul és hudReady-t küld
--- → a hudReady callback gondoskodik a szinkronizálásról
--- Ha a fvg-hud indul el második ként (pl. ensure), a fő thread indul
+-- ── Resource restart ──────────────────────────────────────────
 AddEventHandler('onClientResourceStart', function(res)
     if res ~= GetCurrentResourceName() then return end
-    _isRunning   = false
-    _hudInitDone = false
+    _isRunning = false
+    _hudReady  = false
+    pendingUpdates = {}
     Citizen.CreateThread(function()
         while not NetworkIsPlayerActive(PlayerId()) do
             Citizen.Wait(300)
         end
         Citizen.Wait(400)
-        SyncModulesToNUI()
+        InitNUI()
         StartHudTick()
     end)
 end)
 
--- ── Cleanup ──────────────────────────────────────────────────────
+-- ── Cleanup ───────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
-    _isRunning   = false
-    _hudInitDone = false
+    _isRunning     = false
+    _hudReady      = false
+    pendingUpdates = {}
 end)
