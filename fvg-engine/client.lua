@@ -2,12 +2,16 @@
 -- ║         fvg-engine :: client                 ║
 -- ╚══════════════════════════════════════════════╝
 
-local engineOn      = false
-local inVehicle     = false
-local lastVehicle   = 0
+local engineOn       = false
+local inVehicle      = false
+local lastVehicle    = 0
 local isShuttingDown = false
 
--- ── Segédfüggvények ─────────────────────────────────────────
+-- Járműnként tárolt motorállapot (kliens-local, nincs DB)
+-- [networkId] = { engineOn = bool, keepTimer = gameTimer or nil }
+local vehicleEngineStates = {}
+
+-- ── Segédfüggvények ──────────────────────────────────────────────
 
 local function IsClassDisabled(vehicle)
     local class = GetVehicleClass(vehicle)
@@ -37,17 +41,27 @@ local function UpdateHUD(running)
     })
 end
 
--- ── Motor beállítása ─────────────────────────────────────────
+-- Helyi network ID lekérése biztonságosan
+local function GetNetId(vehicle)
+    if not DoesEntityExist(vehicle) then return nil end
+    return NetworkGetNetworkIdFromEntity(vehicle)
+end
+
+-- ── Motor beállítása ───────────────────────────────────────────────
 local function SetEngine(vehicle, state, silent)
     if isShuttingDown and state then
-        -- Ha leállítás közben próbál indítani, megszakítjuk a leállítást
         isShuttingDown = false
     end
 
+    local netId = GetNetId(vehicle)
+
     if state then
-        -- Motor indítás
         SetVehicleEngineOn(vehicle, true, false, true)
         engineOn = true
+        -- Jármű állapot mentése
+        if netId then
+            vehicleEngineStates[netId] = { engineOn = true, keepTimer = nil }
+        end
         UpdateHUD(true)
         TriggerServerEvent('fvg-engine:server:Sync', true)
 
@@ -56,25 +70,14 @@ local function SetEngine(vehicle, state, silent)
             Notify('engine_on', 'success')
         end
 
-        -- Speed/RPM modulok visszakapcsolása a vehiclehud-ban
         if Config.VehicleHudIntegration then
-            exports['fvg-vehiclehud']:SetModuleValue('speed', {
-                value   = 0,
-                unit    = 'kmh',
-                visible = true
-            })
-            exports['fvg-vehiclehud']:SetModuleValue('rpm', {
-                value   = 0.0,
-                redline = false,
-                visible = true
-            })
+            exports['fvg-vehiclehud']:SetModuleValue('speed', { value = 0, unit = 'kmh', visible = true })
+            exports['fvg-vehiclehud']:SetModuleValue('rpm',   { value = 0.0, redline = false, visible = true })
         end
     else
-        -- Motor leállítás (fokozatos)
         if Config.SlowStart then
             isShuttingDown = true
             SetVehicleEngineOn(vehicle, false, false, true)
-
             Citizen.SetTimeout(Config.ShutdownDelay, function()
                 if isShuttingDown then
                     SetVehicleEngineOn(vehicle, false, true, true)
@@ -86,6 +89,10 @@ local function SetEngine(vehicle, state, silent)
         end
 
         engineOn = false
+        -- Jármű állapot mentése: kiállapítva
+        if netId then
+            vehicleEngineStates[netId] = { engineOn = false, keepTimer = nil }
+        end
         UpdateHUD(false)
         TriggerServerEvent('fvg-engine:server:Sync', false)
 
@@ -94,23 +101,14 @@ local function SetEngine(vehicle, state, silent)
             Notify('engine_off', 'info')
         end
 
-        -- Speed/RPM modulok elrejtése
         if Config.VehicleHudIntegration then
-            exports['fvg-vehiclehud']:SetModuleValue('speed', {
-                value   = 0,
-                unit    = 'kmh',
-                visible = false
-            })
-            exports['fvg-vehiclehud']:SetModuleValue('rpm', {
-                value   = 0.0,
-                redline = false,
-                visible = false
-            })
+            exports['fvg-vehiclehud']:SetModuleValue('speed', { value = 0, unit = 'kmh', visible = false })
+            exports['fvg-vehiclehud']:SetModuleValue('rpm',   { value = 0.0, redline = false, visible = false })
         end
     end
 end
 
--- ── Motor toggle ─────────────────────────────────────────────
+-- ── Motor toggle ─────────────────────────────────────────────────────
 local function ToggleEngine()
     local ped     = PlayerPedId()
     local vehicle = GetVehiclePedIsIn(ped, false)
@@ -119,12 +117,10 @@ local function ToggleEngine()
         Notify('not_in_veh', 'error')
         return
     end
-
     if IsClassDisabled(vehicle) then
         Notify('cant_use', 'warning')
         return
     end
-
     if not IsDriver(ped, vehicle) then
         Notify('not_driver', 'warning')
         return
@@ -137,7 +133,7 @@ local function ToggleEngine()
     end
 end
 
--- ── Exportok ─────────────────────────────────────────────────
+-- ── Exportok ──────────────────────────────────────────────────────────
 
 exports('IsEngineOn', function()
     return engineOn
@@ -159,21 +155,21 @@ exports('GetEngineState', function()
     local vehicle = GetVehiclePedIsIn(ped, false)
     local inVeh   = DoesEntityExist(vehicle) and vehicle ~= 0
     return {
-        engineOn    = engineOn,
-        inVehicle   = inVeh,
-        isShutting  = isShuttingDown,
-        vehicleClass= inVeh and GetVehicleClass(vehicle) or -1
+        engineOn     = engineOn,
+        inVehicle    = inVeh,
+        isShutting   = isShuttingDown,
+        vehicleClass = inVeh and GetVehicleClass(vehicle) or -1
     }
 end)
 
--- ── Billentyűzetkötés ────────────────────────────────────────
+-- ── Billentyűzetekötés ────────────────────────────────────────────────
 RegisterCommand('fvg_toggleengine', function()
     ToggleEngine()
 end, false)
 
 RegisterKeyMapping('fvg_toggleengine', Config.KeyLabel, 'keyboard', Config.Key)
 
--- ── Szerver esemény: más script kér motor műveletet ──────────
+-- ── Szerver esemény ─────────────────────────────────────────────────────
 RegisterNetEvent('fvg-engine:client:SetEngine', function(state, silent)
     local ped     = PlayerPedId()
     local vehicle = GetVehiclePedIsIn(ped, false)
@@ -181,27 +177,45 @@ RegisterNetEvent('fvg-engine:client:SetEngine', function(state, silent)
     SetEngine(vehicle, state, silent)
 end)
 
--- ── Szinkronizálás fogadása más játékosoktól ─────────────────
 RegisterNetEvent('fvg-engine:client:Sync', function(serverId, state)
-    -- Jövőbeli kiterjesztéshez (pl. látható animáció más játékosoknál)
+    -- Jövőbeli kiterjesztéshez
 end)
 
--- ── Fő figyelő tick ──────────────────────────────────────────
+-- ──────────────────────────────────────────────────────────────
+--  FŐ FIGYELŐ TICK
+-- ──────────────────────────────────────────────────────────────
 Citizen.CreateThread(function()
     while true do
         local ped     = PlayerPedId()
         local vehicle = GetVehiclePedIsIn(ped, false)
         local inVeh   = DoesEntityExist(vehicle) and vehicle ~= 0
 
-        -- ── Járműbe szállás ───────────────────────────────────
+        -- ── Járműbe szállás ─────────────────────────────────────
         if inVeh and not inVehicle then
             inVehicle   = true
             lastVehicle = vehicle
+            local netId = GetNetId(vehicle)
 
-            local nativeRunning = GetIsVehicleEngineRunning(vehicle)
+            -- Előzőleg elmentett állapot van-e?
+            local savedState = netId and vehicleEngineStates[netId]
 
-            if Config.AutoStartOnEnter then
-                -- Auto indítás: natív állapot alapján
+            if savedState then
+                -- Visszatérés: alkalmazzuk az elmentett állapotot
+                if savedState.engineOn then
+                    SetVehicleEngineOn(vehicle, true, false, true)
+                    engineOn = true
+                    UpdateHUD(true)
+                    if Config.VehicleHudIntegration then
+                        exports['fvg-vehiclehud']:SetModuleValue('speed', { value = 0, unit = 'kmh', visible = true })
+                        exports['fvg-vehiclehud']:SetModuleValue('rpm',   { value = 0.0, redline = false, visible = true })
+                    end
+                else
+                    SetVehicleEngineOn(vehicle, false, true, true)
+                    engineOn = false
+                    UpdateHUD(false)
+                end
+            elseif Config.AutoStartOnEnter then
+                local nativeRunning = GetIsVehicleEngineRunning(vehicle)
                 if not nativeRunning then
                     SetEngine(vehicle, true, true)
                 else
@@ -209,17 +223,15 @@ Citizen.CreateThread(function()
                     UpdateHUD(true)
                 end
             else
-                -- Kézi mód: szinkronizáljuk a natív állapottal
+                -- Isméretlen jármű, kézi mód
+                local nativeRunning = GetIsVehicleEngineRunning(vehicle)
                 engineOn = nativeRunning
                 UpdateHUD(nativeRunning)
-
-                -- Ha az auto-start ki van kapcsolva, leállítjuk a natív motort
-                if nativeRunning and not Config.AutoStartOnEnter then
+                if nativeRunning then
+                    -- Ha natív motor fut és kezéli módban vagyunk, leállítjuk
                     SetVehicleEngineOn(vehicle, false, true, true)
                     engineOn = false
                     UpdateHUD(false)
-
-                    -- Speed/RPM elrejtése
                     if Config.VehicleHudIntegration then
                         exports['fvg-vehiclehud']:SetModuleValue('speed', { value = 0, unit = 'kmh', visible = false })
                         exports['fvg-vehiclehud']:SetModuleValue('rpm',   { value = 0.0, redline = false, visible = false })
@@ -229,27 +241,46 @@ Citizen.CreateThread(function()
 
         -- ── Kiszállás ─────────────────────────────────────────
         elseif not inVeh and inVehicle then
-            inVehicle    = false
+            inVehicle      = false
             isShuttingDown = false
+            local netId    = GetNetId(lastVehicle)
 
-            if Config.AutoStopOnExit and engineOn then
-                -- Leállítjuk az előző járművet
+            if Config.KeepEngineOnExit and engineOn then
+                -- Motor állapotát mentjük: futva marad
+                if netId then
+                    vehicleEngineStates[netId] = {
+                        engineOn  = true,
+                        keepTimer = Config.KeepEngineTimeout > 0
+                                    and (GetGameTimer() + Config.KeepEngineTimeout)
+                                    or nil
+                    }
+                end
+                -- Motor erősen futva tartva (natív GTA ne állítsa le)
+                if DoesEntityExist(lastVehicle) then
+                    SetVehicleEngineOn(lastVehicle, true, false, true)
+                end
+            elseif Config.AutoStopOnExit and engineOn then
                 if DoesEntityExist(lastVehicle) then
                     SetVehicleEngineOn(lastVehicle, false, true, true)
                 end
+                if netId then
+                    vehicleEngineStates[netId] = { engineOn = false, keepTimer = nil }
+                end
                 engineOn = false
+            else
+                -- Sem AutoStop, sem KeepEngine: állapot mentése az aktuális értékkel
+                if netId then
+                    vehicleEngineStates[netId] = { engineOn = engineOn, keepTimer = nil }
+                end
             end
 
+            engineOn    = false
             lastVehicle = 0
             UpdateHUD(false)
         end
 
-        -- ── Aktív motor védelme: natív ne tudja felülírni ─────
-        if inVeh and engineOn then
-            -- GTA natív megpróbálja bekapcsolni a motort gáz nyomásra
-            -- ezt hagyjuk, mivel mi is bekapcsoltuk
-        elseif inVeh and not engineOn and not isShuttingDown then
-            -- Ha a natív auto-start megpróbálja bekapcsolni, letiltjuk
+        -- ── Aktív motor védelme (járműben) ─────────────────────────
+        if inVeh and not engineOn and not isShuttingDown then
             SetVehicleEngineOn(vehicle, false, false, true)
         end
 
@@ -257,9 +288,57 @@ Citizen.CreateThread(function()
     end
 end)
 
--- ── Cleanup ──────────────────────────────────────────────────
+-- ──────────────────────────────────────────────────────────────
+--  KÜLSŐ MOTOR FENNTARTÓ TICK (jármű nélkül)
+--  Ha a játékos kiszallt és KeepEngineOnExit = true,
+--  ez a thread erősíti a motor futva maradását
+--  (a GTA natív engine management megpróbálja leallitani)
+-- ──────────────────────────────────────────────────────────────
+Citizen.CreateThread(function()
+    while true do
+        Wait(Config.EngineKeepTickRate)
+
+        if not Config.KeepEngineOnExit then goto continue end
+
+        local now = GetGameTimer()
+        for netId, state in pairs(vehicleEngineStates) do
+            if state.engineOn then
+                -- Időzítő lejárt?
+                if state.keepTimer and now > state.keepTimer then
+                    -- Motor leállítása: idő lejárt
+                    local veh = NetworkGetEntityFromNetworkId(netId)
+                    if DoesEntityExist(veh) and veh ~= 0 then
+                        SetVehicleEngineOn(veh, false, true, true)
+                    end
+                    vehicleEngineStates[netId] = { engineOn = false, keepTimer = nil }
+                else
+                    -- Motor erősítése
+                    local veh = NetworkGetEntityFromNetworkId(netId)
+                    if DoesEntityExist(veh) and veh ~= 0 then
+                        -- Csak ha nincs benne vezétő (ne piszkaljuk más játékos motorját)
+                        local driver = GetPedInVehicleSeat(veh, -1)
+                        local isOccupied = DoesEntityExist(driver)
+                            and driver ~= 0
+                            and not IsEntityDead(driver)
+                        if not isOccupied then
+                            SetVehicleEngineOn(veh, true, false, true)
+                        end
+                    else
+                        -- Jármű már nem létezik: állapot tisztitása
+                        vehicleEngineStates[netId] = nil
+                    end
+                end
+            end
+        end
+
+        ::continue::
+    end
+end)
+
+-- ── Cleanup ──────────────────────────────────────────────────────────────
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
-    engineOn = false
+    engineOn       = false
     isShuttingDown = false
+    vehicleEngineStates = {}
 end)

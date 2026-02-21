@@ -1,39 +1,48 @@
 Config = {}
 
--- ── Billentyűzet ────────────────────────────────────────────
+-- ── Billentyűzet ─────────────────────────────────────────────────
 Config.Key      = 'Y'
 Config.KeyLabel = 'Motor kapcsolása'
 
--- ── Motor indítás / leállítás logika ───────────────────────
--- Ha true: a jármű natív motorindítás animációval indul (fokozatos)
+-- ── Motor indítás / leállítás logika ──────────────────────────────
 Config.SlowStart = true
 
--- Motor automatikusan indul-e újra ha valaki beül?
--- false = mindig manuálisan kell indítani
+-- Motor automatikusan indul-e ha valaki beül?
 Config.AutoStartOnEnter = false
 
 -- Motor automatikusan leáll-e ha a játékos kiszáll?
-Config.AutoStopOnExit = true
+-- FONTOS: ha false, a motor futva marad kiszallás után is!
+Config.AutoStopOnExit = false
 
--- Mennyi ideig tart a motor leállítása (ms) - animált fokozatos leállás
+-- Ha AutoStopOnExit = false: a járó motor a jármű közelében marad-e aktivan?
+-- A játékos visszatérésekor a motor állapotát helyreallítjuk.
+Config.KeepEngineOnExit = true
+
+-- Mennyi ideig tartja életben a motor állapotát kiszallás után (ms)
+-- 0 = végtelen (amíg a jármű létezik)
+Config.KeepEngineTimeout = 0
+
+-- Hany ms-ként erősítsük meg a motor állapotát a játmő nelküli járműven
+Config.EngineKeepTickRate = 500
+
+-- Mennyi ideig tart a motor leállítása (ms)
 Config.ShutdownDelay = 1500
 
--- ── Hangok ──────────────────────────────────────────────────
+-- ── Hangok ────────────────────────────────────────────────────────────
 Config.SoundDict  = 'HUD_FRONTEND_DEFAULT_SOUNDSET'
 Config.SoundStart = 'WAYPOINT_SET'
 Config.SoundStop  = 'CANCEL'
 
--- ── Tiltott osztályok (kerékpár, csónak stb.) ───────────────
--- 13 = kerékpár, 14 = hajó (ezeknél nincs értelme a motor togglenak)
+-- ── Tiltott osztályok ───────────────────────────────────────────────
 Config.DisabledClasses = { 13 }
 
--- ── Integrációk ─────────────────────────────────────────────
-Config.VehicleHudIntegration = true   -- fvg-vehiclehud engine modul
-Config.NotifyIntegration     = true   -- fvg-notify értesítések
+-- ── Integrációk ─────────────────────────────────────────────────────
+Config.VehicleHudIntegration = true
+Config.NotifyIntegration     = true
 
--- ── Locale ──────────────────────────────────────────────────
+-- ── Locale ──────────────────────────────────────────────────────────────
 Config.Locale = {
-    engine_on      = 'Motor beindítva.',
+    engine_on      = 'Motor beíndítva.',
     engine_off     = 'Motor leállítva.',
     not_in_veh     = 'Nem vagy járműben.',
     not_driver     = 'Csak a vezető kapcsolhatja a motort.',
