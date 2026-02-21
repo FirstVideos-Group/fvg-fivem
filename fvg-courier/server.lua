@@ -46,7 +46,7 @@ end)
 local playerStats = {}
 local activeRuns  = {}
 
--- ── Segédfüggvények ─────────────────────────────────────────────
+-- ── Segédfüggvények ────────────────────────────────────────
 
 local function Notify(src, msg, ntype, title)
     TriggerClientEvent('fvg-notify:client:Notify', src, {
@@ -56,7 +56,6 @@ local function Notify(src, msg, ntype, title)
     })
 end
 
--- FIX: metadata.job használata player.job helyett
 local function HasJob(src)
     local player = exports['fvg-playercore']:GetPlayer(src)
     if not player then return false end
@@ -97,7 +96,58 @@ local function PickRandomSpots(n)
     return result
 end
 
--- ── Betöltés ─────────────────────────────────────────────────
+-- FIX: lokális leaderboard lekérő – NEM hív exportot, nincs rekurzió
+local function FetchLeaderboard(limit)
+    limit = math.min(tonumber(limit) or 10, 50)
+    local rows = exports['fvg-database']:Query(
+        [[SELECT cs.player_id, cs.xp, cs.level, cs.total_deliveries, cs.total_earned,
+                 p.firstname, p.lastname
+          FROM `fvg_courier_stats` cs
+          LEFT JOIN `fvg_players` p ON p.id = cs.player_id
+          ORDER BY cs.total_deliveries DESC
+          LIMIT ?]],
+        { limit }
+    )
+    return rows or {}
+end
+
+-- FIX: ha playerStats[src] nil (pl. resource restart), DB-ből töltjük be
+local function EnsureStats(src)
+    if playerStats[src] then return playerStats[src] end
+
+    local player = exports['fvg-playercore']:GetPlayer(src)
+    if not player then return nil end
+
+    local row = exports['fvg-database']:QuerySingle(
+        'SELECT * FROM `fvg_courier_stats` WHERE `player_id` = ?',
+        { player.id }
+    )
+    if row then
+        playerStats[src] = {
+            player_id        = player.id,
+            xp               = row.xp,
+            level            = row.level,
+            total_deliveries = row.total_deliveries,
+            total_runs       = row.total_runs,
+            perfect_runs     = row.perfect_runs,
+            streak           = row.streak,
+            total_earned     = row.total_earned,
+        }
+    else
+        exports['fvg-database']:Insert(
+            'INSERT INTO `fvg_courier_stats` (`player_id`) VALUES (?)',
+            { player.id }
+        )
+        playerStats[src] = {
+            player_id=player.id, xp=0, level=1,
+            total_deliveries=0, total_runs=0, perfect_runs=0,
+            streak=0, total_earned=0,
+        }
+    end
+    return playerStats[src]
+end
+
+-- ── Betöltés ──────────────────────────────────────────────
 AddEventHandler('fvg-playercore:server:PlayerLoaded', function(src, player)
     local row = exports['fvg-database']:QuerySingle(
         'SELECT * FROM `fvg_courier_stats` WHERE `player_id` = ?',
@@ -135,7 +185,7 @@ AddEventHandler('fvg-playercore:server:PlayerUnloaded', function(src, _)
     playerStats[src] = nil
 end)
 
--- ── XP + Szint mentés ───────────────────────────────────────────
+-- ── XP + Szint mentés ─────────────────────────────────────
 local function SaveStats(src)
     local s = playerStats[src]
     if not s then return end
@@ -160,9 +210,9 @@ local function AddXP(src, amount)
     end
 end
 
--- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════
 --  EXPORTOK
--- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════
 
 exports('GetActiveDelivery', function(src)
     return activeRuns[tonumber(src)]
@@ -172,18 +222,9 @@ exports('GetPlayerStats', function(src)
     return playerStats[tonumber(src)]
 end)
 
+-- FIX: FetchLeaderboard lokális függvényt hívja, nem saját exportját
 exports('GetLeaderboard', function(limit)
-    limit = math.min(tonumber(limit) or 10, 50)
-    local rows = exports['fvg-database']:Query(
-        [[SELECT cs.player_id, cs.xp, cs.level, cs.total_deliveries, cs.total_earned,
-                 p.firstname, p.lastname
-          FROM `fvg_courier_stats` cs
-          LEFT JOIN `fvg_players` p ON p.id = cs.player_id
-          ORDER BY cs.total_deliveries DESC
-          LIMIT ?]],
-        { limit }
-    )
-    return rows or {}
+    return FetchLeaderboard(limit)
 end)
 
 exports('ForceStartDelivery', function(src)
@@ -198,9 +239,9 @@ exports('CancelDelivery', function(src)
     end
 end)
 
--- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════
 --  NET EVENTS
--- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════
 
 RegisterNetEvent('fvg-courier:server:ToggleDuty', function()
     local src = source
@@ -212,16 +253,19 @@ RegisterNetEvent('fvg-courier:server:ToggleDuty', function()
         Notify(src, 'Előbb fejezd be az aktív kört!', 'warning')
         return
     end
-    TriggerClientEvent('fvg-courier:client:ToggleDuty', src, playerStats[src])
+    -- EnsureStats hogy biztosan meglegyen
+    local stats = EnsureStats(src)
+    TriggerClientEvent('fvg-courier:client:ToggleDuty', src, stats)
 end)
 
 RegisterNetEvent('fvg-courier:server:RequestPanel', function()
     local src = source
     if not HasJob(src) then return end
-    local stats     = playerStats[src]
+    local stats     = EnsureStats(src)
     local levelData = GetLevelData(stats and stats.xp or 0)
     local nextLevel = GetNextLevel(stats and stats.xp or 0)
-    local lb        = exports['fvg-courier']:GetLeaderboard(10)
+    -- FIX: lokális FetchLeaderboard, nem export
+    local lb        = FetchLeaderboard(10)
     TriggerClientEvent('fvg-courier:client:OpenPanel', src, {
         stats              = stats,
         levelData          = levelData,
@@ -242,10 +286,16 @@ AddEventHandler('fvg-courier:server:StartRun', function(srcOverride)
         Notify(src, 'Már van aktív köröd!', 'warning'); return
     end
 
+    -- FIX: EnsureStats – ha nil, DB-ből tölti be, nem crash
+    local stats = EnsureStats(src)
+    if not stats then
+        Notify(src, 'Nem sikerült betölteni az adataidat. Próbáld újra.', 'error')
+        return
+    end
+
     local spots   = PickRandomSpots(Config.PackagesPerRun)
     local runId   = GenRunId()
-    local stats   = playerStats[src]
-    local lvlData = GetLevelData(stats and stats.xp or 0)
+    local lvlData = GetLevelData(stats.xp)
 
     local dbId = exports['fvg-database']:Insert(
         'INSERT INTO `fvg_courier_deliveries` (`player_id`,`run_id`,`spots_total`) VALUES (?,?,?)',
@@ -302,8 +352,9 @@ RegisterNetEvent('fvg-courier:server:DeliverPackage', function(spotIdx, delivery
     local spot = run.spots[spotIdx]
     if not spot or spot.done then return end
 
-    local stats   = playerStats[src]
-    local lvlData = GetLevelData(stats and stats.xp or 0)
+    local stats   = EnsureStats(src)
+    if not stats then return end
+
     local reward  = math.floor(Config.BaseReward * (run.rewardMult or 1.0))
     local bonuses = {}
 
