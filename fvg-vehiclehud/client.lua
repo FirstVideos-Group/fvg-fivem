@@ -9,7 +9,7 @@ local _inVehicle     = false
 local _lastVehicle   = 0
 
 -- ── Modul regisztrátor ──────────────────────────────────────
-local function RegisterModule(id, tickFn)
+function RegisterModule(id, tickFn)
     if _moduleIndex[id] then return end
 
     local cfg = Config.Modules[id]

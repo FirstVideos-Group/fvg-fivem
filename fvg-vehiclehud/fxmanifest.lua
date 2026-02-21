@@ -16,8 +16,8 @@ files {
 
 client_scripts {
     'config.lua',
-    'modules/*.lua',
-    'client/client.lua'
+    'client.lua',
+    'modules/*.lua'
 }
 
 exports {
